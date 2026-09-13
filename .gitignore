@@ -1,0 +1,13 @@
+.DS_Store
+/.env
+/.idea/
+/.phpunit.result.cache
+/.phpcs-cache
+/.vscode/
+/build/
+/coverage/
+/dist/
+/node_modules/
+/vendor/
+
+# composer.lock is intentionally tracked for reproducible development installs.

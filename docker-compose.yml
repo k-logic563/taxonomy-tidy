@@ -1,0 +1,100 @@
+services:
+  database:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ${WP_DB_NAME:-wordpress}
+      MYSQL_USER: ${WP_DB_USER:-wordpress}
+      MYSQL_PASSWORD: ${WP_DB_PASSWORD:-wordpress}
+      MYSQL_ROOT_PASSWORD: ${WP_DB_ROOT_PASSWORD:-root}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - wordpress_database:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:6.6.2-php8.2-apache
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: database:3306
+      WORDPRESS_DB_NAME: ${WP_DB_NAME:-wordpress}
+      WORDPRESS_DB_USER: ${WP_DB_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD:-wordpress}
+      WORDPRESS_DEBUG: ${WP_DEBUG:-1}
+    ports:
+      - "${WP_PORT:-8080}:80"
+    volumes:
+      - wordpress_files:/var/www/html
+      - ./:/var/www/html/wp-content/plugins/taxonomy-tidy
+      - composer_vendor:/var/www/html/wp-content/plugins/taxonomy-tidy/vendor
+
+  wp-cli:
+    image: wordpress:cli-2.11.0-php8.2
+    depends_on:
+      database:
+        condition: service_healthy
+      wordpress:
+        condition: service_started
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: database:3306
+      WORDPRESS_DB_NAME: ${WP_DB_NAME:-wordpress}
+      WORDPRESS_DB_USER: ${WP_DB_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD:-wordpress}
+    entrypoint: ["wp"]
+    volumes:
+      - wordpress_files:/var/www/html
+      - ./:/var/www/html/wp-content/plugins/taxonomy-tidy
+      - composer_vendor:/var/www/html/wp-content/plugins/taxonomy-tidy/vendor
+
+  composer:
+    image: composer:2.8
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - composer_vendor:/app/vendor
+
+  test-database:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: taxonomy_tidy_tests
+      MYSQL_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  test:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    depends_on:
+      test-database:
+        condition: service_healthy
+    working_dir: /app
+    environment:
+      WP_CORE_DIR: /tmp/wordpress
+      WP_TESTS_DIR: /tmp/wordpress-tests-lib
+      WP_TESTS_DB_HOST: test-database
+      WP_TESTS_DB_NAME: taxonomy_tidy_tests
+      WP_TESTS_DB_USER: root
+      WP_TESTS_DB_PASSWORD: root
+      WP_VERSION: 6.6.2
+    volumes:
+      - ./:/app
+      - composer_vendor:/app/vendor
+      - wordpress_test_core:/tmp/wordpress
+      - wordpress_test_library:/tmp/wordpress-tests-lib
+    command: ["bin/run-tests.sh"]
+
+volumes:
+  composer_vendor:
+  wordpress_database:
+  wordpress_files:
+  wordpress_test_core:
+  wordpress_test_library:
