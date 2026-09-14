@@ -1,0 +1,264 @@
+<?php
+/**
+ * Operation persistence.
+ *
+ * @package TaxonomyTidy
+ */
+
+declare(strict_types=1);
+
+namespace TaxonomyTidy\Infrastructure\Persistence;
+
+use TaxonomyTidy\Domain\Operation\InvalidStatusTransition;
+use TaxonomyTidy\Domain\Operation\Status;
+use TaxonomyTidy\Domain\Operation\StatusTransitions;
+use TaxonomyTidy\Domain\Operation\Taxonomy;
+use TaxonomyTidy\Infrastructure\Database\Tables;
+use wpdb;
+
+/**
+ * Stores operation metadata and applies atomic state transitions.
+ */
+final class OperationRepository {
+	/**
+	 * WordPress database connection.
+	 *
+	 * @var wpdb
+	 */
+	private wpdb $database;
+
+	/**
+	 * Operation table name.
+	 *
+	 * @var string
+	 */
+	private string $table;
+
+	/**
+	 * Creates the repository for a site database.
+	 *
+	 * @param \wpdb $database WordPress database connection.
+	 */
+	public function __construct( wpdb $database ) {
+		$this->database = $database;
+		$this->table    = Tables::operations( $database );
+	}
+
+	/**
+	 * Creates a draft operation.
+	 *
+	 * @param int                  $user_id             Administrator user ID.
+	 * @param Taxonomy             $taxonomy            Supported taxonomy.
+	 * @param array<string, mixed> $requested_data      Requested operation data.
+	 * @param int|null             $parent_operation_id Original operation for an undo record.
+	 * @throws PersistenceException When JSON encoding or database insertion fails.
+	 */
+	public function create(
+		int $user_id,
+		Taxonomy $taxonomy,
+		array $requested_data = array(),
+		?int $parent_operation_id = null
+	): int {
+		$now = current_time( 'mysql', true );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$result = $this->database->insert(
+			$this->table,
+			array(
+				'parent_operation_id' => $parent_operation_id,
+				'user_id'             => $user_id,
+				'taxonomy'            => $taxonomy->value,
+				'status'              => Status::DRAFT->value,
+				'requested_data'      => Json::encode( $requested_data ),
+				'created_at'          => $now,
+				'updated_at'          => $now,
+			),
+			array( '%d', '%d', '%s', '%s', '%s', '%s', '%s' )
+		);
+
+		if ( false === $result ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; not HTML output.
+			throw new PersistenceException( 'The operation could not be created.' );
+		}
+
+		return (int) $this->database->insert_id;
+	}
+
+	/**
+	 * Returns a stored operation or null when it does not exist.
+	 *
+	 * @param int $operation_id Operation ID to retrieve.
+	 * @return array<string, mixed>|null
+	 * @throws \JsonException       When a stored JSON field is invalid.
+	 * @throws PersistenceException When a stored JSON field is not an array.
+	 */
+	public function find( int $operation_id ): ?array {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$row = $this->database->get_row(
+			$this->database->prepare(
+				'SELECT * FROM %i WHERE id = %d',
+				$this->table,
+				$operation_id
+			),
+			ARRAY_A
+		);
+
+		if ( ! is_array( $row ) ) {
+			return null;
+		}
+
+		$row['id']                  = (int) $row['id'];
+		$row['parent_operation_id'] = null === $row['parent_operation_id']
+			? null
+			: (int) $row['parent_operation_id'];
+		$row['user_id']             = (int) $row['user_id'];
+		$row['requested_data']      = Json::decode( (string) $row['requested_data'] );
+		$row['result_data']         = $this->decode_nullable_json( $row['result_data'] );
+		$row['errors']              = $this->decode_nullable_json( $row['errors'] );
+		$row['warnings']            = $this->decode_nullable_json( $row['warnings'] );
+
+		return $row;
+	}
+
+	/**
+	 * Stores the normalized preview inputs without changing operation state.
+	 *
+	 * @param int                  $operation_id     Operation ID.
+	 * @param string               $plan_hash        Normalized plan hash.
+	 * @param string               $state_fingerprint Relevant taxonomy-state fingerprint.
+	 * @param array<string, mixed> $requested_data   Normalized requested data.
+	 * @throws PersistenceException When requested data cannot be encoded.
+	 */
+	public function save_preview_context(
+		int $operation_id,
+		string $plan_hash,
+		string $state_fingerprint,
+		array $requested_data
+	): bool {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$result = $this->database->update(
+			$this->table,
+			array(
+				'plan_hash'         => $plan_hash,
+				'state_fingerprint' => $state_fingerprint,
+				'requested_data'    => Json::encode( $requested_data ),
+				'updated_at'        => current_time( 'mysql', true ),
+			),
+			array( 'id' => $operation_id )
+		);
+
+		return false !== $result;
+	}
+
+	/**
+	 * Stores truthful execution or undo summary data.
+	 *
+	 * @param int                  $operation_id Operation ID.
+	 * @param array<string, mixed> $result_data  Actual result summary.
+	 * @param array<string, mixed> $errors       Errors keyed for later reporting.
+	 * @param array<string, mixed> $warnings     Warnings keyed for later reporting.
+	 * @throws PersistenceException When result data cannot be encoded.
+	 */
+	public function save_result(
+		int $operation_id,
+		array $result_data,
+		array $errors = array(),
+		array $warnings = array()
+	): bool {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$result = $this->database->update(
+			$this->table,
+			array(
+				'result_data' => Json::encode( $result_data ),
+				'errors'      => Json::encode( $errors ),
+				'warnings'    => Json::encode( $warnings ),
+				'updated_at'  => current_time( 'mysql', true ),
+			),
+			array( 'id' => $operation_id )
+		);
+
+		return false !== $result;
+	}
+
+	/**
+	 * Applies a validated, compare-and-set status transition.
+	 *
+	 * InvalidStatusTransition, \JsonException, and \ValueError may propagate from
+	 * transition validation and stored-operation decoding.
+	 *
+	 * @param int    $operation_id Operation ID to transition.
+	 * @param Status $to           Requested next status.
+	 * @throws PersistenceException When the operation is missing or cannot be updated.
+	 */
+	public function transition( int $operation_id, Status $to ): void {
+		$operation = $this->find( $operation_id );
+
+		if ( null === $operation ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; not HTML output.
+			throw new PersistenceException( 'The operation does not exist.' );
+		}
+
+		$from = Status::from( (string) $operation['status'] );
+		StatusTransitions::assert_allowed( $from, $to );
+
+		$now  = current_time( 'mysql', true );
+		$data = array(
+			'status'     => $to->value,
+			'updated_at' => $now,
+		);
+
+		if ( Status::RUNNING === $to ) {
+			$data['started_at'] = $now;
+		}
+
+		if ( in_array( $to, self::terminal_statuses(), true ) ) {
+			$data['completed_at'] = $now;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$result = $this->database->update(
+			$this->table,
+			$data,
+			array(
+				'id'     => $operation_id,
+				'status' => $from->value,
+			)
+		);
+
+		if ( 1 !== $result ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; not HTML output.
+			throw new PersistenceException( 'The operation status changed concurrently or could not be saved.' );
+		}
+	}
+
+	/**
+	 * Returns statuses that finish an execution or undo attempt.
+	 *
+	 * @return list<Status>
+	 */
+	private static function terminal_statuses(): array {
+		return array(
+			Status::COMPLETED,
+			Status::PARTIAL_FAILED,
+			Status::FAILED,
+			Status::UNDONE,
+			Status::UNDO_PARTIAL_FAILED,
+		);
+	}
+
+	/**
+	 * Decodes a nullable JSON database field.
+	 *
+	 * @param mixed $value Nullable database field value.
+	 * @return array<string, mixed>|null
+	 * @throws \JsonException       When the stored value is invalid JSON.
+	 * @throws PersistenceException When the stored value is not an array.
+	 */
+	private function decode_nullable_json( mixed $value ): ?array {
+		if ( null === $value ) {
+			return null;
+		}
+
+		return Json::decode( (string) $value );
+	}
+}

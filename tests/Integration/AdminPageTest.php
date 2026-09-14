@@ -15,9 +15,16 @@ use TaxonomyTidy\Admin\Page;
 use WP_UnitTestCase;
 
 /**
- * Verifies the complete Phase 1 access policy.
+ * Verifies the access policy and read-only taxonomy screen.
  */
 final class AdminPageTest extends WP_UnitTestCase {
+	/**
+	 * Query parameters present before each test.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $original_get;
+
 	/**
 	 * Admin page under test.
 	 *
@@ -31,6 +38,9 @@ final class AdminPageTest extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 		$this->page = new Page();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The test preserves read-only query state; it does not process a request.
+		$this->original_get = $_GET;
+		$_GET               = array();
 	}
 
 	/**
@@ -38,6 +48,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 	 */
 	public function tear_down(): void {
 		wp_set_current_user( 0 );
+		$_GET = $this->original_get;
 		parent::tear_down();
 	}
 
@@ -55,6 +66,42 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$output = (string) ob_get_clean();
 
 		$this->assertStringContainsString( '<h1>Taxonomy Tidy</h1>', $output );
+		$this->assertStringContainsString( 'nav-tab-wrapper', $output );
+		$this->assertStringContainsString( 'Published posts', $output );
+		$this->assertStringContainsString( 'Total relationships', $output );
+	}
+
+	/**
+	 * The tag screen does not include matching category rows.
+	 */
+	public function test_category_and_tag_rows_are_rendered_in_separate_views(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Inventory Screen Category',
+			)
+		);
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Inventory Screen Tag',
+			)
+		);
+
+		$_GET = array(
+			'taxonomy' => 'post_tag',
+			's'        => 'Inventory Screen',
+		);
+
+		ob_start();
+		$this->page->render();
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'Inventory Screen Tag', $output );
+		$this->assertStringNotContainsString( 'Inventory Screen Category', $output );
 	}
 
 	/**

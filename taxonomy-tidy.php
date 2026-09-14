@@ -25,6 +25,8 @@ define( 'TAXONOMY_TIDY_PLUGIN_FILE', __FILE__ );
 
 require_once __DIR__ . '/bootstrap/dependencies.php';
 
+add_action( 'init', 'TaxonomyTidy\\load_translations' );
+
 if ( ! TaxonomyTidy\has_runtime_dependencies( __DIR__ ) ) {
 	add_action( 'admin_notices', 'TaxonomyTidy\\render_missing_dependencies_notice' );
 	return;

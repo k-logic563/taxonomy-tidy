@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace TaxonomyTidy;
 
+use TaxonomyTidy\Infrastructure\Database\Schema;
+
 /**
  * Handles activation and deactivation without creating persistent data yet.
  */
@@ -17,7 +19,7 @@ final class Lifecycle {
 	 * Runs when the plugin is activated.
 	 */
 	public static function activate(): void {
-		// Phase 1 intentionally creates no options or database tables.
+		Schema::install();
 	}
 
 	/**

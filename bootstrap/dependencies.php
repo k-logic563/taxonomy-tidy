@@ -10,6 +10,17 @@ declare(strict_types=1);
 namespace TaxonomyTidy;
 
 /**
+ * Loads bundled translations without depending on the Composer autoloader.
+ */
+function load_translations(): void {
+	load_plugin_textdomain(
+		'taxonomy-tidy',
+		false,
+		dirname( plugin_basename( TAXONOMY_TIDY_PLUGIN_FILE ) ) . '/languages'
+	);
+}
+
+/**
  * Returns whether the Composer runtime autoloader is available.
  *
  * @param string $plugin_directory Absolute plugin directory.

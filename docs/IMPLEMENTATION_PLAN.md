@@ -78,9 +78,9 @@ Do not report a phase as complete when required checks were skipped or failed.
 
 | Phase | Name | Status |
 |---|---|---|
-| 1 | Development foundation and plugin skeleton | Blocked |
-| 2 | Persistence and operation state | Not started |
-| 3 | Accurate taxonomy inventory | Not started |
+| 1 | Development foundation and plugin skeleton | Completed |
+| 2 | Persistence and operation state | Completed |
+| 3 | Accurate taxonomy inventory | Completed |
 | 4 | Plan validation and preview | Not started |
 | 5 | Batched execution and recovery | Not started |
 | 6 | History and undo | Not started |

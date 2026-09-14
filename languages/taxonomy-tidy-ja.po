@@ -1,0 +1,154 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Taxonomy Tidy 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/taxonomy-tidy\n"
+"Last-Translator: Taxonomy Tidy Contributors\n"
+"Language-Team: Japanese\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-14T12:49:10+00:00\n"
+"PO-Revision-Date: 2026-09-14 21:50+0900\n"
+"Language: ja\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: taxonomy-tidy\n"
+
+#. Plugin Name of the plugin
+#: taxonomy-tidy.php
+#: src/Admin/Page.php:35
+#: src/Admin/Page.php:36
+#: src/Admin/Page.php:75
+msgid "Taxonomy Tidy"
+msgstr "Taxonomy Tidy"
+
+#. Description of the plugin
+#: taxonomy-tidy.php
+msgid "Safely organize WordPress categories and tags in bulk."
+msgstr "WordPressのカテゴリーとタグを安全に一括整理します。"
+
+#. Author of the plugin
+#: taxonomy-tidy.php
+msgid "Taxonomy Tidy Contributors"
+msgstr "Taxonomy Tidy コントリビューター"
+
+#: bootstrap/dependencies.php:40
+msgid "Taxonomy Tidy could not start because vendor/autoload.php is missing."
+msgstr "vendor/autoload.phpが見つからないため、Taxonomy Tidyを起動できませんでした。"
+
+#: src/Admin/Page.php:49
+msgid "You are not allowed to access Taxonomy Tidy."
+msgstr "Taxonomy Tidyへアクセスする権限がありません。"
+
+#: src/Admin/Page.php:50
+msgid "Access denied"
+msgstr "アクセス拒否"
+
+#: src/Admin/Page.php:68
+#: src/Admin/Page.php:77
+msgid "Categories"
+msgstr "カテゴリー"
+
+#: src/Admin/Page.php:69
+#: src/Admin/Page.php:78
+msgid "Tags"
+msgstr "タグ"
+
+#: src/Admin/Page.php:71
+msgid "Category"
+msgstr "カテゴリー"
+
+#: src/Admin/Page.php:72
+msgid "Tag"
+msgstr "タグ"
+
+#: src/Admin/Page.php:76
+msgid "Taxonomy views"
+msgstr "カテゴリーとタグの表示切り替え"
+
+#: src/Admin/Page.php:89
+#: src/Admin/Page.php:92
+msgid "Search terms"
+msgstr "カテゴリー・タグを検索"
+
+#: src/Admin/Page.php:98
+msgid "Sort terms by"
+msgstr "並び順"
+
+#: src/Admin/Page.php:101
+#: src/Admin/Page.php:125
+msgid "Name"
+msgstr "名前"
+
+#: src/Admin/Page.php:102
+#: src/Admin/Page.php:129
+msgid "Published posts"
+msgstr "公開済み投稿数"
+
+#: src/Admin/Page.php:106
+msgid "Sort direction"
+msgstr "並び順の方向"
+
+#: src/Admin/Page.php:109
+msgid "Ascending"
+msgstr "昇順"
+
+#: src/Admin/Page.php:110
+msgid "Descending"
+msgstr "降順"
+
+#: src/Admin/Page.php:115
+msgid "Globally unused only"
+msgstr "完全に未使用"
+
+#: src/Admin/Page.php:117
+msgid "Filter"
+msgstr "絞り込み"
+
+#: src/Admin/Page.php:126
+msgid "Slug"
+msgstr "スラッグ"
+
+#: src/Admin/Page.php:127
+msgid "Type"
+msgstr "種別"
+
+#: src/Admin/Page.php:128
+msgid "Parent category"
+msgstr "親カテゴリー"
+
+#: src/Admin/Page.php:130
+msgid "Total relationships"
+msgstr "全体の使用数"
+
+#: src/Admin/Page.php:131
+msgid "Usage"
+msgstr "利用状況"
+
+#: src/Admin/Page.php:136
+msgid "No terms found."
+msgstr "条件に一致するカテゴリー・タグはありません"
+
+#: src/Admin/Page.php:204
+msgid "—"
+msgstr "—"
+
+#: src/Admin/Page.php:214
+msgid "Used by published posts"
+msgstr "公開済み投稿で使用中"
+
+#: src/Admin/Page.php:218
+msgid "Used outside published posts"
+msgstr "公開済み投稿以外で使用中"
+
+#: src/Admin/Page.php:221
+msgid "Globally unused"
+msgstr "完全に未使用"
+
+#: src/Admin/Page.php:265
+msgid "Previous"
+msgstr "前へ"
+
+#: src/Admin/Page.php:266
+msgid "Next"
+msgstr "次へ"

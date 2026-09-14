@@ -6,6 +6,7 @@
 	<file>bootstrap</file>
 	<file>src</file>
 	<file>tests</file>
+	<file>tools</file>
 
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>*/wordpress/*</exclude-pattern>
