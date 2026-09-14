@@ -96,15 +96,25 @@ final class I18nTest extends WP_UnitTestCase {
 			'Category'                                     => 'カテゴリー',
 			'Tag'                                          => 'タグ',
 			'Taxonomy views'                               => 'カテゴリーとタグの表示切り替え',
-			'Search terms'                                 => 'カテゴリー・タグを検索',
-			'Sort terms by'                                => '並び順',
+			'Search and filter'                            => '検索・絞り込み',
+			'Active conditions'                            => '適用中の条件',
+			'Search and filter terms'                      => 'カテゴリー・タグの検索・絞り込み',
+			'Find by keyword'                              => 'キーワードで探す',
+			'Keyword'                                      => 'キーワード',
+			'Search by name or slug.'                      => '名前またはスラッグから検索できます',
+			'Filter displayed terms'                       => '表示対象を絞る',
+			'Sort order'                                   => '並び順',
+			'Sort by'                                      => '並び替え対象',
 			'Name'                                         => '名前',
 			'Published posts'                              => '公開済み投稿数',
-			'Sort direction'                               => '並び順の方向',
+			'Direction'                                    => '並び順',
 			'Ascending'                                    => '昇順',
 			'Descending'                                   => '降順',
-			'Globally unused only'                         => '完全に未使用',
-			'Filter'                                       => '絞り込み',
+			'Globally unused only'                         => '完全に未使用のみ',
+			'Apply conditions'                             => '条件を適用',
+			'Reset conditions'                             => '条件をリセット',
+			'Keyword: %s'                                  => 'キーワード：%s',
+			'No active conditions'                         => '条件なし',
 			'Slug'                                         => 'スラッグ',
 			'Type'                                         => '種別',
 			'Parent category'                              => '親カテゴリー',
@@ -124,7 +134,13 @@ final class I18nTest extends WP_UnitTestCase {
 			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- The test intentionally checks every literal catalog entry through one assertion loop.
 			$this->assertSame( $translation, __( $source, 'taxonomy-tidy' ) );
 		}
-		$this->assertStringContainsString( 'カテゴリー・タグを検索', $output );
+		$this->assertStringContainsString( '検索・絞り込み', $output );
+		$this->assertStringContainsString( 'キーワードで探す', $output );
+		$this->assertStringContainsString( '3件の条件を適用中', $output );
+		$this->assertStringContainsString( 'キーワード：Locale Inventory', $output );
+		$this->assertStringContainsString( '名前 · 降順', $output );
+		$this->assertStringContainsString( '条件を適用', $output );
+		$this->assertStringContainsString( '条件をリセット', $output );
 		$this->assertStringContainsString( '公開済み投稿数', $output );
 		$this->assertStringContainsString( '全体の使用数', $output );
 		$this->assertStringContainsString( '完全に未使用', $output );
@@ -132,7 +148,7 @@ final class I18nTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'Locale Inventory 002', $output );
 		$this->assertStringContainsString( '前へ', $output );
 
-		foreach ( array( 'Categories', 'Tags', 'Search terms', 'Published posts', 'Total relationships', 'No terms found.' ) as $english ) {
+		foreach ( array( 'Categories', 'Tags', 'Search and filter', 'Find by keyword', 'Published posts', 'Total relationships', 'No terms found.' ) as $english ) {
 			$this->assertStringNotContainsString( ">{$english}<", $output );
 		}
 
@@ -157,10 +173,12 @@ final class I18nTest extends WP_UnitTestCase {
 		$output = (string) ob_get_clean();
 
 		$this->assertSame( 'Categories', __( 'Categories', 'taxonomy-tidy' ) );
-		$this->assertStringContainsString( 'Search terms', $output );
+		$this->assertStringContainsString( 'Search and filter', $output );
+		$this->assertStringContainsString( 'Find by keyword', $output );
+		$this->assertStringContainsString( 'Apply conditions', $output );
 		$this->assertStringContainsString( 'Published posts', $output );
 		$this->assertStringContainsString( 'Total relationships', $output );
-		$this->assertStringNotContainsString( 'カテゴリー・タグを検索', $output );
+		$this->assertStringNotContainsString( '検索・絞り込み', $output );
 	}
 
 	/**

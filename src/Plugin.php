@@ -64,6 +64,7 @@ final class Plugin {
 		}
 
 		add_action( 'admin_menu', array( $this->admin_page, 'register_menu' ) );
+		add_action( 'admin_enqueue_scripts', array( $this->admin_page, 'enqueue_assets' ) );
 		add_action( 'plugins_loaded', array( Schema::class, 'maybe_upgrade' ) );
 		$this->registered = true;
 	}

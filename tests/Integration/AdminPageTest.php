@@ -67,8 +67,60 @@ final class AdminPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<h1>Taxonomy Tidy</h1>', $output );
 		$this->assertStringContainsString( 'nav-tab-wrapper', $output );
+		$this->assertStringContainsString( '<details class="taxonomy-tidy-panel taxonomy-tidy-filter-panel" open>', $output );
+		$this->assertStringContainsString( '<summary class="taxonomy-tidy-panel__summary">', $output );
+		$this->assertStringContainsString( 'No active conditions', $output );
+		$this->assertStringContainsString( '<label for="taxonomy-tidy-search">Keyword</label>', $output );
+		$this->assertStringContainsString( 'aria-describedby="taxonomy-tidy-search-description"', $output );
+		$this->assertStringContainsString( '<label for="taxonomy-tidy-orderby">Sort by</label>', $output );
+		$this->assertStringContainsString( '<label for="taxonomy-tidy-order">Direction</label>', $output );
+		$this->assertStringContainsString( 'Apply conditions', $output );
+		$this->assertStringContainsString( 'Reset conditions', $output );
+		$this->assertSame( 1, substr_count( $output, '<form ' ) );
 		$this->assertStringContainsString( 'Published posts', $output );
 		$this->assertStringContainsString( 'Total relationships', $output );
+	}
+
+	/**
+	 * A submitted GET request preserves all controls and exposes active conditions.
+	 */
+	public function test_filter_form_preserves_values_and_reset_clears_all_conditions(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
+		$_GET = array(
+			'page'     => Page::SLUG,
+			'taxonomy' => 'post_tag',
+			's'        => 'WordPress',
+			'orderby'  => 'published_count',
+			'order'    => 'desc',
+			'unused'   => '1',
+			'paged'    => '7',
+		);
+
+		ob_start();
+		$this->page->render();
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'value="WordPress"', $output );
+		$this->assertMatchesRegularExpression( '/value="published_count"\s+selected=[\'\"]selected[\'\"]/', $output );
+		$this->assertMatchesRegularExpression( '/value="desc"\s+selected=[\'\"]selected[\'\"]/', $output );
+		$this->assertMatchesRegularExpression( '/name="unused"\s+value="1"\s+checked=[\'\"]checked[\'\"]/', $output );
+		$this->assertStringContainsString( '3 active conditions', $output );
+		$this->assertStringContainsString( 'Keyword: WordPress', $output );
+		$this->assertStringContainsString( 'Globally unused', $output );
+		$this->assertStringContainsString( 'Published posts · Descending', $output );
+
+		$matched = preg_match( '/<a class="button button-secondary" href="([^"]+)">/', $output, $matches );
+		$this->assertSame( 1, $matched );
+		$reset_url = html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' );
+		$this->assertStringContainsString( 'page=taxonomy-tidy', $reset_url );
+		$this->assertStringContainsString( 'taxonomy=post_tag', $reset_url );
+		$this->assertStringNotContainsString( 's=', $reset_url );
+		$this->assertStringNotContainsString( 'unused=', $reset_url );
+		$this->assertStringNotContainsString( 'orderby=', $reset_url );
+		$this->assertStringNotContainsString( 'order=', $reset_url );
+		$this->assertStringNotContainsString( 'paged=', $reset_url );
 	}
 
 	/**

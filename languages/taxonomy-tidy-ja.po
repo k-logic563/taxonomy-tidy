@@ -18,7 +18,7 @@ msgstr ""
 #: taxonomy-tidy.php
 #: src/Admin/Page.php:35
 #: src/Admin/Page.php:36
-#: src/Admin/Page.php:75
+#: src/Admin/Page.php:94
 msgid "Taxonomy Tidy"
 msgstr "Taxonomy Tidy"
 
@@ -36,119 +36,177 @@ msgstr "Taxonomy Tidy コントリビューター"
 msgid "Taxonomy Tidy could not start because vendor/autoload.php is missing."
 msgstr "vendor/autoload.phpが見つからないため、Taxonomy Tidyを起動できませんでした。"
 
-#: src/Admin/Page.php:49
+#: src/Admin/Page.php:67
 msgid "You are not allowed to access Taxonomy Tidy."
 msgstr "Taxonomy Tidyへアクセスする権限がありません。"
 
-#: src/Admin/Page.php:50
+#: src/Admin/Page.php:68
 msgid "Access denied"
 msgstr "アクセス拒否"
 
-#: src/Admin/Page.php:68
-#: src/Admin/Page.php:77
+#: src/Admin/Page.php:86
+#: src/Admin/Page.php:96
 msgid "Categories"
 msgstr "カテゴリー"
 
-#: src/Admin/Page.php:69
-#: src/Admin/Page.php:78
+#: src/Admin/Page.php:87
+#: src/Admin/Page.php:97
 msgid "Tags"
 msgstr "タグ"
 
-#: src/Admin/Page.php:71
+#: src/Admin/Page.php:89
 msgid "Category"
 msgstr "カテゴリー"
 
-#: src/Admin/Page.php:72
+#: src/Admin/Page.php:90
 msgid "Tag"
 msgstr "タグ"
 
-#: src/Admin/Page.php:76
+#: src/Admin/Page.php:95
 msgid "Taxonomy views"
 msgstr "カテゴリーとタグの表示切り替え"
 
-#: src/Admin/Page.php:89
-#: src/Admin/Page.php:92
-msgid "Search terms"
-msgstr "カテゴリー・タグを検索"
-
-#: src/Admin/Page.php:98
-msgid "Sort terms by"
-msgstr "並び順"
-
-#: src/Admin/Page.php:101
-#: src/Admin/Page.php:125
+#: src/Admin/Page.php:150
+#: src/Admin/Page.php:177
+#: src/Admin/Page.php:192
+#: src/Admin/Page.php:303
 msgid "Name"
 msgstr "名前"
 
-#: src/Admin/Page.php:102
-#: src/Admin/Page.php:129
+#: src/Admin/Page.php:151
+#: src/Admin/Page.php:181
+#: src/Admin/Page.php:196
+#: src/Admin/Page.php:302
 msgid "Published posts"
 msgstr "公開済み投稿数"
 
-#: src/Admin/Page.php:106
-msgid "Sort direction"
-msgstr "並び順の方向"
-
-#: src/Admin/Page.php:109
+#: src/Admin/Page.php:157
+#: src/Admin/Page.php:306
 msgid "Ascending"
 msgstr "昇順"
 
-#: src/Admin/Page.php:110
+#: src/Admin/Page.php:158
+#: src/Admin/Page.php:305
 msgid "Descending"
 msgstr "降順"
 
-#: src/Admin/Page.php:115
+#: src/Admin/Page.php:140
 msgid "Globally unused only"
-msgstr "完全に未使用"
+msgstr "完全に未使用のみ"
 
-#: src/Admin/Page.php:117
-msgid "Filter"
-msgstr "絞り込み"
-
-#: src/Admin/Page.php:126
+#: src/Admin/Page.php:178
+#: src/Admin/Page.php:193
 msgid "Slug"
 msgstr "スラッグ"
 
-#: src/Admin/Page.php:127
+#: src/Admin/Page.php:179
+#: src/Admin/Page.php:194
 msgid "Type"
 msgstr "種別"
 
-#: src/Admin/Page.php:128
+#: src/Admin/Page.php:180
+#: src/Admin/Page.php:195
 msgid "Parent category"
 msgstr "親カテゴリー"
 
-#: src/Admin/Page.php:130
+#: src/Admin/Page.php:182
+#: src/Admin/Page.php:197
 msgid "Total relationships"
 msgstr "全体の使用数"
 
-#: src/Admin/Page.php:131
+#: src/Admin/Page.php:183
+#: src/Admin/Page.php:198
 msgid "Usage"
 msgstr "利用状況"
 
-#: src/Admin/Page.php:136
+#: src/Admin/Page.php:188
 msgid "No terms found."
 msgstr "条件に一致するカテゴリー・タグはありません"
 
-#: src/Admin/Page.php:204
+#: src/Admin/Page.php:256
 msgid "—"
 msgstr "—"
 
-#: src/Admin/Page.php:214
+#: src/Admin/Page.php:266
 msgid "Used by published posts"
 msgstr "公開済み投稿で使用中"
 
-#: src/Admin/Page.php:218
+#: src/Admin/Page.php:270
 msgid "Used outside published posts"
 msgstr "公開済み投稿以外で使用中"
 
-#: src/Admin/Page.php:221
+#: src/Admin/Page.php:273
+#: src/Admin/Page.php:297
 msgid "Globally unused"
 msgstr "完全に未使用"
 
-#: src/Admin/Page.php:265
+#: src/Admin/Page.php:386
 msgid "Previous"
 msgstr "前へ"
 
-#: src/Admin/Page.php:266
+#: src/Admin/Page.php:387
 msgid "Next"
 msgstr "次へ"
+
+#: src/Admin/Page.php:106
+msgid "Search and filter"
+msgstr "検索・絞り込み"
+
+#: src/Admin/Page.php:113
+msgid "Active conditions"
+msgstr "適用中の条件"
+
+#: src/Admin/Page.php:122
+msgid "Search and filter terms"
+msgstr "カテゴリー・タグの検索・絞り込み"
+
+#: src/Admin/Page.php:128
+msgid "Find by keyword"
+msgstr "キーワードで探す"
+
+#: src/Admin/Page.php:129
+msgid "Keyword"
+msgstr "キーワード"
+
+#: src/Admin/Page.php:132
+msgid "Search by name or slug."
+msgstr "名前またはスラッグから検索できます"
+
+#: src/Admin/Page.php:137
+msgid "Filter displayed terms"
+msgstr "表示対象を絞る"
+
+#: src/Admin/Page.php:145
+msgid "Sort order"
+msgstr "並び順"
+
+#: src/Admin/Page.php:148
+msgid "Sort by"
+msgstr "並び替え対象"
+
+#: src/Admin/Page.php:155
+msgid "Direction"
+msgstr "並び順"
+
+#: src/Admin/Page.php:166
+msgid "Apply conditions"
+msgstr "条件を適用"
+
+#: src/Admin/Page.php:168
+msgid "Reset conditions"
+msgstr "条件をリセット"
+
+#. translators: %s: taxonomy search keyword.
+#: src/Admin/Page.php:291
+msgid "Keyword: %s"
+msgstr "キーワード：%s"
+
+#: src/Admin/Page.php:320
+msgid "No active conditions"
+msgstr "条件なし"
+
+#. translators: %d: number of active search, filter, or sort conditions.
+#: src/Admin/Page.php:325
+msgid "%d active condition"
+msgid_plural "%d active conditions"
+msgstr[0] "%d件の条件を適用中"
