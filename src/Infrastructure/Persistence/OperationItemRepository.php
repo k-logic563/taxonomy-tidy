@@ -78,6 +78,40 @@ final class OperationItemRepository {
 	}
 
 	/**
+	 * Adds an item once and returns its stable row ID on retries.
+	 *
+	 * @param int                  $operation_id Parent operation ID.
+	 * @param string               $item_key     Stable idempotency key.
+	 * @param Action               $action       MVP action type.
+	 * @param array<string, mixed> $payload      Fixed execution payload.
+	 * @throws PersistenceException When payload encoding or insertion fails.
+	 */
+	public function add_once( int $operation_id, string $item_key, Action $action, array $payload ): int {
+		$now = current_time( 'mysql', true );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom item table has no core API or object cache.
+		$result = $this->database->query(
+			$this->database->prepare(
+				'INSERT INTO %i (operation_id, item_key, action, status, payload, created_at, updated_at)
+				VALUES (%d, %s, %s, %s, %s, %s, %s)
+				ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)',
+				$this->table,
+				$operation_id,
+				$item_key,
+				$action->value,
+				ItemStatus::PENDING->value,
+				Json::encode( $payload ),
+				$now,
+				$now
+			)
+		);
+		if ( false === $result ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; not HTML output.
+			throw new PersistenceException( 'The operation item could not be created.' );
+		}
+		return (int) $this->database->insert_id;
+	}
+
+	/**
 	 * Returns pending items in stable keyset order.
 	 *
 	 * An item remains pending while an attempt is in progress. If a request is
@@ -169,6 +203,46 @@ final class OperationItemRepository {
 	 */
 	public function mark_failed( int $item_id, string $error ): bool {
 		return $this->set_terminal_status( $item_id, ItemStatus::FAILED, $error );
+	}
+
+	/**
+	 * Marks a pending item safely skipped.
+	 *
+	 * @param int    $item_id Operation item ID.
+	 * @param string $reason  Safe skip reason code.
+	 */
+	public function mark_skipped( int $item_id, string $reason ): bool {
+		return $this->set_terminal_status( $item_id, ItemStatus::SKIPPED, $reason );
+	}
+
+	/**
+	 * Counts item states for progress reporting.
+	 *
+	 * @param int $operation_id Parent operation ID.
+	 * @return array{total: int, pending: int, completed: int, failed: int, skipped: int}
+	 */
+	public function progress( int $operation_id ): array {
+		$progress = array(
+			'total'     => 0,
+			'pending'   => 0,
+			'completed' => 0,
+			'failed'    => 0,
+			'skipped'   => 0,
+		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom item table has no core API or object cache.
+		$rows = $this->database->get_results(
+			$this->database->prepare( 'SELECT status, COUNT(*) AS item_count FROM %i WHERE operation_id = %d GROUP BY status', $this->table, $operation_id ),
+			ARRAY_A
+		);
+		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+			$status = (string) $row['status'];
+			$count  = (int) $row['item_count'];
+			if ( array_key_exists( $status, $progress ) ) {
+				$progress[ $status ] = $count;
+			}
+			$progress['total'] += $count;
+		}
+		return $progress;
 	}
 
 	/**

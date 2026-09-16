@@ -9,7 +9,16 @@ declare(strict_types=1);
 
 namespace TaxonomyTidy\Admin;
 
+use TaxonomyTidy\Application\Planning\PlanService;
+use TaxonomyTidy\Application\Planning\PlanWorkflow;
+use TaxonomyTidy\Application\Execution\ExecutionWorkflow;
+use TaxonomyTidy\Application\Execution\ItemExecutor;
 use TaxonomyTidy\Domain\Operation\Taxonomy;
+use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
+use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
+use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
+use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
+use TaxonomyTidy\Infrastructure\Persistence\DatabaseTransaction;
 use TaxonomyTidy\Infrastructure\Taxonomy\TermInventoryQuery;
 
 /**
@@ -56,6 +65,13 @@ final class Page {
 			array(),
 			TAXONOMY_TIDY_VERSION
 		);
+		wp_enqueue_script(
+			'taxonomy-tidy-admin',
+			plugins_url( 'assets/js/admin.js', TAXONOMY_TIDY_PLUGIN_FILE ),
+			array(),
+			TAXONOMY_TIDY_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -89,6 +105,18 @@ final class Page {
 			? __( 'Category', 'taxonomy-tidy' )
 			: __( 'Tag', 'taxonomy-tidy' );
 		$conditions     = $this->active_conditions( $search, $orderby, $order, $unused );
+		$operations     = new OperationRepository( $wpdb );
+		$items          = new OperationItemRepository( $wpdb );
+		$plans          = new PlanService();
+		$execution      = new ExecutionWorkflow(
+			$operations,
+			$items,
+			new OperationLock( $wpdb ),
+			$plans,
+			new ItemExecutor( new ChangeJournalRepository( $wpdb ) ),
+			new DatabaseTransaction( $wpdb )
+		);
+		$plan_state     = ( new PlanController( new PlanWorkflow( $operations, $plans ), $execution ) )->handle( $taxonomy );
 		?>
 		<div class="wrap taxonomy-tidy-screen">
 			<h1><?php echo esc_html__( 'Taxonomy Tidy', 'taxonomy-tidy' ); ?></h1>
@@ -99,11 +127,11 @@ final class Page {
 
 			<h2><?php echo esc_html( $taxonomy_label ); ?></h2>
 
-			<details class="taxonomy-tidy-panel taxonomy-tidy-filter-panel" open>
+			<details class="taxonomy-tidy-panel taxonomy-tidy-filter-panel">
 				<summary class="taxonomy-tidy-panel__summary">
 					<span class="taxonomy-tidy-panel__heading">
 						<span class="taxonomy-tidy-panel__icon" aria-hidden="true"></span>
-						<span><?php echo esc_html__( 'Search and filter', 'taxonomy-tidy' ); ?></span>
+						<span><?php echo esc_html__( 'Search panel', 'taxonomy-tidy' ); ?></span>
 					</span>
 					<span class="taxonomy-tidy-filter-summary">
 						<span class="taxonomy-tidy-filter-summary__count">
@@ -173,36 +201,7 @@ final class Page {
 				</form>
 			</details>
 
-			<table class="wp-list-table widefat fixed striped taxonomy-tidy-inventory-table">
-				<thead>
-					<tr>
-						<th scope="col"><?php echo esc_html__( 'Name', 'taxonomy-tidy' ); ?></th>
-						<th scope="col"><?php echo esc_html__( 'Slug', 'taxonomy-tidy' ); ?></th>
-						<th scope="col"><?php echo esc_html__( 'Type', 'taxonomy-tidy' ); ?></th>
-						<th scope="col"><?php echo esc_html__( 'Parent category', 'taxonomy-tidy' ); ?></th>
-						<th scope="col"><?php echo esc_html__( 'Published posts', 'taxonomy-tidy' ); ?></th>
-						<th scope="col"><?php echo esc_html__( 'Total relationships', 'taxonomy-tidy' ); ?></th>
-						<th scope="col"><?php echo esc_html__( 'Usage', 'taxonomy-tidy' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php if ( array() === $inventory['items'] ) : ?>
-						<tr><td class="taxonomy-tidy-inventory-table__empty" colspan="7"><?php echo esc_html__( 'No terms found.', 'taxonomy-tidy' ); ?></td></tr>
-					<?php else : ?>
-						<?php foreach ( $inventory['items'] as $term ) : ?>
-							<tr>
-								<td data-label="<?php echo esc_attr__( 'Name', 'taxonomy-tidy' ); ?>"><strong><?php echo esc_html( (string) $term['name'] ); ?></strong></td>
-								<td data-label="<?php echo esc_attr__( 'Slug', 'taxonomy-tidy' ); ?>"><code><?php echo esc_html( (string) $term['slug'] ); ?></code></td>
-								<td data-label="<?php echo esc_attr__( 'Type', 'taxonomy-tidy' ); ?>"><?php echo esc_html( $type_label ); ?></td>
-								<td data-label="<?php echo esc_attr__( 'Parent category', 'taxonomy-tidy' ); ?>"><?php echo esc_html( $this->parent_label( $taxonomy, $term['parent_name'] ) ); ?></td>
-								<td data-label="<?php echo esc_attr__( 'Published posts', 'taxonomy-tidy' ); ?>"><?php echo esc_html( number_format_i18n( (int) $term['published_post_count'] ) ); ?></td>
-								<td data-label="<?php echo esc_attr__( 'Total relationships', 'taxonomy-tidy' ); ?>"><?php echo esc_html( number_format_i18n( (int) $term['total_relationship_count'] ) ); ?></td>
-								<td data-label="<?php echo esc_attr__( 'Usage', 'taxonomy-tidy' ); ?>"><?php echo esc_html( $this->usage_label( (string) $term['usage'] ) ); ?></td>
-							</tr>
-						<?php endforeach; ?>
-					<?php endif; ?>
-				</tbody>
-			</table>
+			<?php ( new PlanningPanel() )->render( $taxonomy, $type_label, $inventory, $plan_state ); ?>
 
 			<?php $this->render_pagination( $taxonomy, $search, $orderby, $order, $unused, $inventory ); ?>
 		</div>

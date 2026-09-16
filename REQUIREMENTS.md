@@ -125,7 +125,7 @@ For the MVP, a term is safe to delete only when it has no relationships to any W
 
 - Show whether a term is unused by published posts but still used elsewhere.
 - Do not describe such a term as globally unused.
-- Require explicit confirmation before deletion.
+- Include deletion in the Phase 4 preview and require explicit confirmation immediately before Phase 5 execution; a separate per-term confirmation checkbox is not required during planning.
 - Never delete the site's default post category.
 
 ### 5.6 Preview
@@ -290,4 +290,3 @@ All automated tests and WordPress coding-standard checks configured for the proj
 - Run the relevant tests and checks before reporting completion.
 - Report assumptions, remaining risks, and anything not verified.
 - If a requirement is ambiguous and the choice affects stored data or destructive behavior, stop and ask instead of guessing.
-

@@ -123,7 +123,27 @@ final class OperationLock {
 			)
 		);
 
-		return 1 === $result;
+		if ( 1 === $result ) {
+			return true;
+		}
+		if ( false === $result ) {
+			return false;
+		}
+
+		// A renewal within the same second can be a valid no-op update. Recheck
+		// ownership and expiry rather than treating MySQL's zero changed rows as loss.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Atomic custom-table lock cannot use a core cache API.
+		$owned = $this->database->get_var(
+			$this->database->prepare(
+				'SELECT id FROM %i WHERE id = %d AND lock_token = %s AND lock_expires_at > %s',
+				$this->table,
+				$operation_id,
+				$token,
+				$now
+			)
+		);
+
+		return null !== $owned;
 	}
 
 	/**

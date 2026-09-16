@@ -17,6 +17,9 @@
 /.gitignore
 /composer.json
 /composer.lock
+/eslint.config.js
+/package.json
+/package-lock.json
 /docker-compose.yml
 /Makefile
 /phpcs.xml.dist

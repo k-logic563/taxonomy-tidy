@@ -1,7 +1,13 @@
 .taxonomy-tidy-panel {
+	width: 100%;
+	box-sizing: border-box;
 	margin: 16px 0 20px;
 	border: 1px solid #c3c4c7;
 	background: #fff;
+}
+
+.taxonomy-tidy-process-panel {
+	margin-top: 0;
 }
 
 .taxonomy-tidy-panel__summary {
@@ -26,6 +32,10 @@
 .taxonomy-tidy-panel__summary:focus-visible {
 	outline: 2px solid #2271b1;
 	outline-offset: -2px;
+}
+
+.taxonomy-tidy-panel__summary:hover {
+	background: #f6f7f7;
 }
 
 .taxonomy-tidy-panel__heading {
@@ -153,13 +163,284 @@
 	background: #f6f7f7;
 }
 
-.taxonomy-tidy-filter-actions .submit {
-	margin: 0;
-	padding: 0;
+.taxonomy-tidy-inventory-table {
+	margin-top: 20px;
 }
 
-.taxonomy-tidy-inventory-table {
-	margin-top: 0;
+.taxonomy-tidy-inventory-table .check-column {
+	width: 2.2em;
+}
+
+.taxonomy-tidy-process-content {
+	padding: 22px;
+	border-top: 1px solid #dcdcde;
+}
+
+.taxonomy-tidy-process-group {
+	min-width: 0;
+	margin: 0;
+	padding: 0 0 12px;
+	border: 0;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.taxonomy-tidy-process-group + .taxonomy-tidy-process-group {
+	padding-top: 22px;
+}
+
+.taxonomy-tidy-process-group h3 {
+	margin: 0 0 14px;
+	padding: 0;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.taxonomy-tidy-operation-choices {
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.taxonomy-tidy-operation-choice {
+	display: grid;
+	grid-template-columns: 20px minmax(0, 1fr);
+	align-items: start;
+	column-gap: 8px;
+	max-width: 680px;
+	margin: 12px 0;
+	padding: 6px 8px;
+	border-left: 3px solid transparent;
+	box-sizing: border-box;
+}
+
+.taxonomy-tidy-operation-choice:hover,
+.taxonomy-tidy-operation-choice:focus-within {
+	background: #f6f7f7;
+}
+
+.taxonomy-tidy-operation-choice:has(input:checked) {
+	border-left-color: #2271b1;
+	background: #f6f7f7;
+}
+
+.taxonomy-tidy-operation-choice .description {
+	display: block;
+	margin-top: 2px;
+}
+
+.taxonomy-tidy-operation-choice__control {
+	align-self: start;
+	margin: 2px 0 0 !important;
+}
+
+.taxonomy-tidy-operation-choice__text,
+.taxonomy-tidy-operation-choice__title {
+	display: block;
+}
+
+.taxonomy-tidy-operation-choice__title {
+	line-height: 1.4;
+}
+
+.taxonomy-tidy-field-label,
+.taxonomy-tidy-readonly-field .taxonomy-tidy-field-label {
+	display: block;
+	margin: 0 0 6px;
+	font-weight: 600;
+}
+
+.taxonomy-tidy-action-fields {
+	display: grid;
+	gap: 22px;
+	max-width: 760px;
+}
+
+.taxonomy-tidy-action-fields[hidden] {
+	display: none;
+}
+
+.taxonomy-tidy-field-group {
+	display: flex;
+	align-items: flex-start;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.taxonomy-tidy-related-fields {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(220px, 360px));
+	gap: 16px;
+	max-width: 760px;
+}
+
+.taxonomy-tidy-related-fields > * {
+	min-width: 0;
+}
+
+.taxonomy-tidy-readonly-field {
+	max-width: 520px;
+}
+
+.taxonomy-tidy-field-display {
+	display: block;
+	width: 100%;
+	min-height: 28px;
+	box-sizing: border-box;
+	padding: 4px 8px;
+	border: 1px solid #dcdcde;
+	background: #f6f7f7;
+	overflow-wrap: anywhere;
+}
+
+.taxonomy-tidy-field-help,
+.taxonomy-tidy-field-group > .description {
+	margin: 6px 0 0;
+	overflow-wrap: anywhere;
+}
+
+.taxonomy-tidy-field-help:empty {
+	display: none;
+}
+
+.taxonomy-tidy-selected-count {
+	margin: 0 0 12px;
+	font-weight: 600;
+}
+
+.taxonomy-tidy-selected-empty,
+.taxonomy-tidy-selected-list,
+.taxonomy-tidy-outcome-list,
+.taxonomy-tidy-delete-list {
+	margin: 0 0 12px;
+}
+
+.taxonomy-tidy-selected-list,
+.taxonomy-tidy-outcome-list,
+.taxonomy-tidy-delete-list {
+	max-width: 760px;
+	padding-left: 20px;
+}
+
+.taxonomy-tidy-field-display .taxonomy-tidy-delete-list,
+.taxonomy-tidy-field-help .taxonomy-tidy-outcome-list {
+	margin-bottom: 0;
+}
+
+.taxonomy-tidy-selected-list li,
+.taxonomy-tidy-delete-list li {
+	margin-bottom: 8px;
+}
+
+.taxonomy-tidy-selected-list span,
+.taxonomy-tidy-delete-list span {
+	display: block;
+	margin-top: 2px;
+	color: #50575e;
+}
+
+.taxonomy-tidy-selected-list li,
+.taxonomy-tidy-delete-list li,
+.taxonomy-tidy-outcome-list li {
+	overflow-wrap: anywhere;
+}
+
+.taxonomy-tidy-action-fields input[type="text"],
+.taxonomy-tidy-action-fields input[type="search"] {
+	width: 100%;
+	max-width: 520px;
+	box-sizing: border-box;
+}
+
+.taxonomy-tidy-message {
+	margin: 8px 0;
+	padding: 10px 12px;
+	border-left: 4px solid #72aee6;
+	background: #f6f7f7;
+}
+
+.taxonomy-tidy-message .dashicons {
+	margin-right: 6px;
+	font-size: 18px;
+	line-height: 1.2;
+}
+
+.taxonomy-tidy-field-error {
+	max-width: 680px;
+	margin: 8px 0 0;
+	padding: 8px 10px;
+	border-left: 4px solid #d63638;
+	background: #fcf0f1;
+	overflow-wrap: anywhere;
+}
+
+.taxonomy-tidy-field-error .dashicons {
+	margin-right: 6px;
+	color: #b32d2e;
+	font-size: 18px;
+	line-height: 1.2;
+}
+
+.taxonomy-tidy-field-error:focus {
+	outline: none;
+}
+
+.taxonomy-tidy-field-control[aria-invalid="true"] {
+	border-color: #d63638;
+}
+
+.taxonomy-tidy-message--error {
+	border-left-color: #d63638;
+}
+
+.taxonomy-tidy-message--warning {
+	border-left-color: #dba617;
+}
+
+.taxonomy-tidy-process-actions {
+	padding-top: 12px;
+}
+
+.taxonomy-tidy-plan,
+.taxonomy-tidy-preview {
+	margin: 20px 0;
+	padding: 18px 20px;
+	border: 1px solid #c3c4c7;
+	background: #fff;
+}
+
+.taxonomy-tidy-plan-items {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 12px;
+}
+
+.taxonomy-tidy-plan-item,
+.taxonomy-tidy-preview-item {
+	padding: 12px 14px;
+	border: 1px solid #dcdcde;
+}
+
+.taxonomy-tidy-preview-item + .taxonomy-tidy-preview-item {
+	margin-top: 12px;
+}
+
+.taxonomy-tidy-preview-summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 24px;
+	padding-left: 20px;
+}
+
+.taxonomy-tidy-preview-actions,
+.taxonomy-tidy-preview-action {
+	margin-top: 16px;
+}
+
+.taxonomy-tidy-preview-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
 }
 
 @media screen and (max-width: 960px) {
@@ -222,12 +503,59 @@
 		padding: 14px 16px;
 	}
 
-	.taxonomy-tidy-filter-actions .button,
-	.taxonomy-tidy-filter-actions .submit,
-	.taxonomy-tidy-filter-actions .submit .button {
+	.taxonomy-tidy-filter-actions .button {
 		width: 100%;
 		box-sizing: border-box;
 		text-align: center;
+	}
+
+	.taxonomy-tidy-plan-items {
+		display: block;
+	}
+
+	.taxonomy-tidy-process-content {
+		padding: 16px;
+	}
+
+	.taxonomy-tidy-process-group {
+		padding-bottom: 12px;
+	}
+
+	.taxonomy-tidy-process-actions {
+		padding-top: 12px;
+	}
+
+	.taxonomy-tidy-process-actions .button {
+		width: 100%;
+	}
+
+	.taxonomy-tidy-related-fields {
+		display: block;
+	}
+
+	.taxonomy-tidy-related-fields > * + * {
+		margin-top: 16px;
+	}
+
+	.taxonomy-tidy-action-fields input[type="text"],
+	.taxonomy-tidy-action-fields input[type="search"],
+	.taxonomy-tidy-action-fields select {
+		width: 100%;
+		max-width: none;
+	}
+
+	.taxonomy-tidy-plan-item + .taxonomy-tidy-plan-item {
+		margin-top: 12px;
+	}
+
+	.taxonomy-tidy-plan,
+	.taxonomy-tidy-preview {
+		padding: 14px;
+	}
+
+	.taxonomy-tidy-preview-actions {
+		align-items: stretch;
+		flex-direction: column;
 	}
 
 	.taxonomy-tidy-inventory-table,

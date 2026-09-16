@@ -1,0 +1,10 @@
+{
+  "name": "taxonomy-tidy-development",
+  "private": true,
+  "scripts": {
+    "lint:js": "eslint assets/js/**/*.js"
+  },
+  "devDependencies": {
+    "eslint": "10.10.0"
+  }
+}

@@ -60,6 +60,13 @@ services:
       - ./:/app
       - composer_vendor:/app/vendor
 
+  node:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+
   test-database:
     image: mysql:8.0
     environment:
@@ -101,3 +108,4 @@ volumes:
   wordpress_files:
   wordpress_test_core:
   wordpress_test_library:
+  node_modules:

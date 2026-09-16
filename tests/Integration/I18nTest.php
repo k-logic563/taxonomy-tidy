@@ -9,7 +9,10 @@ declare(strict_types=1);
 
 namespace TaxonomyTidy\Tests\Integration;
 
+use TaxonomyTidy\Admin\ErrorMessages;
 use TaxonomyTidy\Admin\Page;
+use TaxonomyTidy\Admin\PlanController;
+use TaxonomyTidy\Application\Planning\PlanErrorCode;
 use TaxonomyTidy\Plugin;
 use WP_UnitTestCase;
 
@@ -96,7 +99,7 @@ final class I18nTest extends WP_UnitTestCase {
 			'Category'                                     => 'カテゴリー',
 			'Tag'                                          => 'タグ',
 			'Taxonomy views'                               => 'カテゴリーとタグの表示切り替え',
-			'Search and filter'                            => '検索・絞り込み',
+			'Search panel'                                 => '検索パネル',
 			'Active conditions'                            => '適用中の条件',
 			'Search and filter terms'                      => 'カテゴリー・タグの検索・絞り込み',
 			'Find by keyword'                              => 'キーワードで探す',
@@ -128,34 +131,79 @@ final class I18nTest extends WP_UnitTestCase {
 			'Next'                                         => '次へ',
 			'You are not allowed to access Taxonomy Tidy.' => 'Taxonomy Tidyへアクセスする権限がありません。',
 			'Access denied'                                => 'アクセス拒否',
+			'Action panel'                                 => '処理パネル',
+			'Selected targets'                             => '選択中の対象',
+			'Action method'                                => '処理方法',
+			'Rename'                                       => '名称変更',
+			'Merge'                                        => '統合',
+			'Delete'                                       => '削除',
+			'Changes'                                      => '変更内容',
+			'Notices and validation results'               => '注意事項・検証結果',
+			'Execute'                                      => '実行する',
+			'New slug (optional)'                          => '新しいスラッグ（任意）',
+			'Leave blank to keep the current slug.'        => '空欄の場合は変更しません',
+			'No changes have been executed yet.'           => 'まだ変更は実行されていません',
+			'Select a category or tag to process.'         => '処理するカテゴリーまたはタグを選択してください。',
+			'Select an action method.'                     => '処理方法を選択してください。',
+			'Enter a new name.'                            => '新しい名前を入力してください。',
+			'The slug format is invalid.'                  => 'スラッグの形式が正しくありません。',
+			'Operation plan'                               => '操作計画',
+			'Review changes'                               => '変更内容を確認',
 		);
 
 		foreach ( $translations as $source => $translation ) {
 			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- The test intentionally checks every literal catalog entry through one assertion loop.
 			$this->assertSame( $translation, __( $source, 'taxonomy-tidy' ) );
 		}
-		$this->assertStringContainsString( '検索・絞り込み', $output );
-		$this->assertStringContainsString( 'キーワードで探す', $output );
-		$this->assertStringContainsString( '3件の条件を適用中', $output );
-		$this->assertStringContainsString( 'キーワード：Locale Inventory', $output );
-		$this->assertStringContainsString( '名前 · 降順', $output );
-		$this->assertStringContainsString( '条件を適用', $output );
-		$this->assertStringContainsString( '条件をリセット', $output );
-		$this->assertStringContainsString( '公開済み投稿数', $output );
-		$this->assertStringContainsString( '全体の使用数', $output );
-		$this->assertStringContainsString( '完全に未使用', $output );
-		$this->assertStringContainsString( 'Locale Inventory 001', $output );
-		$this->assertStringNotContainsString( 'Locale Inventory 002', $output );
-		$this->assertStringContainsString( '前へ', $output );
+		foreach ( $this->planning_error_messages() as $code => $messages ) {
+			$this->assertSame( $messages['ja'], ErrorMessages::label( $code ), 'Incorrect Japanese error for ' . $code );
+		}
+		foreach ( array( '検索パネル', 'キーワードで探す', '3件の条件を適用中', 'キーワード：Locale Inventory', '名前 · 降順', '条件を適用', '条件をリセット', '公開済み投稿数', '全体の使用数', '完全に未使用', '処理パネル', '選択中の対象', '処理方法', '変更内容', '注意事項・検証結果', '実行する', 'Locale Inventory 001', '前へ' ) as $expected_output ) {
+			$this->assertStringContainsString( $expected_output, $output, 'Missing translated output: ' . $expected_output );
+		}
+		$this->assertSame( 1, preg_match( '/<tbody>(.*?)<\/tbody>/s', $output, $table_match ) );
+		$this->assertStringNotContainsString( 'Locale Inventory 002', $table_match[1] );
 
-		foreach ( array( 'Categories', 'Tags', 'Search and filter', 'Find by keyword', 'Published posts', 'Total relationships', 'No terms found.' ) as $english ) {
+		foreach ( array( 'Categories', 'Tags', 'Search panel', 'Find by keyword', 'Published posts', 'Total relationships', 'No terms found.', 'Action panel', 'Selected targets', 'Action method', 'Changes', 'Execute' ) as $english ) {
 			$this->assertStringNotContainsString( ">{$english}<", $output );
 		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- The integration test preserves the request method before simulating a validated POST.
+		$original_method = $_SERVER['REQUEST_METHOD'] ?? null;
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The test preserves POST state before submitting its own valid nonce below.
+		$original_post             = $_POST;
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST                     = array(
+			'taxonomy'                  => 'post_tag',
+			'plan_command'              => 'execute',
+			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
+		);
+		ob_start();
+		Plugin::instance()->admin_page()->render();
+		$error_output = (string) ob_get_clean();
+		$_POST        = $original_post;
+		if ( null === $original_method ) {
+			unset( $_SERVER['REQUEST_METHOD'] );
+		} else {
+			$_SERVER['REQUEST_METHOD'] = $original_method;
+		}
+		$this->assertStringContainsString( '処理するカテゴリーまたはタグを選択してください。', $error_output );
+		$this->assertStringNotContainsString( 'Select a category or tag to process.', $error_output );
 
 		ob_start();
 		render_missing_dependencies_notice();
 		$notice = (string) ob_get_clean();
 		$this->assertStringContainsString( 'Taxonomy Tidyを起動できませんでした', $notice );
+	}
+
+	/**
+	 * Every non-header source string has a Japanese translation.
+	 */
+	public function test_japanese_catalog_has_no_empty_user_facing_entries(): void {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local test fixture; no remote request is involved.
+		$catalog = file_get_contents( dirname( TAXONOMY_TIDY_PLUGIN_FILE ) . '/languages/taxonomy-tidy-ja.po' );
+		$this->assertIsString( $catalog );
+		$this->assertDoesNotMatchRegularExpression( '/msgid "[^"\n]+"\nmsgstr ""/', $catalog );
 	}
 
 	/**
@@ -173,12 +221,48 @@ final class I18nTest extends WP_UnitTestCase {
 		$output = (string) ob_get_clean();
 
 		$this->assertSame( 'Categories', __( 'Categories', 'taxonomy-tidy' ) );
-		$this->assertStringContainsString( 'Search and filter', $output );
+		$this->assertStringContainsString( 'Search panel', $output );
 		$this->assertStringContainsString( 'Find by keyword', $output );
 		$this->assertStringContainsString( 'Apply conditions', $output );
 		$this->assertStringContainsString( 'Published posts', $output );
 		$this->assertStringContainsString( 'Total relationships', $output );
+		$this->assertStringContainsString( 'Action panel', $output );
+		$this->assertStringContainsString( 'Selected targets', $output );
+		$this->assertStringContainsString( 'Action method', $output );
+		$this->assertStringContainsString( 'Execute', $output );
 		$this->assertStringNotContainsString( '検索・絞り込み', $output );
+		foreach ( $this->planning_error_messages() as $code => $messages ) {
+			$this->assertSame( $messages['en'], ErrorMessages::label( $code ), 'Incorrect English error for ' . $code );
+		}
+	}
+
+	/**
+	 * The active administration user's locale selects the error catalog.
+	 */
+	public function test_error_messages_follow_admin_user_locale(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		update_user_meta( $user_id, 'locale', 'ja' );
+		wp_set_current_user( $user_id );
+		$this->assertSame( 'ja', get_user_locale( $user_id ) );
+		$switched_to_japanese = switch_to_user_locale( $user_id );
+		add_filter( 'load_textdomain_mofile', array( $this, 'use_bundled_japanese_catalog' ), 10, 2 );
+		unload_textdomain( 'taxonomy-tidy', true );
+		load_translations();
+		$this->assertSame( '処理するカテゴリーまたはタグを選択してください。', ErrorMessages::label( PlanErrorCode::SELECTION_REQUIRED ) );
+
+		if ( $switched_to_japanese ) {
+			$this->assertTrue( restore_previous_locale() );
+		}
+		remove_filter( 'load_textdomain_mofile', array( $this, 'use_bundled_japanese_catalog' ), 10 );
+		unload_textdomain( 'taxonomy-tidy', true );
+		update_user_meta( $user_id, 'locale', 'en_US' );
+		$this->assertSame( 'en_US', get_user_locale( $user_id ) );
+		$switched_to_english = switch_to_user_locale( $user_id );
+		load_translations();
+		$this->assertSame( 'Select a category or tag to process.', ErrorMessages::label( PlanErrorCode::SELECTION_REQUIRED ) );
+		if ( $switched_to_english ) {
+			$this->assertTrue( restore_previous_locale() );
+		}
 	}
 
 	/**
@@ -213,5 +297,107 @@ final class I18nTest extends WP_UnitTestCase {
 		}
 
 		return dirname( TAXONOMY_TIDY_PLUGIN_FILE ) . '/languages/taxonomy-tidy-ja.mo';
+	}
+
+	/**
+	 * Returns every safe planning error in English and Japanese.
+	 *
+	 * @return array<string, array{en: string, ja: string}>
+	 */
+	private function planning_error_messages(): array {
+		return array(
+			PlanErrorCode::SELECTION_REQUIRED      => array(
+				'en' => 'Select a category or tag to process.',
+				'ja' => '処理するカテゴリーまたはタグを選択してください。',
+			),
+			PlanErrorCode::SELECTION_INVALID       => array(
+				'en' => 'The selected category or tag could not be verified. Select it again.',
+				'ja' => '選択されたカテゴリーまたはタグを確認できません。もう一度選択してください。',
+			),
+			PlanErrorCode::SINGLE_TERM_REQUIRED    => array(
+				'en' => 'Select exactly one target when renaming.',
+				'ja' => '名称変更では、対象を1件だけ選択してください。',
+			),
+			PlanErrorCode::OPERATION_REQUIRED      => array(
+				'en' => 'Select an action method.',
+				'ja' => '処理方法を選択してください。',
+			),
+			PlanErrorCode::NEW_NAME_REQUIRED       => array(
+				'en' => 'Enter a new name.',
+				'ja' => '新しい名前を入力してください。',
+			),
+			PlanErrorCode::INVALID_NAME            => array(
+				'en' => 'The new name contains invalid characters.',
+				'ja' => '新しい名前に使用できない文字が含まれています。',
+			),
+			PlanErrorCode::NAME_UNCHANGED          => array(
+				'en' => 'Enter a name different from the current name.',
+				'ja' => '現在の名前と異なる名前を入力してください。',
+			),
+			PlanErrorCode::NAME_CONFLICT           => array(
+				'en' => 'This name is already in use.',
+				'ja' => 'この名前はすでに使用されています。',
+			),
+			PlanErrorCode::INVALID_SLUG            => array(
+				'en' => 'The slug format is invalid.',
+				'ja' => 'スラッグの形式が正しくありません。',
+			),
+			PlanErrorCode::SLUG_CONFLICT           => array(
+				'en' => 'This slug is already in use.',
+				'ja' => 'このスラッグはすでに使用されています。',
+			),
+			PlanErrorCode::DESTINATION_REQUIRED    => array(
+				'en' => 'Select a merge destination.',
+				'ja' => '統合先を選択してください。',
+			),
+			PlanErrorCode::SAME_SOURCE_DESTINATION => array(
+				'en' => 'The merge destination cannot be the same as its source.',
+				'ja' => '統合元と同じ分類は指定できません。',
+			),
+			PlanErrorCode::TAXONOMY_MISMATCH       => array(
+				'en' => 'Categories and tags cannot be merged with each other.',
+				'ja' => 'カテゴリーとタグをまたいで統合することはできません。',
+			),
+			PlanErrorCode::DESCENDANT_DESTINATION  => array(
+				'en' => 'A category cannot be merged into one of its descendants.',
+				'ja' => '子孫カテゴリーへ統合することはできません。',
+			),
+			PlanErrorCode::CIRCULAR_HIERARCHY      => array(
+				'en' => 'The category hierarchy would become circular, so the merge cannot continue.',
+				'ja' => 'カテゴリー階層が循環するため統合できません。',
+			),
+			PlanErrorCode::TERM_IN_USE             => array(
+				'en' => 'A category or tag that is in use cannot be deleted.',
+				'ja' => '使用中のカテゴリー・タグは削除できません。',
+			),
+			PlanErrorCode::DEFAULT_CATEGORY        => array(
+				'en' => 'The default category cannot be deleted.',
+				'ja' => 'デフォルトカテゴリーは削除できません。',
+			),
+			PlanErrorCode::STALE_PREVIEW           => array(
+				'en' => 'The taxonomy state has changed. Review the plan again.',
+				'ja' => '分類の状態が変更されました。内容を確認し直してください。',
+			),
+			PlanErrorCode::PLAN_CONFLICT           => array(
+				'en' => 'The operation plan contains conflicting actions.',
+				'ja' => '操作計画に競合する処理が含まれています。',
+			),
+			PlanErrorCode::PLAN_INVALID            => array(
+				'en' => 'The saved operation plan is no longer available. Review it again.',
+				'ja' => '保存済みの操作計画を利用できません。内容を確認し直してください。',
+			),
+			PlanErrorCode::PERMISSION_DENIED       => array(
+				'en' => 'You do not have permission to perform this action.',
+				'ja' => 'この操作を行う権限がありません。',
+			),
+			PlanErrorCode::INVALID_NONCE           => array(
+				'en' => 'This action has expired. Reload the page and try again.',
+				'ja' => '操作の有効期限が切れました。画面を再読み込みしてください。',
+			),
+			PlanErrorCode::UNKNOWN_ERROR           => array(
+				'en' => 'The operation could not continue. Please try again.',
+				'ja' => '処理を続行できませんでした。もう一度お試しください。',
+			),
+		);
 	}
 }

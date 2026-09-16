@@ -1,4 +1,4 @@
-.PHONY: setup composer-lock dependencies translations up stop restart reset activate deactivate seed-demo seed-large seed-clean test phpcs check
+.PHONY: setup composer-lock dependencies translations up stop restart reset activate deactivate seed-demo seed-large seed-clean test phpcs lint-js check
 
 setup:
 	bin/setup-env.sh
@@ -47,4 +47,7 @@ test:
 phpcs:
 	docker compose run --rm composer run phpcs
 
-check: phpcs test
+lint-js:
+	docker compose run --rm node sh -c "npm ci --no-audit --no-fund && npm run lint:js"
+
+check: phpcs lint-js test

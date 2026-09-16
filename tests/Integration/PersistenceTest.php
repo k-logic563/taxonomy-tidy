@@ -19,6 +19,7 @@ use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
 use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
 use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
 use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
+use TaxonomyTidy\Infrastructure\Persistence\PersistenceException;
 use WP_UnitTestCase;
 
 /**
@@ -99,6 +100,38 @@ final class PersistenceTest extends WP_UnitTestCase {
 
 		$this->expectException( InvalidStatusTransition::class );
 		$repository->transition( $operation_id, Status::COMPLETED );
+	}
+
+	/**
+	 * Draft writes and discard cannot affect another owner or a running operation.
+	 */
+	public function test_editable_operation_writes_enforce_owner_and_status(): void {
+		global $wpdb;
+
+		$operations   = new OperationRepository( $wpdb );
+		$items        = new OperationItemRepository( $wpdb );
+		$operation_id = $operations->create( 7, Taxonomy::CATEGORY );
+		$item_id      = $items->add( $operation_id, 'rename:12', Action::RENAME, array( 'term_id' => 12 ) );
+
+		try {
+			$operations->discard( $operation_id, 8 );
+			$this->fail( 'Another owner must not discard an operation.' );
+		} catch ( PersistenceException ) {
+			$this->assertNotNull( $items->find_for_operation( $operation_id )[0] ?? null );
+		}
+
+		$operations->save_preview_context( $operation_id, str_repeat( 'a', 64 ), str_repeat( 'b', 64 ), array() );
+		$operations->transition( $operation_id, Status::PREVIEWED );
+		$operations->transition( $operation_id, Status::RUNNING );
+		$this->expectException( PersistenceException::class );
+		$operations->save_draft(
+			$operation_id,
+			7,
+			array(
+				'plan'    => array(),
+				'item_id' => $item_id,
+			)
+		);
 	}
 
 	/**

@@ -81,8 +81,8 @@ Do not report a phase as complete when required checks were skipped or failed.
 | 1 | Development foundation and plugin skeleton | Completed |
 | 2 | Persistence and operation state | Completed |
 | 3 | Accurate taxonomy inventory | Completed |
-| 4 | Plan validation and preview | Not started |
-| 5 | Batched execution and recovery | Not started |
+| 4 | Plan validation and preview | Completed |
+| 5 | Batched execution and recovery | In progress |
 | 6 | History and undo | Not started |
 | 7 | Admin workflow and usability | Not started |
 | 8 | Compatibility, acceptance, and release candidate | Not started |
@@ -232,7 +232,7 @@ Allow an administrator to configure rename, merge, and globally unused delete op
 - Create and edit a draft operation plan.
 - Validate rename operations, including optional explicit slug changes.
 - Validate same-taxonomy merge operations.
-- Validate globally unused deletion with explicit confirmation.
+- Validate globally unused deletion for preview without a redundant checkbox; explicit confirmation remains required immediately before Phase 5 execution.
 - Reject conflicting actions against the same term.
 - Reject default-category deletion.
 - Reject cross-taxonomy and self merges.

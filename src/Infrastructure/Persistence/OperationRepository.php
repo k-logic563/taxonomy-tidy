@@ -121,6 +121,150 @@ final class OperationRepository {
 	}
 
 	/**
+	 * Returns the latest editable draft or preview for one user and taxonomy.
+	 *
+	 * @param int      $user_id  Administrator user ID.
+	 * @param Taxonomy $taxonomy Supported taxonomy.
+	 * @return array<string, mixed>|null
+	 * @throws \JsonException       When a stored JSON field is invalid.
+	 * @throws PersistenceException When a stored JSON field is not an array.
+	 */
+	public function find_editable( int $user_id, Taxonomy $taxonomy ): ?array {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$operation_id = $this->database->get_var(
+			$this->database->prepare(
+				'SELECT id FROM %i WHERE user_id = %d AND taxonomy = %s AND status IN (%s, %s) ORDER BY id DESC LIMIT 1',
+				$this->table,
+				$user_id,
+				$taxonomy->value,
+				Status::DRAFT->value,
+				Status::PREVIEWED->value
+			)
+		);
+
+		return null === $operation_id ? null : $this->find( (int) $operation_id );
+	}
+
+	/**
+	 * Returns the latest interrupted running record for one owner and taxonomy.
+	 *
+	 * @param int      $user_id  Administrator user ID.
+	 * @param Taxonomy $taxonomy Supported taxonomy.
+	 * @return array<string, mixed>|null
+	 */
+	public function find_running( int $user_id, Taxonomy $taxonomy ): ?array {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$operation_id = $this->database->get_var(
+			$this->database->prepare(
+				'SELECT id FROM %i WHERE user_id = %d AND taxonomy = %s AND status = %s ORDER BY id DESC LIMIT 1',
+				$this->table,
+				$user_id,
+				$taxonomy->value,
+				Status::RUNNING->value
+			)
+		);
+		return null === $operation_id ? null : $this->find( (int) $operation_id );
+	}
+
+	/**
+	 * Saves an owned plan as draft and invalidates any previous preview.
+	 *
+	 * @param int                  $operation_id Operation ID.
+	 * @param int                  $user_id      Owning administrator user ID.
+	 * @param array<string, mixed> $requested_data Sanitized draft data.
+	 * @throws PersistenceException When JSON encoding or database update fails.
+	 */
+	public function save_draft( int $operation_id, int $user_id, array $requested_data ): void {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$result = $this->database->query(
+			$this->database->prepare(
+				'UPDATE %i SET status = %s, plan_hash = NULL, state_fingerprint = NULL, requested_data = %s, result_data = NULL, errors = NULL, warnings = NULL, updated_at = %s WHERE id = %d AND user_id = %d AND status IN (%s, %s)',
+				$this->table,
+				Status::DRAFT->value,
+				Json::encode( $requested_data ),
+				current_time( 'mysql', true ),
+				$operation_id,
+				$user_id,
+				Status::DRAFT->value,
+				Status::PREVIEWED->value
+			)
+		);
+
+		if ( false === $result ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal persistence exception; not HTML output.
+			throw new PersistenceException( 'The draft operation could not be saved.' );
+		}
+
+		if ( 0 === $result ) {
+			// A no-op update is valid only when this editable operation still exists.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+			$exists = $this->database->get_var(
+				$this->database->prepare(
+					'SELECT id FROM %i WHERE id = %d AND user_id = %d AND status IN (%s, %s)',
+					$this->table,
+					$operation_id,
+					$user_id,
+					Status::DRAFT->value,
+					Status::PREVIEWED->value
+				)
+			);
+			if ( null === $exists ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal persistence exception; not HTML output.
+				throw new PersistenceException( 'The draft operation is not editable.' );
+			}
+		}
+	}
+
+	/**
+	 * Deletes an owned draft or preview and its operation items.
+	 *
+	 * @param int $operation_id Operation ID.
+	 * @param int $user_id      Owning administrator user ID.
+	 * @throws PersistenceException When the operation cannot be discarded.
+	 */
+	public function discard( int $operation_id, int $user_id ): void {
+		$items_table = Tables::items( $this->database );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$owned_operation = $this->database->get_var(
+			$this->database->prepare(
+				'SELECT id FROM %i WHERE id = %d AND user_id = %d AND status IN (%s, %s)',
+				$this->table,
+				$operation_id,
+				$user_id,
+				Status::DRAFT->value,
+				Status::PREVIEWED->value
+			)
+		);
+		if ( null === $owned_operation ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal persistence exception; not HTML output.
+			throw new PersistenceException( 'The operation could not be discarded.' );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation item table has no core API or object cache.
+		$items_deleted = $this->database->delete( $items_table, array( 'operation_id' => $operation_id ), array( '%d' ) );
+		if ( false === $items_deleted ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal persistence exception; not HTML output.
+			throw new PersistenceException( 'The operation items could not be discarded.' );
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$result = $this->database->query(
+			$this->database->prepare(
+				'DELETE FROM %i WHERE id = %d AND user_id = %d AND status IN (%s, %s)',
+				$this->table,
+				$operation_id,
+				$user_id,
+				Status::DRAFT->value,
+				Status::PREVIEWED->value
+			)
+		);
+
+		if ( 1 !== $result ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal persistence exception; not HTML output.
+			throw new PersistenceException( 'The operation could not be discarded.' );
+		}
+	}
+
+	/**
 	 * Stores the normalized preview inputs without changing operation state.
 	 *
 	 * @param int                  $operation_id     Operation ID.

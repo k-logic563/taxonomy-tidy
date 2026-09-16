@@ -54,18 +54,22 @@ final class PluginBootstrapTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Admin styles are limited to the Taxonomy Tidy Tools screen.
+	 * Admin styles and scripts are limited to the Taxonomy Tidy Tools screen.
 	 */
 	public function test_admin_styles_are_enqueued_only_for_plugin_screen(): void {
 		$page = Plugin::instance()->admin_page();
 
 		wp_dequeue_style( 'taxonomy-tidy-admin' );
+		wp_dequeue_script( 'taxonomy-tidy-admin' );
 		$page->enqueue_assets( 'tools_page_other-plugin' );
 		$this->assertFalse( wp_style_is( 'taxonomy-tidy-admin', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'taxonomy-tidy-admin', 'enqueued' ) );
 
 		$page->enqueue_assets( 'tools_page_taxonomy-tidy' );
 		$this->assertTrue( wp_style_is( 'taxonomy-tidy-admin', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'taxonomy-tidy-admin', 'enqueued' ) );
 		wp_dequeue_style( 'taxonomy-tidy-admin' );
+		wp_dequeue_script( 'taxonomy-tidy-admin' );
 	}
 
 	/**

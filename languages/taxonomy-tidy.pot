@@ -9,16 +9,16 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-14T13:24:42+00:00\n"
+"POT-Creation-Date: 2026-09-16T12:54:04+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: taxonomy-tidy\n"
 
 #. Plugin Name of the plugin
 #: taxonomy-tidy.php
-#: src/Admin/Page.php:35
-#: src/Admin/Page.php:36
-#: src/Admin/Page.php:94
+#: src/Admin/Page.php:44
+#: src/Admin/Page.php:45
+#: src/Admin/Page.php:122
 msgid "Taxonomy Tidy"
 msgstr ""
 
@@ -36,178 +36,739 @@ msgstr ""
 msgid "Taxonomy Tidy could not start because vendor/autoload.php is missing."
 msgstr ""
 
-#: src/Admin/Page.php:67
+#: src/Admin/ErrorMessages.php:27
+msgid "Select a category or tag to process."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:28
+msgid "The selected category or tag could not be verified. Select it again."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:29
+msgid "Select exactly one target when renaming."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:30
+msgid "Select an action method."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:31
+msgid "Enter a new name."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:32
+msgid "The new name contains invalid characters."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:33
+msgid "Enter a name different from the current name."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:34
+msgid "This name is already in use."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:35
+msgid "The slug format is invalid."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:36
+msgid "This slug is already in use."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:37
+msgid "Select a merge destination."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:38
+msgid "The merge destination cannot be the same as its source."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:39
+msgid "Categories and tags cannot be merged with each other."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:40
+msgid "A category cannot be merged into one of its descendants."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:41
+msgid "The category hierarchy would become circular, so the merge cannot continue."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:42
+msgid "A category or tag that is in use cannot be deleted."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:43
+msgid "The default category cannot be deleted."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:44
+msgid "The taxonomy state has changed. Review the plan again."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:45
+msgid "The operation plan contains conflicting actions."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:46
+msgid "The saved operation plan is no longer available. Review it again."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:47
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:48
+msgid "This action has expired. Reload the page and try again."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:49
+msgid "This operation cannot be executed from its current state."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:50
+msgid "The preview is out of date. Review the changes again before executing."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:51
+msgid "Another taxonomy operation is currently running. Try again after it finishes."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:52
+msgid "A target changed after preview. The affected item was not changed."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:53
+msgid "WordPress could not apply one of the planned changes."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:54
+msgid "The change result could not be recorded safely."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:55
+msgid "The operation could not continue. Please try again."
+msgstr ""
+
+#: src/Admin/Page.php:83
 msgid "You are not allowed to access Taxonomy Tidy."
 msgstr ""
 
-#: src/Admin/Page.php:68
+#: src/Admin/Page.php:84
 msgid "Access denied"
 msgstr ""
 
-#: src/Admin/Page.php:86
-#: src/Admin/Page.php:96
+#: src/Admin/Page.php:102
+#: src/Admin/Page.php:124
 msgid "Categories"
 msgstr ""
 
-#: src/Admin/Page.php:87
-#: src/Admin/Page.php:97
+#: src/Admin/Page.php:103
+#: src/Admin/Page.php:125
 msgid "Tags"
 msgstr ""
 
-#: src/Admin/Page.php:89
+#: src/Admin/Page.php:105
+#: src/Admin/PlanningPanel.php:467
 msgid "Category"
 msgstr ""
 
-#: src/Admin/Page.php:90
+#: src/Admin/Page.php:106
+#: src/Admin/PlanningPanel.php:467
 msgid "Tag"
 msgstr ""
 
-#: src/Admin/Page.php:95
+#: src/Admin/Page.php:123
 msgid "Taxonomy views"
 msgstr ""
 
-#: src/Admin/Page.php:106
-msgid "Search and filter"
+#: src/Admin/Page.php:134
+msgid "Search panel"
 msgstr ""
 
-#: src/Admin/Page.php:113
+#: src/Admin/Page.php:141
 msgid "Active conditions"
 msgstr ""
 
-#: src/Admin/Page.php:122
+#: src/Admin/Page.php:150
 msgid "Search and filter terms"
 msgstr ""
 
-#: src/Admin/Page.php:128
+#: src/Admin/Page.php:156
 msgid "Find by keyword"
 msgstr ""
 
-#: src/Admin/Page.php:129
+#: src/Admin/Page.php:157
 msgid "Keyword"
 msgstr ""
 
-#: src/Admin/Page.php:132
+#: src/Admin/Page.php:160
 msgid "Search by name or slug."
 msgstr ""
 
-#: src/Admin/Page.php:137
+#: src/Admin/Page.php:165
 msgid "Filter displayed terms"
 msgstr ""
 
-#: src/Admin/Page.php:140
+#: src/Admin/Page.php:168
 msgid "Globally unused only"
 msgstr ""
 
-#: src/Admin/Page.php:145
+#: src/Admin/Page.php:173
 msgid "Sort order"
 msgstr ""
 
-#: src/Admin/Page.php:148
+#: src/Admin/Page.php:176
 msgid "Sort by"
 msgstr ""
 
-#: src/Admin/Page.php:150
-#: src/Admin/Page.php:177
-#: src/Admin/Page.php:192
-#: src/Admin/Page.php:303
+#: src/Admin/Page.php:178
+#: src/Admin/Page.php:304
+#: src/Admin/PlanningPanel.php:82
+#: src/Admin/PlanningPanel.php:112
 msgid "Name"
 msgstr ""
 
-#: src/Admin/Page.php:151
-#: src/Admin/Page.php:181
-#: src/Admin/Page.php:196
-#: src/Admin/Page.php:302
+#: src/Admin/Page.php:179
+#: src/Admin/Page.php:303
+#: src/Admin/PlanningPanel.php:86
+#: src/Admin/PlanningPanel.php:116
+#: src/Admin/PlanningPanel.php:159
+#: src/Admin/PlanningPanel.php:214
+#: src/Admin/PlanningPanel.php:471
+#: src/Admin/PlanningPanel.php:630
 msgid "Published posts"
 msgstr ""
 
-#: src/Admin/Page.php:155
+#: src/Admin/Page.php:183
 msgid "Direction"
 msgstr ""
 
-#: src/Admin/Page.php:157
-#: src/Admin/Page.php:306
+#: src/Admin/Page.php:185
+#: src/Admin/Page.php:307
 msgid "Ascending"
 msgstr ""
 
-#: src/Admin/Page.php:158
-#: src/Admin/Page.php:305
+#: src/Admin/Page.php:186
+#: src/Admin/Page.php:306
 msgid "Descending"
 msgstr ""
 
-#: src/Admin/Page.php:166
+#: src/Admin/Page.php:195
 msgid "Apply conditions"
 msgstr ""
 
-#: src/Admin/Page.php:168
+#: src/Admin/Page.php:198
 msgid "Reset conditions"
 msgstr ""
 
-#: src/Admin/Page.php:178
-#: src/Admin/Page.php:193
-msgid "Slug"
-msgstr ""
-
-#: src/Admin/Page.php:179
-#: src/Admin/Page.php:194
-msgid "Type"
-msgstr ""
-
-#: src/Admin/Page.php:180
-#: src/Admin/Page.php:195
-msgid "Parent category"
-msgstr ""
-
-#: src/Admin/Page.php:182
-#: src/Admin/Page.php:197
-msgid "Total relationships"
-msgstr ""
-
-#: src/Admin/Page.php:183
-#: src/Admin/Page.php:198
-msgid "Usage"
-msgstr ""
-
-#: src/Admin/Page.php:188
-msgid "No terms found."
-msgstr ""
-
-#: src/Admin/Page.php:256
+#: src/Admin/Page.php:257
 msgid "—"
 msgstr ""
 
-#: src/Admin/Page.php:266
+#: src/Admin/Page.php:267
+#: src/Admin/PlanningPanel.php:902
 msgid "Used by published posts"
 msgstr ""
 
-#: src/Admin/Page.php:270
+#: src/Admin/Page.php:271
+#: src/Admin/PlanningPanel.php:903
 msgid "Used outside published posts"
 msgstr ""
 
-#: src/Admin/Page.php:273
-#: src/Admin/Page.php:297
+#: src/Admin/Page.php:274
+#: src/Admin/Page.php:298
+#: src/Admin/PlanningPanel.php:904
 msgid "Globally unused"
 msgstr ""
 
 #. translators: %s: taxonomy search keyword.
-#: src/Admin/Page.php:291
+#: src/Admin/Page.php:292
 msgid "Keyword: %s"
 msgstr ""
 
-#: src/Admin/Page.php:320
+#: src/Admin/Page.php:321
 msgid "No active conditions"
 msgstr ""
 
 #. translators: %d: number of active search, filter, or sort conditions.
-#: src/Admin/Page.php:325
+#: src/Admin/Page.php:326
 msgid "%d active condition"
 msgid_plural "%d active conditions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/Page.php:386
+#: src/Admin/Page.php:387
 msgid "Previous"
 msgstr ""
 
-#: src/Admin/Page.php:387
+#: src/Admin/Page.php:388
 msgid "Next"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:81
+msgid "Select all terms on this page"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:83
+#: src/Admin/PlanningPanel.php:113
+msgid "Slug"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:84
+#: src/Admin/PlanningPanel.php:114
+msgid "Type"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:85
+#: src/Admin/PlanningPanel.php:115
+msgid "Parent category"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:87
+#: src/Admin/PlanningPanel.php:117
+#: src/Admin/PlanningPanel.php:159
+#: src/Admin/PlanningPanel.php:214
+#: src/Admin/PlanningPanel.php:471
+#: src/Admin/PlanningPanel.php:630
+msgid "Total relationships"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:88
+#: src/Admin/PlanningPanel.php:118
+msgid "Usage"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:92
+msgid "No terms found."
+msgstr ""
+
+#. translators: %s: taxonomy term name.
+#: src/Admin/PlanningPanel.php:104
+msgid "Select %s"
+msgstr ""
+
+#. translators: %d: number of selected terms.
+#: src/Admin/PlanningPanel.php:143
+#: src/Admin/PlanningPanel.php:644
+msgid "%d terms selected"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:147
+msgid "Action panel"
+msgstr ""
+
+#. translators: %d: number of selected terms.
+#: src/Admin/PlanningPanel.php:149
+#: src/Admin/PlanningPanel.php:196
+#: src/Admin/PlanningPanel.php:499
+#: src/Admin/PlanningPanel.php:644
+msgid "No terms selected"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:157
+msgid "Selected targets"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:159
+#: src/Admin/PlanningPanel.php:463
+msgid "Select a category or tag to process from the list."
+msgstr ""
+
+#. translators: %d: number of additional selected terms.
+#: src/Admin/PlanningPanel.php:159
+#: src/Admin/PlanningPanel.php:474
+#: src/Admin/PlanningPanel.php:507
+msgid "%d more"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:170
+#: src/Admin/PlanningPanel.php:172
+msgid "Action method"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:173
+#: src/Admin/PlanningPanel.php:781
+msgid "Rename"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:173
+msgid "Change the name and, if needed, the slug."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:174
+#: src/Admin/PlanningPanel.php:782
+msgid "Merge"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:174
+msgid "Move published-post assignments into an existing term."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:175
+#: src/Admin/PlanningPanel.php:783
+msgid "Delete"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:175
+msgid "Make a globally unused term a deletion target."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:181
+msgid "Changes"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:184
+msgid "Current name"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:184
+#: src/Admin/PlanningPanel.php:188
+#: src/Admin/PlanningPanel.php:488
+msgid "Select one term."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:185
+msgid "New name"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:188
+msgid "Current slug"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:189
+msgid "New slug (optional)"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:189
+msgid "Leave blank to keep the current slug."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:195
+msgid "Merge sources"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:197
+#: src/Admin/PlanningPanel.php:523
+msgid "Source term outcome after merge"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:197
+#: src/Admin/PlanningPanel.php:544
+msgid "Planned for deletion"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:197
+#: src/Admin/PlanningPanel.php:544
+msgid "Planned for retention"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:203
+msgid "Merge destination"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:206
+msgid "Search and select an existing term in the same taxonomy."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:213
+msgid "Deletion targets"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:214
+#: src/Admin/PlanningPanel.php:621
+msgid "No deletion targets selected."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:214
+#: src/Admin/PlanningPanel.php:630
+msgid "Deletion available"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:214
+#: src/Admin/PlanningPanel.php:630
+msgid "Deletion unavailable"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:220
+#: src/Admin/PlanningPanel.php:312
+#: src/Admin/PlanningPanel.php:352
+#: src/Admin/PlanningPanel.php:832
+msgid "Error"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:220
+#: src/Admin/PlanningPanel.php:263
+#: src/Admin/PlanningPanel.php:309
+#: src/Admin/PlanningPanel.php:373
+#: src/Admin/PlanningPanel.php:562
+#: src/Admin/PlanningPanel.php:565
+msgid "Warning"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:220
+#: src/Admin/PlanningPanel.php:571
+msgid "Information"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:220
+#: src/Admin/PlanningPanel.php:875
+msgid "The source has child categories and will be retained."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:220
+#: src/Admin/PlanningPanel.php:875
+msgid "The source is used outside published posts and will be retained."
+msgstr ""
+
+#. translators: %d: published-post relationship count.
+#: src/Admin/PlanningPanel.php:220
+#: src/Admin/PlanningPanel.php:574
+msgid "%d published-post relationships are currently associated with the selection."
+msgstr ""
+
+#. translators: %d: published-post relationship count.
+#: src/Admin/PlanningPanel.php:221
+msgid "Notices and validation results"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:232
+msgid "Execute"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:252
+msgid "Operation plan"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:253
+msgid "To edit an item, remove it and add a corrected process."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:258
+msgid "Targets"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:259
+#: src/Admin/PlanningPanel.php:367
+msgid "Planned change"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:260
+msgid "Current estimated scope"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:266
+msgid "Remove from plan"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:273
+msgid "Review changes"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:279
+msgid "Run approved changes"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:281
+msgid "Revise plan"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:282
+msgid "Discard plan"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:298
+msgid "Execution progress"
+msgstr ""
+
+#. translators: %d: item count.
+#: src/Admin/PlanningPanel.php:301
+msgid "Total items: %d"
+msgstr ""
+
+#. translators: %d: item count.
+#: src/Admin/PlanningPanel.php:302
+msgid "Completed items: %d"
+msgstr ""
+
+#. translators: %d: item count.
+#: src/Admin/PlanningPanel.php:303
+msgid "Pending items: %d"
+msgstr ""
+
+#. translators: %d: item count.
+#: src/Admin/PlanningPanel.php:304
+msgid "Failed items: %d"
+msgstr ""
+
+#. translators: %d: item count.
+#: src/Admin/PlanningPanel.php:305
+msgid "Skipped items: %d"
+msgstr ""
+
+#. translators: %d: retained source-term count.
+#: src/Admin/PlanningPanel.php:306
+msgid "Retained source terms: %d"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:309
+msgid "Some source terms were retained because they were not safe to delete."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:312
+msgid "Some items could not be processed. No failed item is reported as completed."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:316
+msgid "Continue next batch"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:330
+msgid "Running; more items remain."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:331
+msgid "All changes completed."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:332
+msgid "Some items failed. The operation is partially complete."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:333
+msgid "The operation failed without completing changes."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:350
+msgid "Change preview"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:354
+msgid "No changes have been executed yet."
+msgstr ""
+
+#. translators: %d: number of operations.
+#: src/Admin/PlanningPanel.php:356
+msgid "Operations: %d"
+msgstr ""
+
+#. translators: %d: number of affected posts.
+#: src/Admin/PlanningPanel.php:357
+msgid "Published posts affected: %d"
+msgstr ""
+
+#. translators: %d: number of terms.
+#: src/Admin/PlanningPanel.php:358
+msgid "Terms planned for deletion: %d"
+msgstr ""
+
+#. translators: %d: number of terms.
+#: src/Admin/PlanningPanel.php:359
+msgid "Terms planned for retention: %d"
+msgstr ""
+
+#. translators: %d: number of warnings.
+#: src/Admin/PlanningPanel.php:360
+msgid "Warnings: %d"
+msgstr ""
+
+#. translators: %d: number of errors.
+#: src/Admin/PlanningPanel.php:361
+msgid "Errors: %d"
+msgstr ""
+
+#. translators: %s: UTC preview creation time.
+#: src/Admin/PlanningPanel.php:362
+msgid "Preview created: %s UTC"
+msgstr ""
+
+#. translators: 1: published post count, 2: excluded object count.
+#: src/Admin/PlanningPanel.php:369
+msgid "%1$d published posts; %2$d excluded objects"
+msgstr ""
+
+#. translators: 1: published post count, 2: excluded object count.
+#: src/Admin/PlanningPanel.php:370
+msgid "Source term is planned for deletion."
+msgstr ""
+
+#. translators: 1: published post count, 2: excluded object count.
+#: src/Admin/PlanningPanel.php:370
+msgid "Source term will be retained."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:377
+msgid "Affected published posts"
+msgstr ""
+
+#. translators: %d: number of configured plan processes.
+#: src/Admin/PlanningPanel.php:655
+msgid "%d processes configured"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:687
+msgid "Missing destination"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:689
+msgid "Delete after preview validation"
+msgstr ""
+
+#. translators: 1: published post count, 2: total relationship count.
+#: src/Admin/PlanningPanel.php:716
+msgid "%1$d published posts; %2$d total relationships"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:770
+msgid "Delete the confirmed globally unused term"
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:796
+msgid "The request could not be completed."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:813
+msgid "Execution progress was updated."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:814
+msgid "The process was added to the plan."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:815
+msgid "The process was removed from the plan."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:816
+msgid "The preview was created without changing WordPress data."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:817
+msgid "The previous preview was invalidated. You can now revise the plan."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:818
+msgid "The plan was discarded."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:886
+msgid "It has no relationships to any WordPress object."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:887
+msgid "It can be removed after its published-post assignments are moved."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:888
+msgid "Rename preserves the term and all relationships."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:889
+msgid "It has child categories."
+msgstr ""
+
+#: src/Admin/PlanningPanel.php:890
+msgid "It is used by excluded objects."
 msgstr ""
