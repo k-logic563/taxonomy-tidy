@@ -1,154 +1,111 @@
-# Taxonomy Tidy — MVP Implementation Plan
+# Taxonomy Tidy — MVP実装計画
 
-## 1. Purpose
+## 1. この文書の役割
 
-This document defines the implementation order for the Taxonomy Tidy MVP.
+この文書はTaxonomy Tidy MVPの実装順序、各フェーズの境界、完了条件を定義します。
 
-`REQUIREMENTS.md` is the authoritative source for product behavior, scope, safety, and acceptance criteria. This document does not replace or weaken those requirements. It divides the work into reviewable phases and defines what Codex may implement in each phase.
+製品仕様、安全要件、受け入れ条件は`REQUIREMENTS.md`を正とします。恒常的な作業ルールは`AGENTS.md`へ従ってください。
 
-If this document conflicts with `REQUIREMENTS.md`, stop and ask for clarification before changing code or data.
+文書間の矛盾がデータ変更やフェーズ範囲へ影響する場合は、変更せず確認してください。
 
-## 2. Confirmed technical decisions
+## 2. 確定済みの技術方針
 
-- Minimum WordPress version: `6.6`
-- Minimum PHP version: `8.2`
-- Supported database baseline: MySQL `8.0+` or MariaDB `10.11+`
-- Primary local environment: Docker Compose
-- Primary test matrix: PHP `8.2`, `8.3`, and `8.4`
-- PHP `8.5` may be checked when practical, but is not required to complete the MVP
-- Plugin name: `Taxonomy Tidy`
-- Plugin slug: `taxonomy-tidy`
-- PHP namespace: `TaxonomyTidy`
-- Text domain: `taxonomy-tidy`
+- WordPress: `6.6+`
+- PHP: `8.2+`
+- DB: MySQL `8.0+`またはMariaDB `10.11+`
+- ローカル環境: Docker Compose
+- 主要PHPテスト: `8.2`、`8.3`、`8.4`
+- Plugin Slug: `taxonomy-tidy`
+- Namespace: `TaxonomyTidy`
+- Text Domain: `taxonomy-tidy`
 
-### Required capabilities
+アクセスには`manage_categories`、`edit_others_posts`、`edit_published_posts`を要求します。変更系リクエストには有効なnonceも要求します。
 
-Every plugin screen and every server-side request that reads a stored operation or changes data must require:
+子カテゴリーを持つ統合元は、自動で子を付け替えません。公開済み投稿のrelationshipは移動できますが、統合元タームと既存の親子関係を保持し、その理由を表示します。
 
-- `manage_categories`
-- `edit_others_posts`
-- `edit_published_posts`
+## 3. 全フェーズ共通ルール
 
-Mutating requests must also require a valid WordPress nonce.
+開始前:
 
-### Categories with children
+1. `AGENTS.md`、`REQUIREMENTS.md`、この文書をすべて読む。
+2. 現在の実装、差分、テスト、直前フェーズを確認する。
+3. 対象フェーズの範囲、変更予定ファイル、検証計画を整理する。
 
-For the MVP, merging a source category that has child categories must not automatically reparent those children.
+実装中:
 
-- Published standard-post relationships may be moved to the destination category.
-- The source category must be retained while it has child categories.
-- Existing parent-child relationships must remain unchanged.
-- The preview and result must clearly explain why the source category was retained.
+- 指定フェーズだけを実装する。
+- 対象外機能を推測で追加しない。
+- 安全検証をサーバー側に置く。
+- 振る舞いの変更にはテストを追加する。
+- 無関係な既存変更を保持する。
+- 実変更には原則WordPress APIを使う。
 
-Automatic child-category reparenting is outside the MVP.
+終了時:
 
-## 3. Rules for every phase
+1. 関連チェックを実行する。
+2. 変更ファイル、実装内容、検証結果を報告する。
+3. 未検証事項、リスク、前提を明示する。
+4. 完了条件を満たした場合だけステータスを更新する。
+5. 次フェーズへ進まず承認を待つ。
 
-Before starting a phase, Codex must:
+## 4. フェーズ状態
 
-1. Read all of `REQUIREMENTS.md`.
-2. Read all of this file.
-3. Inspect the current repository and the results of completed phases.
-4. Confirm that the requested phase is the next incomplete phase.
-5. State the files and behavior expected to change.
+| Phase | 名前 | 状態 |
+|---:|---|---|
+| 1 | 開発基盤とプラグイン骨格 | Completed |
+| 2 | 永続化と操作状態 | Completed |
+| 3 | 正確なターム一覧 | Completed |
+| 4 | 操作計画・検証・プレビュー | Completed |
+| 5 | バッチ実行と復旧 | In progress |
+| 6 | 操作履歴とUndo | Not started |
+| 7 | 管理画面の完成と操作性 | Not started |
+| 8 | 互換性・受け入れ・リリース候補 | Not started |
 
-During a phase, Codex must:
+使用できる状態は`Not started`、`In progress`、`Blocked`、`Completed`です。実装と表が一致しない場合は、作業前に報告してください。
 
-- Implement only the requested phase.
-- Avoid speculative features and abstractions for excluded functionality.
-- Keep data-safety checks on the server side.
-- Add or update automated tests with each behavior change.
-- Preserve unrelated work.
-- Use WordPress APIs for mutations unless a documented reason requires isolated prepared SQL.
-- Keep the persistence model limited to the MVP operations: rename, merge, delete, execution recovery, and undo.
+## 5. Phase 1 — 開発基盤とプラグイン骨格
 
-At the end of a phase, Codex must:
+### 目的
 
-1. Run all checks relevant to the phase.
-2. Report changed files.
-3. Report commands executed and their results.
-4. Report behavior that was manually verified and behavior that remains unverified.
-5. Report assumptions, risks, and unresolved questions.
-6. Update the phase status in this document only after its completion criteria pass.
-7. Stop and wait for approval before beginning the next phase.
+再現可能な開発環境と、警告なく有効化できる最小プラグインを用意します。
 
-Do not report a phase as complete when required checks were skipped or failed.
+### 対象
 
-## 4. Phase status
+- プラグインヘッダー、名前空間、Composer autoload
+- activation・deactivation hook
+- `ツール > Taxonomy Tidy`の最小画面
+- capabilityチェック
+- WordPress、MySQL、WP-CLIを含むDocker Compose
+- PHPUnit、WordPress統合テスト、WPCS
+- bootstrap、activation、アクセス制御テスト
 
-| Phase | Name | Status |
-|---|---|---|
-| 1 | Development foundation and plugin skeleton | Completed |
-| 2 | Persistence and operation state | Completed |
-| 3 | Accurate taxonomy inventory | Completed |
-| 4 | Plan validation and preview | Completed |
-| 5 | Batched execution and recovery | In progress |
-| 6 | History and undo | Not started |
-| 7 | Admin workflow and usability | Not started |
-| 8 | Compatibility, acceptance, and release candidate | Not started |
+### 対象外
 
-Allowed status values are `Not started`, `In progress`, `Blocked`, and `Completed`.
+- taxonomy取得、永続化テーブル、名称変更、統合、削除、プレビュー
 
-## 5. Phase 1 — Development foundation and plugin skeleton
+### 完了条件
 
-### Goal
+- Docker環境を再現できる
+- プラグインを警告なく有効化できる
+- 権限あり・なしのアクセス制御が機能する
+- PHPUnitとPHPCSを実行できる
 
-Provide a reproducible development environment and the smallest installable plugin skeleton.
+## 6. Phase 2 — 永続化と操作状態
 
-### In scope
+### 目的
 
-- Initialize the plugin source structure.
-- Add the main plugin file and valid plugin headers.
-- Add namespace-based autoloading through Composer.
-- Add activation and deactivation hooks without creating speculative data structures.
-- Add `Tools > Taxonomy Tidy` with a minimal placeholder screen.
-- Apply the confirmed capability checks to the menu and page.
-- Configure Docker Compose with WordPress, MySQL 8.0, and WP-CLI access.
-- Mount the plugin source into the WordPress container.
-- Configure PHPUnit and the WordPress integration-test foundation.
-- Configure WordPress Coding Standards.
-- Add JavaScript linting only if JavaScript is introduced in this phase.
-- Add basic installation, bootstrap, and access-control tests.
+プレビュー、実行、再開、監査、Undoに必要な最小データを保存します。
 
-### Out of scope
+### 対象
 
-- Taxonomy tables and queries.
-- Operation database tables.
-- Rename, merge, delete, preview, execution, history, or undo behavior.
-- Final admin UI styling.
+- Operation、Operation Item、Change Journalのテーブル
+- `dbDelta()`とスキーマバージョン
+- Repository
+- 明示的な状態遷移
+- 同時実行を防ぐOperation Lock
+- pending Itemから再開できる状態
 
-### Required verification
-
-- Docker environment starts successfully.
-- WordPress installation can be completed reproducibly.
-- The plugin activates without warnings or fatal errors.
-- An authorized user can open `Tools > Taxonomy Tidy`.
-- An unauthorized user cannot access the screen directly.
-- PHPUnit and PHPCS commands execute successfully.
-
-### Completion criteria
-
-- A new developer can start the environment using documented commands.
-- The plugin skeleton is active and testable.
-- All Phase 1 checks pass.
-
-## 6. Phase 2 — Persistence and operation state
-
-### Goal
-
-Persist the minimum data required to preview, execute, resume, audit, and undo MVP operations.
-
-### In scope
-
-- Define the minimum operation, operation-item, and change-journal schema.
-- Create tables with `dbDelta()` and version the schema.
-- Implement repositories for the required stored data.
-- Implement explicit operation-state transitions.
-- Implement an operation lock that prevents conflicting concurrent execution.
-- Store enough item-level state to resume pending work safely.
-- Add cleanup and retention behavior only when explicitly required for correct operation.
-
-### Required operation states
+### 状態
 
 ```text
 draft -> previewed -> running -> completed
@@ -159,292 +116,239 @@ completed -> undo_previewed -> undoing -> undone
                                      -> undo_partial_failed
 ```
 
-Equivalent internal names are acceptable only when the mapping is documented and behavior remains explicit.
+### 完了条件
 
-### Constraints
+- 作成とマイグレーションが冪等である
+- 正常遷移が成功し、不正遷移を拒否する
+- 有効な競合ロックを取得できない
+- 中断したpending Itemを再取得できる
 
-- Do not build a general-purpose workflow engine.
-- Do not store entire post contents.
-- Do not add tables or fields solely for possible future features.
-- Invalid state transitions must be rejected server-side.
+## 7. Phase 3 — 正確なターム一覧
 
-### Required verification
+### 目的
 
-- Fresh activation creates the expected schema.
-- Repeated activation or migration is idempotent.
-- Valid transitions succeed and invalid transitions fail.
-- A second execution cannot acquire an active conflicting lock.
-- Interrupted pending items remain discoverable for retry.
+taxonomyを変更せず、整理に必要な正確な状態を表示します。
 
-### Completion criteria
+### 対象
 
-- The persistence model supports the remaining phases without implementing their business behavior.
-- Schema and state tests pass.
+- カテゴリー・タグの分離表示
+- 検索、ページング、並べ替え、未使用絞り込み
+- 名前、slug、taxonomy、親、件数、利用状況
+- 公開済み標準投稿数と全relationship数の分離集計
+- prepared SQLのInfrastructure層への隔離
+- 検索パネルと一覧UI
 
-## 7. Phase 3 — Accurate taxonomy inventory
+### 制約
 
-### Goal
+- 読み取り専用とする
+- 安全判断に`term_taxonomy.count`だけを使わない
 
-Display accurate category and tag information without changing any taxonomy data.
+### 完了条件
 
-### In scope
+- 除外ステータスと投稿タイプが公開済み投稿数へ入らない
+- 全relationship数には除外オブジェクトも含まれる
+- 両taxonomyで検索、ページング、並べ替え、絞り込みが機能する
 
-- Separate category and tag views.
-- Server-side pagination.
-- Search by name or slug.
-- Sort by name and published standard-post usage count.
-- Filter globally unused terms.
-- Show term name, slug, taxonomy, parent category, and counts.
-- Calculate published `post` usage independently from `term_taxonomy.count`.
-- Calculate total object relationships to distinguish:
-  - used by published standard posts;
-  - used only by excluded objects;
-  - unused by every WordPress object.
-- Isolate any prepared reporting SQL in the infrastructure layer.
+## 8. Phase 4 — 操作計画・検証・プレビュー
 
-### Constraints
+### 目的
 
-- This phase is read-only.
-- Category and tag operations must not be mixed.
-- Counts used for safety decisions must come from tested queries.
+名称変更、統合、削除を設定し、データを変更せず影響を確認できるようにします。
 
-### Required verification
+### 対象
 
-- Published counts exclude drafts, private posts, scheduled posts, pages, and custom post types.
-- Total relationship counts include excluded objects.
-- Search, pagination, sorting, and filtering work independently for both taxonomies.
-- The screen remains usable with approximately 100 categories and 1,000 tags.
+- draft計画の作成と編集
+- 名称変更と明示的slug変更の検証
+- 同一taxonomy統合の検証
+- 完全未使用ターム削除の検証
+- 同一タームへの矛盾操作、デフォルトカテゴリー削除、taxonomy跨ぎ、自己統合、循環の拒否
+- 子カテゴリーを持つsourceの保持
+- 正規化した計画ハッシュ
+- 関連状態フィンガープリント
+- 公開済み標準投稿IDの固定
+- 古いプレビューの無効化
+- プレビューモーダル
 
-### Completion criteria
+### UI決定
 
-- Administrators can accurately inspect the taxonomy state needed to plan cleanup.
-- No mutation endpoints exist yet.
-- Query and screen tests pass.
+- 配置は検索パネル、処理パネル、ターム一覧の順
+- 両パネルは同じ見た目のアコーディオンで初期状態は閉じる
+- 処理パネルは意味単位で縦に並べる
+- 入力エラーは該当セクション内へ日本語で表示する
+- プレビューはページへ常設せずモーダル表示する
+- モーダルは必要最低限の情報だけを表示する
+- `キャンセル`はモーダルを閉じるだけとする
+- 投稿一覧は初期状態で閉じ、必要時だけ読み込む
 
-## 8. Phase 4 — Plan validation and preview
+### 制約
 
-### Goal
+- プレビュー生成で名称、slug、relationship、タームを変更しない
+- UIを簡略化しても内部の安全検証を省略しない
 
-Allow an administrator to configure rename, merge, and globally unused delete operations and preview the exact effects without changing data.
+### 完了条件
 
-### In scope
+- 有効な計画が`draft`から`previewed`へ進む
+- プレビューが実際の変更予定を正しく説明する
+- 計画または関連データの変更で古いプレビューを拒否する
+- taxonomyデータを変更しない
 
-- Create and edit a draft operation plan.
-- Validate rename operations, including optional explicit slug changes.
-- Validate same-taxonomy merge operations.
-- Validate globally unused deletion for preview without a redundant checkbox; explicit confirmation remains required immediately before Phase 5 execution.
-- Reject conflicting actions against the same term.
-- Reject default-category deletion.
-- Reject cross-taxonomy and self merges.
-- Reject category merges into descendants or any circular hierarchy.
-- Retain source categories that have children and explain that result.
-- Generate and persist a normalized plan hash.
-- Generate a relevant taxonomy-state fingerprint.
-- Record the fixed published-post targets approved by the preview.
-- Show affected published posts, excluded-object counts, deletion or retention behavior, errors, and warnings.
-- Invalidate the preview when the plan changes.
-- Reject stale previews when relevant taxonomy state changes.
+## 9. Phase 5 — バッチ実行と復旧
 
-### Constraints
+### 目的
 
-- Preview generation must not rename terms, change relationships, or delete terms.
-- State fingerprints should cover relevant terms and relationships without snapshotting unrelated site data.
-- Post-title lists may be paginated or expanded progressively, but the approved IDs must be fixed server-side.
+承認済みで最新のプレビューを、有界かつ再試行可能なバッチで実行します。
 
-### Required verification
+### 対象
 
-- Every validation rule in `REQUIREMENTS.md` has an automated test.
-- Plan edits invalidate an earlier preview.
-- Relevant changes made in another admin screen invalidate an earlier preview.
-- Drafts and other excluded objects appear only as excluded counts and are never added to execution targets.
-- Permission, nonce, sanitization, and escaping checks pass.
+- プレビューモーダルの`整理を実行`による明示開始
+- 実行直前のハッシュ、フィンガープリント、権限、nonce、状態、ロックの再検証
+- 固定対象を認証済みの有界リクエストで処理
+- WordPress APIによる名称変更
+- 無関係なassignmentを維持する統合
+- 統合先relationshipの重複防止
+- source削除直前の全relationship再確認
+- 対象外オブジェクトまたは子カテゴリーがあるsourceの保持
+- 完全未使用タームだけの削除
+- 実変更のChange Journal
+- 進捗と正確な最終状態
+- 中断後の安全な再試行・再開
 
-### Completion criteria
+### UI決定
 
-- A valid plan can move from draft to previewed.
-- The preview truthfully describes the proposed changes.
-- No taxonomy mutation is performed.
+- 実行前は`キャンセル`と`整理を実行`を表示する
+- 実行中は二重実行を防ぎ、モーダルを誤って閉じられないようにする
+- モーダル本文を進捗表示へ切り替える
+- 完了後は同じモーダルで結果を表示する
+- 利用者向け文言は日本語とする
 
-## 9. Phase 5 — Batched execution and recovery
+### 制約
 
-### Goal
+- 不完全なバッチを`completed`にしない
+- 処理済みItemとJournalを重複させない
+- プレビューで固定していない投稿へ対象を拡大しない
+- 直前競合ではデータを保持し、警告または失敗として記録する
 
-Execute an approved, current preview in bounded, retry-safe batches.
+### 必須テスト
 
-### In scope
+- relationshipを変えない名称変更
+- 既存統合先を重複追加しない統合
+- 無関係なassignmentの維持
+- 除外relationshipまたは子カテゴリーがあるsource保持
+- 安全でない削除とデフォルトカテゴリーの拒否
+- バッチ中断、再開、同一リクエスト再送
+- ロック競合とTTL
+- 部分失敗の`partial_failed`
+- Change Journalの実変更記録
+- モーダルの実行中・完了表示
 
-- Require explicit execution confirmation.
-- Revalidate the plan hash and relevant state immediately before starting.
-- Process fixed targets in bounded authenticated requests.
-- Rename terms through WordPress APIs.
-- Merge published standard-post relationships while preserving unrelated assignments.
-- Avoid duplicate destination relationships.
-- Delete source terms only after a current, global safety check.
-- Retain source terms used by excluded objects or acting as category parents.
-- Delete only globally unused, explicitly confirmed terms.
-- Journal actual changes required for history and undo.
-- Show progress and truthful final states.
-- Support safe retry or resume after interruption.
+### 完了条件
 
-### Constraints
+- 承認操作を公開済み標準投稿へ安全に適用できる
+- 中断後に未処理Itemから再開できる
+- 結果と失敗が正確に記録される
+- 実行、ロック、再試行、UIの関連テストが合格する
 
-- A failed or incomplete batch must never be reported as completed.
-- Retrying a processed item must not duplicate relationships or journal entries.
-- Execution must not expand beyond the post IDs fixed by the approved preview.
-- A last-moment conflict must retain data and produce a warning or failure state.
+## 10. Phase 6 — 操作履歴とUndo
 
-### Required verification
+### 目的
 
-- Rename does not alter relationships.
-- Merge preserves unrelated terms.
-- Existing destination assignments are not duplicated.
-- Source terms remain when excluded relationships or child categories exist.
-- Default category and unsafe deletion checks cannot be bypassed.
-- Interrupted batches can be resumed safely.
-- Partial failures produce `partial_failed`, not `completed`.
+完了操作を確認し、新しい管理者変更を上書きせず対応可能な変更を戻します。
 
-### Completion criteria
+### 対象
 
-- Approved operations can be applied safely to published standard posts.
-- Results and failures are accurately recorded.
-- All execution and retry tests pass.
+- 履歴一覧と詳細
+- Undo可否計算
+- 別OperationとしてのUndoプレビュー
+- 競合がない名称変更のUndo
+- Change Journalに基づく統合Undo
+- 安全な場合だけ削除sourceを再作成
+- 元々sourceを持つ投稿だけへ復元
+- 元操作が追加したdestinationだけを削除
+- 消失・変更した投稿、ターム、slug、名前、親の競合検知
+- 完全、一部、不可、競合の表示
+- 有界で再試行可能なUndo
 
-## 10. Phase 6 — History and undo
+### 完了条件
 
-### Goal
+- 対応操作を安全にプレビュー・Undoできる
+- 新しい変更を上書きしない
+- 競合と部分結果が正しく表示される
 
-Expose completed operations and reverse supported changes without overwriting newer administrator work.
+## 11. Phase 7 — 管理画面の完成と操作性
 
-### In scope
+### 目的
 
-- Operation-history list and detail views.
-- Undo eligibility calculation.
-- Undo preview as a separate recorded operation.
-- Rename undo when current values still match the values applied by the original operation.
-- Merge undo using the actual change journal.
-- Safe recreation of deleted source terms when recorded attributes remain valid and conflict-free.
-- Restore source assignments only to posts that originally had them.
-- Remove destination assignments only when the original operation added them.
-- Detect missing or changed posts, terms, slugs, names, and parents.
-- Report full, partial, unavailable, and conflicted undo states.
-- Execute undo in bounded, retry-safe batches.
+全ワークフローをWordPress管理画面内で直感的に完了できるようにします。
 
-### Constraints
+### 対象
 
-- Undo must never overwrite newer administrator changes.
-- The UI must not promise perfect reversibility.
-- Conflicts must be reported rather than silently resolved.
+- カテゴリー、タグ、履歴の完成
+- 設定、プレビュー、確認、実行、結果、Undoの一貫した導線
+- 名称変更、統合、削除の視覚的区別
+- エラー、警告、結果の適切な配置
+- 最小限のJavaScriptによる操作補助
+- 全文言の日本語化と国際化
+- escape、キーボード、フォーカス、読み上げ、狭い画面への対応
+- これまで確定したアコーディオン、余白、モーダル仕様の総合確認
 
-### Required verification
+### 完了条件
 
-- Rename undo succeeds in an unchanged state and stops on conflict.
-- Merge undo handles posts that already had the destination before the merge.
-- Deleted terms are recreated only when safe.
-- Missing objects produce truthful partial or unavailable results.
-- Interrupted undo can be retried safely.
+- DBやCLIを使わずMVP操作を完了できる
+- 成功以外の状態も理解できる
+- UI自動テストと主要な手動確認が合格する
 
-### Completion criteria
+## 12. Phase 8 — 互換性・受け入れ・リリース候補
 
-- Supported completed operations can be previewed and undone safely.
-- Conflict behavior is visible and tested.
+### 目的
 
-## 11. Phase 7 — Admin workflow and usability
+MVP受け入れ条件を検証し、インストール可能なリリース候補を作成します。
 
-### Goal
+### 対象
 
-Make the complete workflow understandable and usable within established WordPress admin patterns.
+- PHPUnit、統合テスト、PHPCS、JavaScript lintの全実行
+- PHP 8.2、8.3、8.4
+- WordPress 6.6と現行安定版
+- MySQL 8.0と、可能ならMariaDB 10.11+
+- カテゴリー100件、タグ1,000件、公開済み投稿300件以上と除外データによる負荷確認
+- クリーンインストール、アップグレード、スキーマ冪等性
+- activation、deactivation、uninstall
+- `readme.txt`、changelog、license、インストール手順
+- 開発専用ファイルを除外したZIP
+- 新規WordPress環境へのZIPインストールとスモークテスト
 
-### In scope
+公開サービスへのリリースは別途明示的な承認を必要とします。
 
-- Finish the Categories, Tags, and History views.
-- Provide the explicit configure -> preview -> confirm -> execute -> review flow.
-- Make merge and delete actions visually distinct.
-- Add inline plugin-screen notices for errors, warnings, and results.
-- Improve row editing and progress updates with minimal JavaScript.
-- Ensure server-side validation remains authoritative without JavaScript.
-- Internationalize all user-facing strings with the `taxonomy-tidy` text domain.
-- Escape every output according to context.
-- Add accessible labels, keyboard operation, focus behavior, and meaningful status announcements.
+### 完了条件
 
-### Required verification
+- MVP受け入れ条件がすべて合格する
+- 大量データでタイムアウトや破損がない
+- 対象外オブジェクトと無関係なrelationshipが不変である
+- ZIPを再現でき、新規環境で有効化できる
+- 既知の制約と未検証組み合わせが文書化されている
 
-- Complete each supported workflow manually from the WordPress admin UI.
-- Verify behavior with JavaScript disabled where safety is concerned.
-- Verify keyboard use and basic screen-reader semantics.
-- Verify responsive usability at narrow admin viewport sizes.
-- Verify error and partial-failure states, not only successful flows.
-
-### Completion criteria
-
-- The full MVP can be completed without database or command-line intervention.
-- Safety warnings and operation states are understandable.
-- UI-related automated and manual checks pass.
-
-## 12. Phase 8 — Compatibility, acceptance, and release candidate
-
-### Goal
-
-Prove the MVP acceptance criteria and produce an installable release candidate.
-
-### In scope
-
-- Run the complete PHPUnit, integration-test, PHPCS, and JavaScript-lint suites.
-- Test PHP 8.2, 8.3, and 8.4.
-- Test WordPress 6.6 and the current stable WordPress release.
-- Test MySQL 8.0 and, when practical, MariaDB 10.11 or later.
-- Seed and test approximately 100 categories, 1,000 tags, and at least 300 published posts, together with excluded statuses and post types.
-- Perform a clean-install test.
-- Perform an upgrade/schema-idempotency test.
-- Verify activation, deactivation, and uninstall behavior.
-- Run all acceptance criteria from `REQUIREMENTS.md`.
-- Create production plugin files, `readme.txt`, changelog, license information, and installation instructions.
-- Build an installable ZIP without development-only files.
-- Install the ZIP into a fresh WordPress environment and repeat the smoke test.
-
-### Release boundary
-
-This phase creates a release candidate. Publishing to WordPress.org, GitHub Releases, or another public service requires separate explicit approval.
-
-### Required verification
-
-- All automated checks pass without unexpected skips.
-- The large-data scenario completes without request timeout or data corruption.
-- A database comparison confirms excluded objects and unrelated relationships are unchanged.
-- The packaged ZIP installs and activates cleanly.
-- Known limitations and unverified combinations are documented.
-
-### Completion criteria
-
-- Every MVP acceptance criterion passes.
-- The release candidate ZIP is reproducible and manually smoke-tested.
-- Remaining risks are documented clearly enough for a release decision.
-
-## 13. Phase start prompt template
-
-Use the following prompt when starting each phase:
+## 13. フェーズ開始用テンプレート
 
 ```text
-Read REQUIREMENTS.md and docs/IMPLEMENTATION_PLAN.md completely before making changes.
+AGENTS.md、REQUIREMENTS.md、docs/IMPLEMENTATION_PLAN.mdをすべて読んでください。
 
-Implement Phase <NUMBER> only.
-Do not begin a later phase, even if it appears convenient.
+Phase <NUMBER>だけを実装してください。後続フェーズへ進まないでください。
 
-Before editing, inspect the current repository and confirm that the preceding phases are complete. Then summarize the Phase <NUMBER> scope, expected files, and verification plan.
+編集前に、現在の実装と直前フェーズの完了状態を確認し、Phase <NUMBER>の対象範囲、変更予定ファイル、検証計画を簡潔に示してください。
 
-Implement the phase in small, reviewable changes and add the required tests. Run all checks relevant to the phase.
+実装と必要なテストを行い、関連チェックを実行してください。
 
-At completion, report:
-- files created or changed;
-- implementation decisions;
-- commands and test results;
-- manual verification performed;
-- anything not verified;
-- remaining risks or questions;
-- whether every Phase <NUMBER> completion criterion passed.
+完了時は以下を報告してください。
+- 変更ファイル
+- 実装上の判断
+- 実行したコマンドと結果
+- 手動確認
+- 未検証事項
+- リスクと未解決事項
+- 完了条件をすべて満たしたか
 
-Update the Phase <NUMBER> status in docs/IMPLEMENTATION_PLAN.md only if all completion criteria pass. Stop after reporting and wait for approval before starting the next phase.
+完了条件を満たした場合だけ状態を更新し、次フェーズへ進まず停止してください。
 ```
 
-## 14. Final safety rule
+## 14. 最終安全規則
 
-When an ambiguity could change or delete stored WordPress data, preserve the data, stop the affected operation, report the ambiguity, and ask for a decision. Convenience must not override the safety requirements.
+曖昧さがWordPress保存データの変更・削除へ影響する場合は、データを保持し、該当操作を停止し、理由と選択肢を報告してください。利便性より安全性を優先します。

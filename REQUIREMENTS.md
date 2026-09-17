@@ -1,292 +1,250 @@
-# Taxonomy Tidy — MVP Requirements
+# Taxonomy Tidy — MVP要件定義
 
-## 1. Project overview
+## 1. 目的
 
-Taxonomy Tidy is a WordPress admin plugin for safely organizing categories and tags in bulk.
+Taxonomy Tidyは、WordPress管理画面から大量のカテゴリーとタグを安全に整理するプラグインです。表記揺れ、重複、未使用タームを一覧化し、名称変更、統合、削除、投稿への再割り当てを、事前確認と復旧可能な処理を通して実行します。
 
-The problem it solves is that WordPress's standard taxonomy screens become difficult to use when a site has dozens or hundreds of inconsistent categories and tags. An administrator should be able to review the current taxonomy structure, rename terms, merge duplicate terms, delete unused terms, and reassign affected posts without leaving the WordPress admin UI.
+MVPでは自動化の多さより、次を優先します。
 
-The MVP must prioritize predictable behavior, previewability, and recovery over automation.
+- 変更内容を事前に把握できる
+- 対象外データを変更しない
+- 大量処理を中断・再開できる
+- 実際の変更を記録できる
+- 可能な範囲で安全に取り消せる
 
-## 2. Product identity
+## 2. 製品情報
 
-- Plugin name: `Taxonomy Tidy`
-- Plugin slug: `taxonomy-tidy`
-- PHP namespace: `TaxonomyTidy`
-- Text domain: `taxonomy-tidy`
-- Admin menu location: `Tools > Taxonomy Tidy`
+- Plugin Name: `Taxonomy Tidy`
+- Plugin Slug: `taxonomy-tidy`
+- PHP Namespace: `TaxonomyTidy`
+- Text Domain: `taxonomy-tidy`
+- 管理画面: `ツール > Taxonomy Tidy`
+- 最低WordPress: `6.6`
+- 最低PHP: `8.2`
+- DB基準: MySQL `8.0+`またはMariaDB `10.11+`
 
-## 3. MVP goal
+## 3. 基本フロー
 
-Allow a WordPress administrator to safely perform the following workflow:
+1. カテゴリーまたはタグを一覧で確認する
+2. 検索と絞り込みを行う
+3. 対象を選択する
+4. 名称変更、統合、削除を設定する
+5. プレビューモーダルで変更内容を確認する
+6. 明示的に整理を実行する
+7. 進捗と結果を確認する
+8. 操作履歴を確認する
+9. 対応可能な操作をプレビュー後に取り消す
 
-1. Inspect all standard categories or tags in a table.
-2. Define rename, merge, or delete operations.
-3. Preview exactly what will change.
-4. Apply the changes to published posts only.
-5. Review the execution result.
-6. Undo a completed operation when possible.
+## 4. 対象範囲
 
-## 4. Scope
+### 対象
 
-### Included
+- 標準投稿タイプ`post`
+- 標準カテゴリー`category`
+- 標準タグ`post_tag`
+- 公開済み投稿`publish`のrelationship変更
+- 名称変更と明示的なslug変更
+- 同一taxonomy内の統合
+- WordPressオブジェクト全体で完全に未使用なタームの削除
+- 実行前プレビュー、有界バッチ実行、進捗、結果、履歴、対応可能なUndo
 
-- Standard WordPress posts (`post` post type).
-- Standard categories (`category` taxonomy).
-- Standard tags (`post_tag` taxonomy).
-- Published posts (`publish` status) as the only posts whose term relationships may be changed.
-- Category and tag listing.
-- Term name changes.
-- Optional term slug changes.
-- Same-taxonomy term merging.
-- Deletion of unused terms.
-- Dry-run preview before execution.
-- Batched execution.
-- Operation history.
-- Undo of supported completed operations.
+### 対象外
 
-### Excluded
+- 固定ページ、カスタム投稿タイプ、カスタムタクソノミー
+- 下書き、非公開、予約、承認待ち、ゴミ箱、自動下書きへのrelationship変更
+- カテゴリーとタグの相互変換
+- AI分類、本文解析、管理者承認のない自動整理
+- CSV入出力、投稿単位編集、定期実行
+- マルチサイト全体の一括処理、旧URLの自動リダイレクト
+- WooCommerce固有処理
 
-- Pages and custom post types.
-- Custom taxonomies.
-- Draft, private, pending, scheduled, trashed, and auto-draft posts.
-- AI-based classification or content analysis.
-- Automatic taxonomy cleanup without administrator approval.
-- CSV import or export.
-- Per-post taxonomy editing.
-- Scheduled cleanup.
-- Category-to-tag or tag-to-category conversion.
-- Multisite network-wide operations.
-- Automatic redirects for old taxonomy archive URLs.
-- WooCommerce-specific behavior.
+明示的な要件変更なしに対象外機能を追加しません。
 
-Do not implement excluded functionality unless the requirements are explicitly changed.
+## 5. 権限
 
-## 5. Functional requirements
+プラグイン画面と保存済み操作へのアクセスには次のすべてを要求します。
 
-### 5.1 Taxonomy selection
+- `manage_categories`
+- `edit_others_posts`
+- `edit_published_posts`
 
-The screen must provide separate views for:
+変更リクエストでは、有効なWordPress nonceも要求します。
 
-- Categories
-- Tags
-- Operation history
+## 6. ターム一覧
 
-Category and tag operations must never be mixed in one merge operation.
+カテゴリーとタグは別ビューで表示し、1つの統合操作へ混在させません。
 
-### 5.2 Term list
+一覧には、選択、名前、slug、種別、親カテゴリー、公開済み標準投稿での使用数、全relationship数、利用状況を表示します。
 
-For each term, show:
+次に対応します。
 
-- Selection control
-- Term name
-- Slug
-- Taxonomy type
-- Parent category, when applicable
-- Number of published posts using the term
-- Proposed action
-- Proposed destination or new value
+- 名前またはslug検索
+- サーバー側ページング
+- 名前・公開済み投稿数による並べ替え
+- 完全に未使用なタームの絞り込み
 
-The published-post usage count must not rely solely on the stored `term_taxonomy.count` value when that value could include post statuses outside the MVP scope. Counts used for previews and safety decisions must reflect published standard posts.
+安全判断に`term_taxonomy.count`だけを使わず、公開済み標準投稿数と全オブジェクトのrelationship数を分けて集計します。カテゴリー100件、タグ1,000件でも利用可能な構成にします。
 
-The list should support:
+## 7. 名称変更
 
-- Pagination
-- Search by name or slug
-- Sorting by name and published-post usage count
-- Filtering unused terms
+- 表示名を変更できます。
+- slugは明示入力された場合だけ変更します。
+- 名称だけの変更ではslugとrelationshipを変更しません。
+- 無効または競合する変更を拒否します。
+- 内部ではterm IDとterm taxonomy IDを安定識別子にします。
 
-### 5.3 Rename
+## 8. 統合
 
-An administrator may change a term's display name.
+1つ以上の統合元を、同じtaxonomyの既存タームへ統合します。公開済み標準投稿ごとに、統合先が未割り当ての場合だけ追加し、統合元を外し、無関係なassignmentを維持します。
 
-- Changing the slug must be optional and explicit.
-- A rename must be rejected if it would result in an invalid or conflicting term state.
-- Renaming a term must not alter its post relationships.
+次を禁止します。
 
-### 5.4 Merge
+- taxonomyをまたぐ統合
+- 自分自身への統合
+- カテゴリーを自分の子孫へ統合する操作
+- 循環するカテゴリー階層
+- 対象外投稿のrelationship変更
 
-An administrator may merge one or more source terms into one existing destination term within the same taxonomy.
+統合元は削除直前に全relationshipを再確認します。対象外オブジェクトで使用中、子カテゴリーあり、デフォルトカテゴリー、またはプレビュー後に状態が変わった場合は保持します。子カテゴリーの自動的な親変更は行いません。
 
-For every published standard post assigned to a source term:
+## 9. 未使用タームの削除
 
-- Assign the destination term if it is not already assigned.
-- Remove the source term assignment.
-- Preserve all unrelated term assignments.
-- Do not create duplicate relationships.
+- 全WordPressオブジェクトとのrelationshipが0件の場合だけ削除できます。
+- 公開済み投稿で0件でも、下書きなどで使用中なら削除しません。
+- デフォルトカテゴリーは削除しません。
+- 実行直前にもrelationshipを再確認します。
+- 明示的な実行操作なしに削除しません。
 
-After all eligible published-post relationships are moved, the source term may be deleted only when doing so cannot affect excluded posts. If a source term is still assigned to a draft, private, scheduled, pending, trashed, auto-draft, page, or custom post type, the preview must report this and the source term must not be deleted automatically.
+## 10. 操作計画とプレビュー
 
-A category cannot be merged into one of its own descendants. The plugin must prevent invalid or circular category hierarchies.
+実行前に操作計画を正規化し、次を保存・検証します。
 
-### 5.5 Delete unused terms
+- 操作計画ハッシュ
+- 関連タームとrelationshipの状態フィンガープリント
+- 固定した公開済み標準投稿ID
+- 対象外オブジェクト数
+- 統合元の削除・保持予定
+- 警告とエラー
 
-For the MVP, a term is safe to delete only when it has no relationships to any WordPress object, including objects outside the published-post scope.
+計画または関連データが変わった場合、古いプレビューを無効化します。プレビュー生成時に名称、relationship、タームを変更しません。
 
-- Show whether a term is unused by published posts but still used elsewhere.
-- Do not describe such a term as globally unused.
-- Include deletion in the Phase 4 preview and require explicit confirmation immediately before Phase 5 execution; a separate per-term confirmation checkbox is not required during planning.
-- Never delete the site's default post category.
+## 11. プレビューモーダル
 
-### 5.6 Preview
+プレビューはページ内へ常設せず、モーダルで表示します。
 
-No rename, merge, relationship change, or deletion may occur before a preview is generated.
+### 構成
 
-The preview must show:
+- ヘッダー: `変更内容のプレビュー`と閉じるボタン
+- 本文: 必要な場合だけ内部スクロール
+- フッター: `キャンセル`と`整理を実行`
 
-- Each proposed operation.
-- Source and destination terms.
-- Number of published posts that will change.
-- Number of excluded objects that will not change.
-- Whether a source term will be deleted or retained.
-- Validation errors and warnings.
-- A sample or expandable list of affected post IDs and titles.
+### 表示内容
 
-If the stored plan changes after preview generation, the previous preview must become invalid and execution must require a new preview.
+- まだ変更が実行されていないこと
+- 処理方法
+- 変更対象
+- 変更後の内容
+- 影響を受ける公開済み投稿数
+- 統合元を削除するか保持するか
+- 実行を妨げる警告とエラー
 
-### 5.7 Execution
+0件の警告・エラー・削除予定・保持予定、内部ID、ハッシュ、フィンガープリント、内部ステータスは表示しません。slugは変更時だけ表示します。投稿一覧は初期状態で閉じ、展開時にだけ取得または描画します。
 
-- Execution must require an explicit confirmation action.
-- Process large changes in bounded batches to avoid request timeouts.
-- Make every batch safe to retry without duplicating relationships or corrupting state.
-- Display progress and a final result summary.
-- A failed batch must not be reported as a successful completed operation.
-- Preserve enough state to resume or safely retry an interrupted operation.
+### キャンセル
 
-### 5.8 History and undo
+`キャンセル`はモーダルを閉じるだけです。フォーム送信、遷移、再読み込み、計画破棄、Operationの削除・状態変更、強制スクロール、実行開始を行いません。
 
-For each execution, record:
-
-- Operation ID
-- Administrator user ID
-- Start and completion timestamps
-- Requested changes
-- Actual changes
-- Result status
-- Errors and warnings
-- Data required for undo
-
-Undo must:
-
-- Show a preview before applying.
-- Restore recorded term relationships where the referenced objects still exist.
-- Restore renamed term values when doing so does not conflict with current data.
-- Recreate deleted source terms only when their necessary attributes were recorded and recreation is safe.
-- Stop and report conflicts instead of overwriting newer administrator changes.
-
-The UI must not promise that every operation is always fully reversible. It must clearly report partial or unavailable undo states.
-
-## 6. Admin UI requirements
-
-- Follow established WordPress admin visual patterns.
-- Remain usable with approximately 100 categories and 1,000 tags.
-- Use plain, action-oriented Japanese-ready labels through WordPress internationalization functions.
-- Make destructive actions visually distinct.
-- Do not use ambiguous actions such as a single immediate `Clean up` button.
-- Keep the workflow explicit: configure, preview, confirm, execute, review.
-- Show notices within the plugin screen instead of relying only on transient global notices.
-
-Suggested primary actions:
-
-- `変更内容を確認`
-- `整理を実行`
-- `変更を取り消す`
-
-## 7. Permissions and security
-
-- Restrict access to users with `manage_categories` and the required post-editing capability.
-- Check capabilities again for every mutating request.
-- Protect mutating requests with WordPress nonces.
-- Sanitize all incoming values.
-- Escape all rendered values according to output context.
-- Use WordPress APIs for term and relationship mutations whenever practical.
-- Use prepared queries for any direct database access.
-- Do not expose post or taxonomy data through unauthenticated endpoints.
-
-## 8. Data integrity rules
-
-- Never modify excluded post statuses or post types.
-- Never delete the default category.
-- Never merge terms across taxonomies.
-- Never silently change a slug.
-- Never silently delete a source term that remains used by an excluded object.
-- Never remove unrelated category or tag assignments from a post.
-- Never execute a stale preview.
-- Treat partial failure as an explicit operation state.
-- Avoid relying on user-visible names as stable identifiers; use term and taxonomy IDs internally.
-
-## 9. Technical direction
-
-- Use object-oriented PHP under the `TaxonomyTidy` namespace.
-- Keep WordPress hooks and bootstrapping separate from domain logic.
-- Separate planning/validation, preview generation, execution, and undo responsibilities.
-- Prefer WordPress core APIs over direct SQL mutations.
-- Any direct SQL used for accurate counting or reporting must be isolated and tested.
-- JavaScript may enhance the admin UI, but core safety checks must remain server-side.
-- All user-facing strings must be translatable with the `taxonomy-tidy` text domain.
-- Do not add a frontend-facing feature or modify the public theme output.
-
-A suggested internal structure is:
-
-```text
-taxonomy-tidy.php
-src/
-  Admin/
-  Application/
-  Domain/
-  Infrastructure/
-assets/
-  css/
-  js/
-tests/
-```
-
-This structure is guidance, not a requirement when a simpler design remains maintainable.
-
-## 10. Testing requirements
-
-At minimum, cover:
-
-- Published-post usage counts excluding drafts and other statuses.
-- Rename without relationship changes.
-- Merge into an existing destination.
-- Merge when a post already has the destination term.
-- Merge source used by both published and excluded posts.
-- Default category deletion prevention.
-- Cross-taxonomy merge prevention.
-- Circular category hierarchy prevention.
-- Retry of an interrupted batch.
-- Stale-preview rejection.
-- Permission and nonce failures.
-- Undo after rename.
-- Undo after merge.
-- Undo conflict caused by a later administrator change.
-
-## 11. MVP acceptance criteria
-
-The MVP is complete when an administrator can:
-
-1. Open `Tools > Taxonomy Tidy`.
-2. View accurate published-post counts for standard categories and tags.
-3. Configure a valid rename, merge, or globally-unused-term deletion.
-4. Preview all affected published posts and excluded-object warnings.
-5. Execute the approved plan without changing drafts or other excluded objects.
-6. See a truthful success, partial-failure, or failure result.
-7. Review the operation in history.
-8. Preview and perform a supported undo without overwriting conflicting newer changes.
-
-All automated tests and WordPress coding-standard checks configured for the project must pass.
-
-## 12. Implementation rules for Codex
-
-- Read this file before planning or editing the plugin.
-- Treat the MVP scope and exclusions as binding.
-- Do not add speculative features.
-- Do not weaken safety behavior to simplify implementation.
-- Before editing, inspect the existing repository structure and conventions.
-- Preserve unrelated existing changes.
-- Implement in small, reviewable increments.
-- Add or update tests with each behavior change.
-- Run the relevant tests and checks before reporting completion.
-- Report assumptions, remaining risks, and anything not verified.
-- If a requirement is ambiguous and the choice affects stored data or destructive behavior, stop and ask instead of guessing.
+入力、選択、検索条件、ページ、背景のスクロール位置を維持します。右上の閉じるボタン、Esc、背景クリックも共通の終了処理を使います。実行中は誤って閉じられないようにします。
+
+### アクセシビリティ
+
+- `role="dialog"`、`aria-modal="true"`、適切な`aria-labelledby`
+- モーダル内のフォーカス管理と終了時のフォーカス復帰
+- 閉じるボタンの読み上げラベル
+- キーボード操作と進捗の`aria-live`通知
+
+## 12. バッチ実行と復旧
+
+- `整理を実行`によってだけ開始します。
+- 実行直前に権限、nonce、ハッシュ、フィンガープリント、Operation状態、ロック、関連データを再検証します。
+- 固定済みの公開済み標準投稿だけを有界バッチで処理します。
+- 未処理Itemから再開し、処理済みItemを重複実行しません。
+- リクエスト再送に対して冪等にします。
+- 実変更だけをChange Journalへ記録します。
+- 全件成功時だけ`completed`とし、一部失敗は`partial_failed`、開始不能または全体失敗は`failed`にします。
+
+全件数、完了、未処理、失敗、スキップ、警告、現在状態を日本語で表示します。
+
+## 13. 操作履歴とUndo
+
+履歴にはOperation ID、実行管理者、日時、依頼内容、実変更、結果、警告、エラー、Undo用ジャーナルを記録します。
+
+Undoは別の操作としてプレビュー後に実行します。
+
+- 名称変更は現在値が元操作の適用値と一致するときだけ戻します。
+- 統合元は元々保持していた投稿だけへ戻します。
+- 統合先は元操作で新規追加した投稿からだけ外します。
+- 削除タームは属性が記録済みで、安全に再作成できる場合だけ復元します。
+- 新しい管理者変更を上書きしません。
+- 完全、一部、不可、競合を明示します。
+
+## 14. 管理画面
+
+ビューはカテゴリー、タグ、操作履歴の3つです。
+
+カテゴリー・タグ画面の配置順は次のとおりです。
+
+1. 検索パネル
+2. 処理パネル
+3. ターム一覧
+
+検索パネルと処理パネルは同じ見た目のアコーディオンとし、初期状態では閉じます。
+
+処理パネルは、選択中の対象、処理方法、変更内容、注意事項・検証結果、操作を縦方向へ整理します。主要ボタンは`実行する`だけです。入力条件を満たさない場合、該当セクション内へ日本語のエラーを表示します。
+
+## 15. セキュリティと整合性
+
+- capability、nonce、sanitize、escapeをサーバー側で実施します。
+- 直接SQLはprepared queryとし、Infrastructure層へ隔離します。
+- JavaScriptを改変しても検証を迂回できない構成にします。
+- 操作ロックで同時実行を防ぎます。
+- 無関係なrelationshipを削除しません。
+- 古いプレビューを実行しません。
+- source削除直前に全relationshipを確認します。
+- 競合や不明点ではデータ保持を優先します。
+
+## 16. 非機能要件
+
+- Docker Composeで再現可能な環境を提供します。
+- PHP 8.2、8.3、8.4を主要テスト対象とします。
+- WordPress Coding Standardsへ準拠します。
+- 責務を分離し、大量処理のタイムアウトを防ぎます。
+- 全文字列を`taxonomy-tidy`で国際化します。
+- 日時はWordPress設定のタイムゾーンで表示します。
+- 公開側テーマへ影響を与えません。
+
+## 17. 最低限のテスト
+
+- 公開済み標準投稿数と全relationship数の分離
+- 検索、ページング、並べ替え、絞り込み
+- relationshipとslugを変えない名称変更
+- 既存統合先、統合先付与済み投稿、複数sourceの統合
+- 除外オブジェクトまたは子カテゴリーがあるsource保持
+- デフォルトカテゴリー削除、taxonomy跨ぎ、循環操作の拒否
+- 古いプレビューの拒否
+- バッチ中断、再開、冪等性、部分失敗
+- 権限とnonce
+- モーダルの開閉、キャンセル、フォーカス
+- 大量投稿を初期DOMへ描画しないこと
+- Undoの競合検知
+
+## 18. MVP完了条件
+
+- 管理画面だけで一覧、計画、プレビュー、実行、結果、履歴、対応可能なUndoを完了できる
+- 公開済み標準投稿以外のrelationshipが変更されない
+- 実行前プレビューと明示的な実行操作が必須である
+- 大量処理を安全に中断・再開できる
+- 一部失敗と競合が正しく表示・記録される
+- 自動テスト、静的解析、主要な手動確認が完了している
+- 配布ZIPを新規WordPress環境へインストールして確認できる
+- 既知の制約と未検証事項が文書化されている
