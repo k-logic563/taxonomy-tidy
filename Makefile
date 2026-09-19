@@ -1,4 +1,4 @@
-.PHONY: setup composer-lock dependencies translations up stop restart reset activate deactivate seed-demo seed-large seed-clean test phpcs lint-js check
+.PHONY: setup composer-lock dependencies translations up stop restart reset activate deactivate seed-demo seed-large seed-clean test phpcs lint-js check dist
 
 setup:
 	bin/setup-env.sh
@@ -10,7 +10,7 @@ dependencies:
 	docker compose run --rm composer install --no-interaction --prefer-dist
 
 translations:
-	docker compose run --rm --no-deps wp-cli i18n make-pot /var/www/html/wp-content/plugins/taxonomy-tidy /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy.pot --domain=taxonomy-tidy --exclude=vendor,tests,docker,docs
+	docker compose run --rm --no-deps wp-cli i18n make-pot /var/www/html/wp-content/plugins/taxonomy-tidy /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy.pot --domain=taxonomy-tidy --exclude=vendor,tests,docker,docs,build,dist
 	docker compose run --rm --no-deps wp-cli i18n update-po /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy.pot /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy-ja.po
 	docker compose run --rm --no-deps wp-cli i18n make-mo /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy-ja.po /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy-ja.mo
 
@@ -51,3 +51,6 @@ lint-js:
 	docker compose run --rm node sh -c "npm ci --no-audit --no-fund && npm run lint:js"
 
 check: phpcs lint-js test
+
+dist:
+	bin/build-dist.sh

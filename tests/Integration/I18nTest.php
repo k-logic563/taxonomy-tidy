@@ -155,9 +155,10 @@ final class I18nTest extends WP_UnitTestCase {
 		foreach ( $this->planning_error_messages() as $code => $messages ) {
 			$this->assertSame( $messages['ja'], ErrorMessages::label( $code ), 'Incorrect Japanese error for ' . $code );
 		}
-		foreach ( array( '検索パネル', 'キーワードで探す', '3件の条件を適用中', 'キーワード：Locale Inventory', '名前 · 降順', '条件を適用', '条件をリセット', '公開済み投稿数', '全体の使用数', '完全に未使用', '処理パネル', '選択中の対象', '処理方法', '変更内容', '注意事項・検証結果', '計画に追加', 'Locale Inventory 001', '前のページへ' ) as $expected_output ) {
+		foreach ( array( '検索パネル', 'キーワードで探す', '3件の条件を適用中', 'キーワード：Locale Inventory', '名前 · 降順', '条件を適用', '条件をリセット', '公開済み投稿数', '全体の使用数', '完全に未使用', '処理パネル', '選択中の対象', '処理方法', '変更内容', '注意事項・検証結果', '計画に追加', 'Locale Inventory 031', '前のページへ' ) as $expected_output ) {
 			$this->assertStringContainsString( $expected_output, $output, 'Missing translated output: ' . $expected_output );
 		}
+		$this->assertStringContainsString( '>Locale Inventory 001</option>', $output );
 		$this->assertSame( 1, preg_match( '/<tbody>(.*?)<\/tbody>/s', $output, $table_match ) );
 		$this->assertStringNotContainsString( 'Locale Inventory 002', $table_match[1] );
 

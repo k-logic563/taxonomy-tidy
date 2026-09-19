@@ -172,7 +172,7 @@ final class HistoryPage {
 		$result     = is_array( $operation['result_data'] ) ? $operation['result_data'] : array();
 		?>
 		<p><a href="<?php echo esc_url( $this->history_url() ); ?>">&larr; <?php echo esc_html__( '操作履歴へ戻る', 'taxonomy-tidy' ); ?></a></p>
-		<h3><?php echo esc_html( sprintf( /* translators: %d: operation ID. */ __( '操作 #%d の詳細', 'taxonomy-tidy' ), (int) $operation['id'] ) ); ?></h3>
+		<h3><?php echo esc_html__( '操作の詳細', 'taxonomy-tidy' ); ?></h3>
 		<dl class="taxonomy-tidy-history-detail">
 			<dt><?php echo esc_html__( '実行日時', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( $this->date_label( (string) $operation['started_at'] ) ); ?></dd>
 			<dt><?php echo esc_html__( '完了日時', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( $this->date_label( (string) ( $operation['completed_at'] ?? '' ) ) ); ?></dd>
@@ -194,7 +194,7 @@ final class HistoryPage {
 			<?php
 			if ( null !== $operation['parent_operation_id'] ) :
 				?>
-				<dt><?php echo esc_html__( '取り消し対象', 'taxonomy-tidy' ); ?></dt><dd><a href="<?php echo esc_url( $this->history_url( array( 'history_id' => (int) $operation['parent_operation_id'] ) ) ); ?>">#<?php echo esc_html( (string) $operation['parent_operation_id'] ); ?></a></dd><?php endif; ?>
+				<dt><?php echo esc_html__( '取り消し対象', 'taxonomy-tidy' ); ?></dt><dd><a href="<?php echo esc_url( $this->history_url( array( 'history_id' => (int) $operation['parent_operation_id'] ) ) ); ?>"><?php echo esc_html__( '元の操作を表示', 'taxonomy-tidy' ); ?></a></dd><?php endif; ?>
 		</dl>
 		<?php $this->render_change_summary( $changes ); ?>
 		<?php if ( null !== $assessment ) : ?>
@@ -244,7 +244,7 @@ final class HistoryPage {
 		<header class="taxonomy-tidy-modal__header"><h2 id="taxonomy-tidy-undo-heading"><?php echo esc_html( $previewing ? __( '取り消し内容のプレビュー', 'taxonomy-tidy' ) : __( '取り消し結果', 'taxonomy-tidy' ) ); ?></h2><button type="button" class="taxonomy-tidy-modal__close" aria-label="<?php echo esc_attr__( '閉じる', 'taxonomy-tidy' ); ?>" <?php disabled( $running ); ?>>&times;</button></header>
 		<div class="taxonomy-tidy-modal__body" aria-live="polite">
 		<?php if ( $previewing ) : ?>
-			<p><?php echo esc_html( sprintf( /* translators: %d: original operation ID. */ __( '元に戻す操作：#%d', 'taxonomy-tidy' ), (int) $undo['parent_operation_id'] ) ); ?></p>
+			<p><?php echo esc_html( sprintf( /* translators: %s: target term names. */ __( '元に戻す対象：%s', 'taxonomy-tidy' ), $this->undo_target_label( $undo ) ) ); ?></p>
 			<p><?php echo esc_html( sprintf( /* translators: %s: taxonomy label. */ __( '対象：%s', 'taxonomy-tidy' ), $this->taxonomy_label( (string) $undo['taxonomy'] ) ) ); ?></p>
 			<p><strong><?php echo esc_html( $this->availability_label( (string) $preview['availability'] ) ); ?></strong></p>
 			<p><?php echo esc_html( sprintf( /* translators: 1: restored terms, 2: restored assignments, 3: removed assignments. */ __( '復元される分類 %1$d件、復元される投稿割り当て %2$d件、削除される割り当て %3$d件', 'taxonomy-tidy' ), (int) $preview['restore_terms'], (int) $preview['restore_assignments'], (int) $preview['remove_assignments'] ) ); ?></p>
@@ -397,6 +397,16 @@ final class HistoryPage {
 			}
 		}
 		return array() === $names ? __( '記録なし', 'taxonomy-tidy' ) : implode( '、', array_unique( $names ) );
+	}
+
+	/**
+	 * Returns target names for the original operation of an Undo.
+	 *
+	 * @param array<string, mixed> $undo Undo operation.
+	 */
+	private function undo_target_label( array $undo ): string {
+		$original = $this->operations->find( (int) ( $undo['parent_operation_id'] ?? 0 ) );
+		return null === $original ? __( '記録なし', 'taxonomy-tidy' ) : $this->target_label( $original );
 	}
 
 	/**

@@ -194,6 +194,8 @@ final class HistoryPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'role="dialog"', $output );
 		$this->assertStringContainsString( '取り消し内容のプレビュー', $output );
+		$this->assertStringContainsString( '元に戻す対象：', $output );
+		$this->assertStringNotContainsString( '元に戻す操作：#', $output );
 		$this->assertStringContainsString( '>キャンセル</button>', $output );
 		$this->assertStringContainsString( 'name="undo_command" value="run_undo">元に戻す</button>', $output );
 		$this->assertCount( 1, $repository->history( $user_id, 1, 20 )['items'] );

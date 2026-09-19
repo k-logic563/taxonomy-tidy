@@ -393,21 +393,13 @@
 	margin-bottom: 8px;
 }
 
-.taxonomy-tidy-selected-list span,
-.taxonomy-tidy-delete-list span {
-	display: block;
-	margin-top: 2px;
-	color: #50575e;
-}
-
 .taxonomy-tidy-selected-list li,
 .taxonomy-tidy-delete-list li,
 .taxonomy-tidy-outcome-list li {
 	overflow-wrap: anywhere;
 }
 
-.taxonomy-tidy-action-fields input[type="text"],
-.taxonomy-tidy-action-fields input[type="search"] {
+.taxonomy-tidy-action-fields input[type="text"] {
 	width: 100%;
 	max-width: 520px;
 	box-sizing: border-box;

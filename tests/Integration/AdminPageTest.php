@@ -127,6 +127,10 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'id="taxonomy-tidy-merge-destination-group" class="taxonomy-tidy-field-group"', $output );
 		$this->assertStringContainsString( '<label class="taxonomy-tidy-field-label" for="taxonomy-tidy-destination">Merge destination</label>', $output );
 		$this->assertStringContainsString( 'id="taxonomy-tidy-destination-help" class="description taxonomy-tidy-field-help"', $output );
+		$this->assertStringContainsString( '<select class="taxonomy-tidy-field-control" id="taxonomy-tidy-destination" name="destination"', $output );
+		$this->assertStringContainsString( '<option value="">Select a merge destination.</option>', $output );
+		$this->assertStringNotContainsString( '<datalist', $output );
+		$this->assertStringNotContainsString( 'taxonomy-tidy-destination-results', $output );
 		$this->assertStringContainsString( '<span class="taxonomy-tidy-field-label">Deletion targets</span>', $output );
 		$this->assertStringNotContainsString( 'taxonomy-tidy-actions-heading', $output );
 		$this->assertStringNotContainsString( 'name="change_slug"', $output );
@@ -157,6 +161,141 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertLessThan( $validation_group_position, $changes_group_position );
 		$this->assertLessThan( $execute_position, $validation_group_position );
 		$this->assertMatchesRegularExpression( '/class="taxonomy-tidy-process-group taxonomy-tidy-validation"[^>]+hidden>/', $output );
+	}
+
+	/** All same-taxonomy destinations are rendered once regardless of inventory paging. */
+	public function test_large_tag_inventory_renders_all_destination_candidates_once(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		for ( $index = 1; $index <= 1000; ++$index ) {
+			self::factory()->term->create(
+				array(
+					'taxonomy' => 'post_tag',
+					'name'     => sprintf( 'Full candidate %04d', $index ),
+				)
+			);
+		}
+		$_GET = array(
+			'taxonomy' => 'post_tag',
+			'per_page' => '20',
+			's'        => 'Full candidate 0001',
+		);
+
+		ob_start();
+		$this->page->render();
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( '>Full candidate 0001</option>', $output );
+		$this->assertStringContainsString( '>Full candidate 1000</option>', $output );
+		$this->assertSame( 1, substr_count( $output, '>Full candidate 1000</option>' ) );
+		$this->assertSame( 1, preg_match( '/<select[^>]+id="taxonomy-tidy-destination"[^>]*>(.*?)<\/select>/s', $output, $destination_select ) );
+		$this->assertSame( 1000, substr_count( $destination_select[1], 'data-term-key="' ) );
+		$this->assertLessThan( 328 * 1024, strlen( $output ) );
+	}
+
+	/** Destination candidates never cross taxonomy boundaries. */
+	public function test_destination_candidates_are_limited_to_current_taxonomy(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Category destination only',
+			)
+		);
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Tag destination only',
+			)
+		);
+
+		$_GET = array( 'taxonomy' => 'category' );
+		ob_start();
+		$this->page->render();
+		$category_output = (string) ob_get_clean();
+		$this->assertStringContainsString( '>Category destination only</option>', $category_output );
+		$this->assertStringNotContainsString( '>Tag destination only</option>', $category_output );
+
+		$_GET = array( 'taxonomy' => 'post_tag' );
+		ob_start();
+		$this->page->render();
+		$tag_output = (string) ob_get_clean();
+		$this->assertStringContainsString( '>Tag destination only</option>', $tag_output );
+		$this->assertStringNotContainsString( '>Category destination only</option>', $tag_output );
+	}
+
+	/** Duplicate category names are distinguished without exposing internal IDs. */
+	public function test_duplicate_category_names_use_parent_paths(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$first_parent  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => '技術',
+			)
+		);
+		$second_parent = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'お知らせ',
+			)
+		);
+		$first         = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'WordPress',
+				'parent'   => $first_parent,
+			)
+		);
+		$second        = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'WordPress',
+				'parent'   => $second_parent,
+			)
+		);
+		$first_term    = get_term( $first, 'category' );
+		$second_term   = get_term( $second, 'category' );
+		$this->assertInstanceOf( \WP_Term::class, $first_term );
+		$this->assertInstanceOf( \WP_Term::class, $second_term );
+
+		$_GET = array( 'taxonomy' => 'category' );
+		ob_start();
+		$this->page->render();
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'value="' . $first . ':' . $first_term->term_taxonomy_id . '" data-term-key="' . $first . '" >技術 › WordPress</option>', $output );
+		$this->assertStringContainsString( 'value="' . $second . ':' . $second_term->term_taxonomy_id . '" data-term-key="' . $second . '" >お知らせ › WordPress</option>', $output );
+		$this->assertStringNotContainsString( '>#' . $first . ' WordPress</option>', $output );
+	}
+
+	/** Destination options show only escaped names while preserving stable IDs. */
+	public function test_destination_options_display_only_names_and_preserve_ids(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Selected source',
+			)
+		);
+		$destination      = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Visible & safe destination',
+				'slug'     => 'selected-destination',
+			)
+		);
+		$destination_term = get_term( $destination, 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $destination_term );
+		$_GET = array( 'taxonomy' => 'post_tag' );
+
+		ob_start();
+		$this->page->render();
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'value="' . $destination . ':' . $destination_term->term_taxonomy_id . '" data-term-key="' . $destination . '"', $output );
+		$this->assertStringContainsString( '>Visible &amp; safe destination</option>', $output );
+		$this->assertStringNotContainsString( '>selected-destination</option>', $output );
+		$this->assertStringNotContainsString( 'ID:', $output );
+		$this->assertStringNotContainsString( 'term_id', $output );
 	}
 
 	/** Four tabs show the current administrator's combined draft count. */
@@ -488,7 +627,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 			'operation_action'          => 'merge',
 			'selected_terms'            => array( (string) $term_id ),
 			'term_taxonomy_ids'         => array( $term_id => (string) $term->term_taxonomy_id ),
-			'destination'               => sprintf( '%1$d:%2$d — %3$s', $term_id, $term->term_taxonomy_id, $term->name ),
+			'destination'               => sprintf( '%1$d:%2$d', $term_id, $term->term_taxonomy_id ),
 			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
 		);
 
@@ -497,24 +636,26 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$merge_output = (string) ob_get_clean();
 		$this->assertStringContainsString( 'id="taxonomy-tidy-destination-error-0"', $merge_output );
 		$this->assertStringContainsString( 'The merge destination cannot be the same as its source.', $merge_output );
+		$this->assertStringContainsString( '<ul class="taxonomy-tidy-selected-list">', $merge_output );
+		$this->assertStringContainsString( '<li>Inline error source</li>', $merge_output );
 		$this->assertStringContainsString( 'aria-describedby="taxonomy-tidy-destination-help taxonomy-tidy-destination-selection-notice taxonomy-tidy-destination-error-0"', $merge_output );
 		$this->assertMatchesRegularExpression( '/id="taxonomy-tidy-destination"[^>]+data-error-focus="true"/', $merge_output );
 		$this->assertLessThan( strpos( $merge_output, 'taxonomy-tidy-destination-error-0' ), strpos( $merge_output, 'taxonomy-tidy-merge-destination-group' ) );
-		$this->assertMatchesRegularExpression( '/id="taxonomy-tidy-destination"[^>]+value=""/', $merge_output );
+		$this->assertMatchesRegularExpression( '/<select[^>]+id="taxonomy-tidy-destination"[^>]*>\s*<option value="">/', $merge_output );
 		$this->assertStringContainsString( '選択していた統合先が統合元に含まれたため、選択を解除しました。', $merge_output );
-		$this->assertSame( 1, preg_match( '/<datalist id="taxonomy-tidy-destinations">(.*?)<\/datalist>/s', $merge_output, $destination_list ) );
-		$this->assertStringNotContainsString( 'data-term-key="' . $term_id . '"', $destination_list[1] );
-		$this->assertStringContainsString( 'data-term-key="' . $second_id . '"', $destination_list[1] );
+		$this->assertSame( 1, preg_match( '/<select[^>]+id="taxonomy-tidy-destination"[^>]*>(.*?)<\/select>/s', $merge_output, $destination_select ) );
+		$this->assertStringNotContainsString( 'data-term-key="' . $term_id . '"', $destination_select[1] );
+		$this->assertStringContainsString( 'data-term-key="' . $second_id . '"', $destination_select[1] );
 
 		$_POST['selected_terms']                  = array( (string) $term_id, (string) $second_id );
 		$_POST['term_taxonomy_ids'][ $second_id ] = (string) $second->term_taxonomy_id;
 		ob_start();
 		$this->page->render();
 		$multiple_source_output = (string) ob_get_clean();
-		$this->assertSame( 1, preg_match( '/<datalist id="taxonomy-tidy-destinations">(.*?)<\/datalist>/s', $multiple_source_output, $multiple_destination_list ) );
-		$this->assertStringNotContainsString( 'data-term-key="' . $term_id . '"', $multiple_destination_list[1] );
-		$this->assertStringNotContainsString( 'data-term-key="' . $second_id . '"', $multiple_destination_list[1] );
-		$this->assertStringContainsString( 'data-term-key="' . $third_id . '"', $multiple_destination_list[1] );
+		$this->assertSame( 1, preg_match( '/<select[^>]+id="taxonomy-tidy-destination"[^>]*>(.*?)<\/select>/s', $multiple_source_output, $multiple_destination_select ) );
+		$this->assertStringNotContainsString( 'data-term-key="' . $term_id . '"', $multiple_destination_select[1] );
+		$this->assertStringNotContainsString( 'data-term-key="' . $second_id . '"', $multiple_destination_select[1] );
+		$this->assertStringContainsString( 'data-term-key="' . $third_id . '"', $multiple_destination_select[1] );
 
 		unset( $_POST['selected_terms'], $_POST['term_taxonomy_ids'] );
 		ob_start();
@@ -542,6 +683,10 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'id="taxonomy-tidy-delete-error-0"', $delete_output );
 		$this->assertStringContainsString( 'id="taxonomy-tidy-delete-error-0" class="taxonomy-tidy-field-error" tabindex="-1"', $delete_output );
 		$this->assertStringContainsString( 'A category or tag that is in use cannot be deleted.', $delete_output );
+		$this->assertSame( 1, preg_match( '/<ul class="taxonomy-tidy-delete-list">(.*?)<\/ul>/s', $delete_output, $delete_targets ) );
+		$this->assertStringContainsString( '<li>Inline error source</li>', $delete_targets[1] );
+		$this->assertStringNotContainsString( 'Published posts', $delete_targets[1] );
+		$this->assertStringNotContainsString( 'Total relationships', $delete_targets[1] );
 		$this->assertStringNotContainsString( 'taxonomy-tidy-readonly-field" aria-invalid="true" aria-describedby="taxonomy-tidy-delete-error-0" tabindex', $delete_output );
 		$this->assertStringNotContainsString( 'name="delete_confirmed"', $delete_output );
 	}

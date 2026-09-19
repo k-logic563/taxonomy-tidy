@@ -50,6 +50,7 @@ final class PluginBootstrapTest extends WP_UnitTestCase {
 			10,
 			has_action( 'admin_enqueue_scripts', array( Plugin::instance()->admin_page(), 'enqueue_assets' ) )
 		);
+		$this->assertFalse( has_action( 'wp_ajax_taxonomy_tidy_search_destinations' ) );
 		$this->assertSame( 10, has_action( 'init', 'TaxonomyTidy\\load_translations' ) );
 	}
 

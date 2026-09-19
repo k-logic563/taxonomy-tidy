@@ -28,9 +28,8 @@
 	const actionChoices = Array.from( form.querySelectorAll( 'input[name="operation_action"]' ) );
 	const actionFields = Array.from( form.querySelectorAll( '[data-action-fields]' ) );
 	const changesSection = form.querySelector( '.taxonomy-tidy-changes-section' );
+	const destinationGroup = form.querySelector( '#taxonomy-tidy-merge-destination-group' );
 	const destination = form.querySelector( '#taxonomy-tidy-destination' );
-	const destinationList = form.querySelector( '#taxonomy-tidy-destinations' );
-	const destinationOptions = form.querySelector( '.taxonomy-tidy-destination-options' );
 	const destinationNotice = form.querySelector( '#taxonomy-tidy-destination-selection-notice' );
 	let sourceSignature = null;
 
@@ -61,11 +60,7 @@
 		list.className = 'taxonomy-tidy-selected-list';
 		rows.slice( 0, 5 ).forEach( ( row ) => {
 			const item = document.createElement( 'li' );
-			const name = document.createElement( 'strong' );
-			const counts = document.createElement( 'span' );
-			name.textContent = row.dataset.termName;
-			counts.textContent = `${ selectedTerms.dataset.published }: ${ row.dataset.publishedCount } · ${ selectedTerms.dataset.total }: ${ row.dataset.totalCount }`;
-			item.append( name, counts );
+			item.textContent = row.dataset.termName;
 			list.append( item );
 		} );
 		if ( rows.length > 5 ) {
@@ -115,11 +110,7 @@
 				list.className = 'taxonomy-tidy-delete-list';
 				rows.forEach( ( row ) => {
 					const item = document.createElement( 'li' );
-					const name = document.createElement( 'strong' );
-					const detail = document.createElement( 'span' );
-					name.textContent = row.dataset.termName;
-					detail.textContent = `${ deleteTargets.dataset.published }: ${ row.dataset.publishedCount } · ${ deleteTargets.dataset.total }: ${ row.dataset.totalCount } · ${ row.dataset.deletionAvailable === '1' ? deleteTargets.dataset.available : deleteTargets.dataset.unavailable }`;
-					item.append( name, detail );
+					item.textContent = row.dataset.termName;
 					list.append( item );
 				} );
 				deleteTargets.append( list );
@@ -164,27 +155,35 @@
 		appendValidationMessage( 'info', validation.dataset.information, validation.dataset.impact.replace( '%d', String( published ) ) );
 	}
 
+	function sourceIds( rows = selectedRows() ) {
+		return new Set( rows.map( ( row ) => row.dataset.termKey ) );
+	}
+
 	function updateDestinationCandidates( rows ) {
-		if ( ! destination || ! destinationList || ! destinationOptions ) {
+		if ( ! destination ) {
 			return;
 		}
-		const sourceIds = new Set( rows.map( ( row ) => row.dataset.termKey ) );
-		const nextSignature = Array.from( sourceIds ).sort().join( ',' );
+		const currentSourceIds = sourceIds( rows );
+		const nextSignature = Array.from( currentSourceIds ).sort().join( ',' );
 		const selectionChanged = sourceSignature !== null && sourceSignature !== nextSignature;
-		const options = Array.from( destinationOptions.content.querySelectorAll( 'option' ) )
-			.filter( ( option ) => ! sourceIds.has( option.dataset.termKey ) )
-			.map( ( option ) => option.cloneNode( true ) );
-		destinationList.replaceChildren( ...options );
-
-		const match = destination.value.match( /^(\d+):/ );
-		if ( match && sourceIds.has( match[ 1 ] ) ) {
+		const selectedId = destination.selectedOptions[ 0 ]?.dataset.termKey || '';
+		if ( selectedId && currentSourceIds.has( selectedId ) ) {
 			destination.value = '';
 			if ( destinationNotice ) {
+				destinationNotice.textContent = destinationGroup.dataset.cleared;
 				destinationNotice.hidden = false;
 			}
 		} else if ( selectionChanged && destinationNotice ) {
 			destinationNotice.hidden = true;
 		}
+		Array.from( destination.options ).forEach( ( option ) => {
+			if ( ! option.dataset.termKey ) {
+				return;
+			}
+			const excluded = currentSourceIds.has( option.dataset.termKey );
+			option.disabled = excluded;
+			option.hidden = excluded;
+		} );
 		sourceSignature = nextSignature;
 	}
 
@@ -221,6 +220,12 @@
 		} );
 		updateValidation( selectedRows() );
 	}
+
+	destination?.addEventListener( 'change', () => {
+		if ( destinationNotice ) {
+			destinationNotice.hidden = true;
+		}
+	} );
 
 	termCheckboxes.forEach( ( checkbox ) => checkbox.addEventListener( 'change', updateSelection ) );
 	actionChoices.forEach( ( choice ) => choice.addEventListener( 'change', updateActionFields ) );

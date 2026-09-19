@@ -1,11 +1,13 @@
 /.agents
 /.codex
 /.env
+/.env.example
 /.git
 /.github
 /.idea
 /.vscode
 /build
+/bin
 /coverage
 /dist
 /docker
@@ -15,6 +17,9 @@
 /tools
 /.distignore
 /.gitignore
+/.phpunit.result.cache
+/AGENTS.md
+/REQUIREMENTS.md
 /composer.json
 /composer.lock
 /eslint.config.js

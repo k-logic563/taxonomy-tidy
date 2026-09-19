@@ -54,12 +54,10 @@ msgid "Tags"
 msgstr "タグ"
 
 #: src/Admin/Page.php:196
-#: src/Admin/PlanningPanel.php:484
 msgid "Category"
 msgstr "カテゴリー"
 
 #: src/Admin/Page.php:197
-#: src/Admin/PlanningPanel.php:484
 msgid "Tag"
 msgstr "タグ"
 
@@ -78,10 +76,6 @@ msgstr "名前"
 #: src/Admin/Page.php:437
 #: src/Admin/PlanningPanel.php:92
 #: src/Admin/PlanningPanel.php:122
-#: src/Admin/PlanningPanel.php:171
-#: src/Admin/PlanningPanel.php:228
-#: src/Admin/PlanningPanel.php:488
-#: src/Admin/PlanningPanel.php:647
 msgid "Published posts"
 msgstr "公開済み投稿数"
 
@@ -116,10 +110,6 @@ msgstr "親カテゴリー"
 
 #: src/Admin/PlanningPanel.php:93
 #: src/Admin/PlanningPanel.php:123
-#: src/Admin/PlanningPanel.php:171
-#: src/Admin/PlanningPanel.php:228
-#: src/Admin/PlanningPanel.php:488
-#: src/Admin/PlanningPanel.php:647
 msgid "Total relationships"
 msgstr "全体の使用数"
 
@@ -132,25 +122,25 @@ msgstr "利用状況"
 msgid "No terms found."
 msgstr "条件に一致するカテゴリー・タグはありません"
 
-#: src/Admin/HistoryPage.php:522
-#: src/Admin/HistoryPage.php:525
+#: src/Admin/HistoryPage.php:532
+#: src/Admin/HistoryPage.php:535
 #: src/Admin/Page.php:391
 msgid "—"
 msgstr "—"
 
 #: src/Admin/Page.php:401
-#: src/Admin/PlanningPanel.php:918
+#: src/Admin/PlanningPanel.php:946
 msgid "Used by published posts"
 msgstr "公開済み投稿で使用中"
 
 #: src/Admin/Page.php:405
-#: src/Admin/PlanningPanel.php:919
+#: src/Admin/PlanningPanel.php:947
 msgid "Used outside published posts"
 msgstr "公開済み投稿以外で使用中"
 
 #: src/Admin/Page.php:408
 #: src/Admin/Page.php:432
-#: src/Admin/PlanningPanel.php:920
+#: src/Admin/PlanningPanel.php:948
 msgid "Globally unused"
 msgstr "完全に未使用"
 
@@ -224,25 +214,25 @@ msgstr "%sを選択"
 
 #. translators: %d: number of selected terms.
 #: src/Admin/PlanningPanel.php:155
-#: src/Admin/PlanningPanel.php:661
+#: src/Admin/PlanningPanel.php:689
 msgid "%d terms selected"
 msgstr "%d件を選択中"
 
 #. translators: %d: number of selected terms.
 #: src/Admin/PlanningPanel.php:161
 #: src/Admin/PlanningPanel.php:208
-#: src/Admin/PlanningPanel.php:516
-#: src/Admin/PlanningPanel.php:661
+#: src/Admin/PlanningPanel.php:547
+#: src/Admin/PlanningPanel.php:689
 msgid "No terms selected"
 msgstr "対象が選択されていません"
 
 #: src/Admin/PlanningPanel.php:185
-#: src/Admin/PlanningPanel.php:781
+#: src/Admin/PlanningPanel.php:809
 msgid "Rename"
 msgstr "名称変更"
 
 #: src/Admin/PlanningPanel.php:186
-#: src/Admin/PlanningPanel.php:782
+#: src/Admin/PlanningPanel.php:810
 msgid "Merge"
 msgstr "統合"
 
@@ -251,7 +241,7 @@ msgid "Move published-post assignments into an existing term."
 msgstr "公開済み投稿の割り当てを既存の分類へまとめます。"
 
 #: src/Admin/PlanningPanel.php:187
-#: src/Admin/PlanningPanel.php:783
+#: src/Admin/PlanningPanel.php:811
 msgid "Delete"
 msgstr "削除"
 
@@ -259,77 +249,73 @@ msgstr "削除"
 msgid "New name"
 msgstr "新しい名前"
 
-#: src/Admin/PlanningPanel.php:219
-msgid "Search and select an existing term in the same taxonomy."
-msgstr "同じ種別の既存分類を検索して選択してください。"
-
-#: src/Admin/PlanningPanel.php:234
-#: src/Admin/PlanningPanel.php:318
-#: src/Admin/PlanningPanel.php:360
-#: src/Admin/PlanningPanel.php:848
+#: src/Admin/PlanningPanel.php:235
+#: src/Admin/PlanningPanel.php:319
+#: src/Admin/PlanningPanel.php:361
+#: src/Admin/PlanningPanel.php:876
 msgid "Error"
 msgstr "エラー"
 
-#: src/Admin/PlanningPanel.php:266
+#: src/Admin/PlanningPanel.php:267
 msgid "Operation plan"
 msgstr "操作計画"
 
-#: src/Admin/PlanningPanel.php:267
+#: src/Admin/PlanningPanel.php:268
 msgid "To edit an item, remove it and add a corrected process."
 msgstr "内容を修正する場合は、計画から削除して修正後の処理を追加してください。"
 
-#: src/Admin/PlanningPanel.php:272
-#: src/Admin/PlanningPanel.php:365
+#: src/Admin/PlanningPanel.php:273
+#: src/Admin/PlanningPanel.php:366
 msgid "Targets"
 msgstr "対象"
 
-#: src/Admin/PlanningPanel.php:273
+#: src/Admin/PlanningPanel.php:274
 msgid "Planned change"
 msgstr "変更予定"
 
-#: src/Admin/PlanningPanel.php:274
+#: src/Admin/PlanningPanel.php:275
 msgid "Current estimated scope"
 msgstr "現時点の想定対象"
 
-#: src/Admin/PlanningPanel.php:280
+#: src/Admin/PlanningPanel.php:281
 msgid "Remove from plan"
 msgstr "計画から削除"
 
-#: src/Admin/PlanningPanel.php:287
-#: src/Admin/PlanningPanel.php:289
+#: src/Admin/PlanningPanel.php:288
+#: src/Admin/PlanningPanel.php:290
 msgid "Review changes"
 msgstr "変更内容を確認"
 
-#: src/Admin/PlanningPanel.php:357
+#: src/Admin/PlanningPanel.php:358
 msgid "Change preview"
 msgstr "変更内容のプレビュー"
 
-#: src/Admin/PlanningPanel.php:234
-#: src/Admin/PlanningPanel.php:277
-#: src/Admin/PlanningPanel.php:315
-#: src/Admin/PlanningPanel.php:383
-#: src/Admin/PlanningPanel.php:579
-#: src/Admin/PlanningPanel.php:582
+#: src/Admin/PlanningPanel.php:235
+#: src/Admin/PlanningPanel.php:278
+#: src/Admin/PlanningPanel.php:316
+#: src/Admin/PlanningPanel.php:384
+#: src/Admin/PlanningPanel.php:610
+#: src/Admin/PlanningPanel.php:613
 msgid "Warning"
 msgstr "警告"
 
-#: src/Admin/PlanningPanel.php:812
+#: src/Admin/PlanningPanel.php:840
 msgid "The request could not be completed."
 msgstr "リクエストを完了できませんでした。"
 
-#: src/Admin/PlanningPanel.php:831
+#: src/Admin/PlanningPanel.php:859
 msgid "The process was removed from the plan."
 msgstr "処理を計画から削除しました。"
 
-#: src/Admin/PlanningPanel.php:832
+#: src/Admin/PlanningPanel.php:860
 msgid "The preview was created without changing WordPress data."
 msgstr "WordPressデータを変更せずにプレビューを作成しました。"
 
-#: src/Admin/PlanningPanel.php:833
+#: src/Admin/PlanningPanel.php:861
 msgid "The previous preview was invalidated. You can now revise the plan."
 msgstr "以前のプレビューを無効化しました。計画を修正できます。"
 
-#: src/Admin/PlanningPanel.php:834
+#: src/Admin/PlanningPanel.php:862
 msgid "The plan was discarded."
 msgstr "計画を破棄しました。"
 
@@ -345,33 +331,33 @@ msgstr "新しい名前に使用できない文字が含まれています。"
 msgid "The default category cannot be deleted."
 msgstr "デフォルトカテゴリーは削除できません。"
 
-#: src/Admin/PlanningPanel.php:234
-#: src/Admin/PlanningPanel.php:891
+#: src/Admin/PlanningPanel.php:235
+#: src/Admin/PlanningPanel.php:919
 msgid "The source has child categories and will be retained."
 msgstr "統合元には子カテゴリーがあるため保持されます。"
 
-#: src/Admin/PlanningPanel.php:234
-#: src/Admin/PlanningPanel.php:891
+#: src/Admin/PlanningPanel.php:235
+#: src/Admin/PlanningPanel.php:919
 msgid "The source is used outside published posts and will be retained."
 msgstr "統合元は公開済み投稿以外で使用されているため保持されます。"
 
-#: src/Admin/PlanningPanel.php:902
+#: src/Admin/PlanningPanel.php:930
 msgid "It has no relationships to any WordPress object."
 msgstr "WordPress内のどのオブジェクトにも使用されていません。"
 
-#: src/Admin/PlanningPanel.php:903
+#: src/Admin/PlanningPanel.php:931
 msgid "It can be removed after its published-post assignments are moved."
 msgstr "公開済み投稿の割り当てを移動した後、安全に削除できます。"
 
-#: src/Admin/PlanningPanel.php:904
+#: src/Admin/PlanningPanel.php:932
 msgid "Rename preserves the term and all relationships."
 msgstr "名称変更では分類とすべての使用関係が維持されます。"
 
-#: src/Admin/PlanningPanel.php:905
+#: src/Admin/PlanningPanel.php:933
 msgid "It has child categories."
 msgstr "子カテゴリーがあります。"
 
-#: src/Admin/PlanningPanel.php:906
+#: src/Admin/PlanningPanel.php:934
 msgid "It is used by excluded objects."
 msgstr "除外対象のオブジェクトで使用されています。"
 
@@ -388,14 +374,14 @@ msgid "Selected targets"
 msgstr "選択中の対象"
 
 #: src/Admin/PlanningPanel.php:171
-#: src/Admin/PlanningPanel.php:480
+#: src/Admin/PlanningPanel.php:512
 msgid "Select a category or tag to process from the list."
 msgstr "一覧から処理するカテゴリーまたはタグを選択してください"
 
 #. translators: %d: number of additional selected terms.
 #: src/Admin/PlanningPanel.php:171
-#: src/Admin/PlanningPanel.php:491
-#: src/Admin/PlanningPanel.php:524
+#: src/Admin/PlanningPanel.php:522
+#: src/Admin/PlanningPanel.php:555
 msgid "%d more"
 msgstr "ほか%d件"
 
@@ -418,7 +404,7 @@ msgstr "現在の名前"
 
 #: src/Admin/PlanningPanel.php:196
 #: src/Admin/PlanningPanel.php:200
-#: src/Admin/PlanningPanel.php:505
+#: src/Admin/PlanningPanel.php:536
 msgid "Select one term."
 msgstr "分類を1件選択してください"
 
@@ -435,66 +421,56 @@ msgid "Merge destination"
 msgstr "統合先"
 
 #: src/Admin/PlanningPanel.php:209
-#: src/Admin/PlanningPanel.php:540
+#: src/Admin/PlanningPanel.php:571
 msgid "Source term outcome after merge"
 msgstr "統合後の元ターム"
 
 #: src/Admin/PlanningPanel.php:209
-#: src/Admin/PlanningPanel.php:561
+#: src/Admin/PlanningPanel.php:592
 msgid "Planned for deletion"
 msgstr "削除予定"
 
 #: src/Admin/PlanningPanel.php:209
-#: src/Admin/PlanningPanel.php:561
+#: src/Admin/PlanningPanel.php:592
 msgid "Planned for retention"
 msgstr "保持予定"
 
-#: src/Admin/PlanningPanel.php:228
-#: src/Admin/PlanningPanel.php:638
+#: src/Admin/PlanningPanel.php:229
+#: src/Admin/PlanningPanel.php:668
 msgid "No deletion targets selected."
 msgstr "削除対象が選択されていません。"
 
-#: src/Admin/PlanningPanel.php:228
-#: src/Admin/PlanningPanel.php:647
-msgid "Deletion available"
-msgstr "削除可能"
-
-#: src/Admin/PlanningPanel.php:228
-#: src/Admin/PlanningPanel.php:647
-msgid "Deletion unavailable"
-msgstr "削除不可"
-
 #. translators: %d: published-post relationship count.
-#: src/Admin/PlanningPanel.php:235
+#: src/Admin/PlanningPanel.php:236
 msgid "Notices and validation results"
 msgstr "注意事項・検証結果"
 
-#: src/Admin/PlanningPanel.php:234
-#: src/Admin/PlanningPanel.php:588
+#: src/Admin/PlanningPanel.php:235
+#: src/Admin/PlanningPanel.php:619
 msgid "Information"
 msgstr "情報"
 
 #. translators: %d: published-post relationship count.
-#: src/Admin/PlanningPanel.php:234
-#: src/Admin/PlanningPanel.php:591
+#: src/Admin/PlanningPanel.php:235
+#: src/Admin/PlanningPanel.php:622
 msgid "%d published-post relationships are currently associated with the selection."
 msgstr "選択中の分類には公開済み投稿との関連が%d件あります。"
 
 #. translators: %d: number of configured plan processes.
-#: src/Admin/PlanningPanel.php:672
+#: src/Admin/PlanningPanel.php:700
 msgid "%d processes configured"
 msgstr "%d件の処理を設定済み"
 
-#: src/Admin/PlanningPanel.php:704
+#: src/Admin/PlanningPanel.php:732
 msgid "Missing destination"
 msgstr "統合先が見つかりません"
 
-#: src/Admin/PlanningPanel.php:706
+#: src/Admin/PlanningPanel.php:734
 msgid "Delete after preview validation"
 msgstr "プレビュー検証後に削除"
 
 #. translators: 1: published post count, 2: total relationship count.
-#: src/Admin/PlanningPanel.php:733
+#: src/Admin/PlanningPanel.php:761
 msgid "%1$d published posts; %2$d total relationships"
 msgstr "%1$d件の公開済み投稿、全体の使用数%2$d件"
 
@@ -510,7 +486,7 @@ msgstr "新しいスラッグ（任意）"
 msgid "Leave blank to keep the current slug."
 msgstr "空欄の場合は変更しません"
 
-#: src/Admin/PlanningPanel.php:391
+#: src/Admin/PlanningPanel.php:392
 msgid "Execute"
 msgstr "実行する"
 
@@ -522,7 +498,7 @@ msgstr "処理するカテゴリーまたはタグを選択してください。
 msgid "The selected category or tag could not be verified. Select it again."
 msgstr "選択されたカテゴリーまたはタグを確認できません。もう一度選択してください。"
 
-#: src/Admin/PlanningPanel.php:227
+#: src/Admin/PlanningPanel.php:228
 msgid "Deletion targets"
 msgstr "削除対象"
 
@@ -551,6 +527,7 @@ msgid "This slug is already in use."
 msgstr "このスラッグはすでに使用されています。"
 
 #: src/Admin/ErrorMessages.php:37
+#: src/Admin/PlanningPanel.php:217
 msgid "Select a merge destination."
 msgstr "統合先を選択してください。"
 
@@ -622,69 +599,69 @@ msgstr "予定した変更の一部をWordPressへ適用できませんでした
 msgid "The change result could not be recorded safely."
 msgstr "変更結果を安全に記録できませんでした。"
 
-#: src/Admin/PlanningPanel.php:304
+#: src/Admin/PlanningPanel.php:305
 msgid "Execution progress"
 msgstr "実行状況"
 
 #. translators: %d: item count.
-#: src/Admin/PlanningPanel.php:307
+#: src/Admin/PlanningPanel.php:308
 msgid "Total items: %d"
 msgstr "全処理件数：%d"
 
 #. translators: %d: item count.
-#: src/Admin/PlanningPanel.php:308
+#: src/Admin/PlanningPanel.php:309
 msgid "Completed items: %d"
 msgstr "完了件数：%d"
 
 #. translators: %d: item count.
-#: src/Admin/PlanningPanel.php:309
+#: src/Admin/PlanningPanel.php:310
 msgid "Pending items: %d"
 msgstr "未処理件数：%d"
 
 #. translators: %d: item count.
-#: src/Admin/PlanningPanel.php:310
+#: src/Admin/PlanningPanel.php:311
 msgid "Failed items: %d"
 msgstr "失敗件数：%d"
 
 #. translators: %d: item count.
-#: src/Admin/PlanningPanel.php:311
+#: src/Admin/PlanningPanel.php:312
 msgid "Skipped items: %d"
 msgstr "スキップ件数：%d"
 
 #. translators: %d: retained source-term count.
-#: src/Admin/PlanningPanel.php:312
+#: src/Admin/PlanningPanel.php:313
 msgid "Retained source terms: %d"
 msgstr "保持した統合元：%d"
 
-#: src/Admin/PlanningPanel.php:315
+#: src/Admin/PlanningPanel.php:316
 msgid "Some source terms were retained because they were not safe to delete."
 msgstr "安全に削除できない統合元を保持しました。"
 
-#: src/Admin/PlanningPanel.php:318
+#: src/Admin/PlanningPanel.php:319
 msgid "Some items could not be processed. No failed item is reported as completed."
 msgstr "一部の項目を処理できませんでした。失敗した項目を完了として扱っていません。"
 
-#: src/Admin/PlanningPanel.php:322
+#: src/Admin/PlanningPanel.php:323
 msgid "Continue next batch"
 msgstr "次のバッチを実行"
 
-#: src/Admin/PlanningPanel.php:336
+#: src/Admin/PlanningPanel.php:337
 msgid "Running; more items remain."
 msgstr "実行中です。未処理の項目が残っています。"
 
-#: src/Admin/PlanningPanel.php:337
+#: src/Admin/PlanningPanel.php:338
 msgid "All changes completed."
 msgstr "すべての変更が完了しました。"
 
-#: src/Admin/PlanningPanel.php:338
+#: src/Admin/PlanningPanel.php:339
 msgid "Some items failed. The operation is partially complete."
 msgstr "一部の項目が失敗し、処理は部分的に完了しました。"
 
-#: src/Admin/PlanningPanel.php:339
+#: src/Admin/PlanningPanel.php:340
 msgid "The operation failed without completing changes."
 msgstr "変更を完了できず、処理は失敗しました。"
 
-#: src/Admin/PlanningPanel.php:829
+#: src/Admin/PlanningPanel.php:857
 msgid "Execution progress was updated."
 msgstr "実行状況を更新しました。"
 
@@ -744,11 +721,6 @@ msgstr "詳細"
 #: src/Admin/HistoryPage.php:174
 msgid "操作履歴へ戻る"
 msgstr "操作履歴へ戻る"
-
-#. translators: %d: operation ID.
-#: src/Admin/HistoryPage.php:175
-msgid "操作 #%d の詳細"
-msgstr "操作 #%d の詳細"
 
 #: src/Admin/HistoryPage.php:178
 msgid "完了日時"
@@ -837,14 +809,9 @@ msgstr "取り消し結果"
 
 #: src/Admin/HistoryPage.php:244
 #: src/Admin/PlanBoard.php:514
-#: src/Admin/PlanningPanel.php:357
+#: src/Admin/PlanningPanel.php:358
 msgid "閉じる"
 msgstr "閉じる"
-
-#. translators: %d: original operation ID.
-#: src/Admin/HistoryPage.php:247
-msgid "元に戻す操作：#%d"
-msgstr "元に戻す操作：#%d"
 
 #. translators: %s: taxonomy label.
 #: src/Admin/HistoryPage.php:248
@@ -869,7 +836,7 @@ msgstr "完了 %1$d / 全体 %2$d、失敗 %3$d"
 
 #: src/Admin/HistoryPage.php:267
 #: src/Admin/PlanBoard.php:522
-#: src/Admin/PlanningPanel.php:391
+#: src/Admin/PlanningPanel.php:392
 msgid "キャンセル"
 msgstr "キャンセル"
 
@@ -917,249 +884,250 @@ msgid "実行済み操作"
 msgstr "実行済み操作"
 
 #: src/Admin/HistoryPage.php:399
+#: src/Admin/HistoryPage.php:409
 msgid "記録なし"
 msgstr "記録なし"
 
-#: src/Admin/HistoryPage.php:451
+#: src/Admin/HistoryPage.php:461
 msgid "実行中"
 msgstr "実行中"
 
-#: src/Admin/HistoryPage.php:452
+#: src/Admin/HistoryPage.php:462
 #: src/Admin/PlanBoard.php:628
 msgid "完了"
 msgstr "完了"
 
-#: src/Admin/HistoryPage.php:453
+#: src/Admin/HistoryPage.php:463
 #: src/Admin/PlanBoard.php:630
 msgid "一部失敗"
 msgstr "一部失敗"
 
-#: src/Admin/HistoryPage.php:454
+#: src/Admin/HistoryPage.php:464
 #: src/Admin/PlanBoard.php:631
 msgid "失敗"
 msgstr "失敗"
 
-#: src/Admin/HistoryPage.php:455
+#: src/Admin/HistoryPage.php:465
 msgid "取り消し確認済み"
 msgstr "取り消し確認済み"
 
-#: src/Admin/HistoryPage.php:456
-#: src/Admin/HistoryPage.php:485
+#: src/Admin/HistoryPage.php:466
+#: src/Admin/HistoryPage.php:495
 msgid "取り消し中"
 msgstr "取り消し中"
 
-#: src/Admin/HistoryPage.php:457
-#: src/Admin/HistoryPage.php:483
+#: src/Admin/HistoryPage.php:467
+#: src/Admin/HistoryPage.php:493
 msgid "取り消し済み"
 msgstr "取り消し済み"
 
-#: src/Admin/HistoryPage.php:458
-#: src/Admin/HistoryPage.php:484
+#: src/Admin/HistoryPage.php:468
+#: src/Admin/HistoryPage.php:494
 msgid "一部のみ取り消し"
 msgstr "一部のみ取り消し"
 
-#: src/Admin/HistoryPage.php:459
-#: src/Admin/HistoryPage.php:566
+#: src/Admin/HistoryPage.php:469
+#: src/Admin/HistoryPage.php:576
 msgid "未実行"
 msgstr "未実行"
 
-#: src/Admin/HistoryPage.php:470
+#: src/Admin/HistoryPage.php:480
 msgid "完全に取り消せる"
 msgstr "完全に取り消せる"
 
-#: src/Admin/HistoryPage.php:471
+#: src/Admin/HistoryPage.php:481
 msgid "一部のみ取り消せる"
 msgstr "一部のみ取り消せる"
 
-#: src/Admin/HistoryPage.php:472
+#: src/Admin/HistoryPage.php:482
 msgid "取り消し不可"
 msgstr "取り消し不可"
 
-#: src/Admin/HistoryPage.php:486
+#: src/Admin/HistoryPage.php:496
 msgid "取り消し失敗"
 msgstr "取り消し失敗"
 
-#: src/Admin/HistoryPage.php:497
+#: src/Admin/HistoryPage.php:507
 msgid "現在の状態が実行直後と一致しています。"
 msgstr "現在の状態が実行直後と一致しています。"
 
-#: src/Admin/HistoryPage.php:498
+#: src/Admin/HistoryPage.php:508
 msgid "現在の状態と一致しない項目は変更せず、安全な項目だけを元に戻せます。"
 msgstr "現在の状態と一致しない項目は変更せず、安全な項目だけを元に戻せます。"
 
-#: src/Admin/HistoryPage.php:499
+#: src/Admin/HistoryPage.php:509
 msgid "復元に必要な変更履歴が保存されていません。"
 msgstr "復元に必要な変更履歴が保存されていません。"
 
-#: src/Admin/HistoryPage.php:500
+#: src/Admin/HistoryPage.php:510
 msgid "この操作の取り消しはすでに開始されています。"
 msgstr "この操作の取り消しはすでに開始されています。"
 
-#: src/Admin/HistoryPage.php:501
+#: src/Admin/HistoryPage.php:511
 msgid "現在の操作状態では取り消しを開始できません。"
 msgstr "現在の操作状態では取り消しを開始できません。"
 
-#: src/Admin/HistoryPage.php:502
+#: src/Admin/HistoryPage.php:512
 msgid "現在の状態では安全に元へ戻せません。"
 msgstr "現在の状態では安全に元へ戻せません。"
 
-#: src/Admin/HistoryPage.php:512
+#: src/Admin/HistoryPage.php:522
 #: src/Admin/Page.php:155
 #: src/Admin/Page.php:204
 #: src/Admin/PlanBoard.php:694
 msgid "カテゴリー"
 msgstr "カテゴリー"
 
-#: src/Admin/HistoryPage.php:512
+#: src/Admin/HistoryPage.php:522
 #: src/Admin/Page.php:156
 #: src/Admin/Page.php:205
 #: src/Admin/PlanBoard.php:694
 msgid "タグ"
 msgstr "タグ"
 
-#: src/Admin/HistoryPage.php:536
-#: src/Admin/PlanningPanel.php:800
+#: src/Admin/HistoryPage.php:546
+#: src/Admin/PlanningPanel.php:828
 msgid "なし"
 msgstr "なし"
 
 #. translators: %d: retained term count.
-#: src/Admin/HistoryPage.php:542
+#: src/Admin/HistoryPage.php:552
 msgid "安全のため分類を保持：%d件"
 msgstr "安全のため分類を保持：%d件"
 
 #. translators: %d: conflict count.
-#: src/Admin/HistoryPage.php:544
+#: src/Admin/HistoryPage.php:554
 msgid "競合：%d件"
 msgstr "競合：%d件"
 
 #. translators: %d: failed item count.
-#: src/Admin/HistoryPage.php:546
+#: src/Admin/HistoryPage.php:556
 msgid "処理失敗：%d件"
 msgstr "処理失敗：%d件"
 
 #. translators: %d: warning count.
-#: src/Admin/HistoryPage.php:549
+#: src/Admin/HistoryPage.php:559
 msgid "警告：%d件"
 msgstr "警告：%d件"
 
 #. translators: %d: error count.
-#: src/Admin/HistoryPage.php:550
+#: src/Admin/HistoryPage.php:560
 msgid "エラー：%d件"
 msgstr "エラー：%d件"
 
-#: src/Admin/HistoryPage.php:585
+#: src/Admin/HistoryPage.php:595
 msgid "対象投稿の割り当て"
 msgstr "対象投稿の割り当て"
 
-#: src/Admin/HistoryPage.php:585
+#: src/Admin/HistoryPage.php:595
 #: src/Admin/PlanBoard.php:784
 msgid "対象の分類"
 msgstr "対象の分類"
 
-#: src/Admin/HistoryPage.php:595
+#: src/Admin/HistoryPage.php:605
 msgid "予定していた復元：元の名前へ戻す"
 msgstr "予定していた復元：元の名前へ戻す"
 
-#: src/Admin/HistoryPage.php:596
+#: src/Admin/HistoryPage.php:606
 msgid "予定していた復元：元のスラッグへ戻す"
 msgstr "予定していた復元：元のスラッグへ戻す"
 
-#: src/Admin/HistoryPage.php:597
+#: src/Admin/HistoryPage.php:607
 msgid "予定していた復元：元の投稿割り当てへ戻す"
 msgstr "予定していた復元：元の投稿割り当てへ戻す"
 
-#: src/Admin/HistoryPage.php:598
+#: src/Admin/HistoryPage.php:608
 msgid "予定していた復元：削除された分類を再作成する"
 msgstr "予定していた復元：削除された分類を再作成する"
 
-#: src/Admin/HistoryPage.php:609
+#: src/Admin/HistoryPage.php:619
 msgid "現在状態：同じ名前またはスラッグが使用されています。変更しません。"
 msgstr "現在状態：同じ名前またはスラッグが使用されています。変更しません。"
 
-#: src/Admin/HistoryPage.php:610
+#: src/Admin/HistoryPage.php:620
 msgid "現在状態：元の親カテゴリーが存在しません。変更しません。"
 msgstr "現在状態：元の親カテゴリーが存在しません。変更しません。"
 
-#: src/Admin/HistoryPage.php:611
+#: src/Admin/HistoryPage.php:621
 msgid "現在状態：対象投稿が存在しないか公開済み標準投稿ではありません。変更しません。"
 msgstr "現在状態：対象投稿が存在しないか公開済み標準投稿ではありません。変更しません。"
 
-#: src/Admin/HistoryPage.php:612
+#: src/Admin/HistoryPage.php:622
 msgid "現在状態：投稿の割り当てが実行直後から変更されています。変更しません。"
 msgstr "現在状態：投稿の割り当てが実行直後から変更されています。変更しません。"
 
-#: src/Admin/HistoryPage.php:613
+#: src/Admin/HistoryPage.php:623
 msgid "現在状態：分類が実行直後から変更されています。変更しません。"
 msgstr "現在状態：分類が実行直後から変更されています。変更しません。"
 
-#: src/Admin/HistoryPage.php:614
+#: src/Admin/HistoryPage.php:624
 msgid "現在状態：安全な復元に必要な情報を確認できません。変更しません。"
 msgstr "現在状態：安全な復元に必要な情報を確認できません。変更しません。"
 
 #. translators: 1: old name, 2: new name.
-#: src/Admin/HistoryPage.php:626
+#: src/Admin/HistoryPage.php:636
 msgid "名前：%1$s → %2$s"
 msgstr "名前：%1$s → %2$s"
 
 #. translators: 1: old slug, 2: new slug.
-#: src/Admin/HistoryPage.php:627
+#: src/Admin/HistoryPage.php:637
 msgid "スラッグ：%1$s → %2$s"
 msgstr "スラッグ：%1$s → %2$s"
 
 #. translators: 1: old slug, 2: new slug.
-#: src/Admin/HistoryPage.php:628
+#: src/Admin/HistoryPage.php:638
 msgid "統合先の投稿割り当てを追加"
 msgstr "統合先の投稿割り当てを追加"
 
-#: src/Admin/HistoryPage.php:629
+#: src/Admin/HistoryPage.php:639
 msgid "統合元の投稿割り当てを削除"
 msgstr "統合元の投稿割り当てを削除"
 
 #. translators: %s: deleted term name.
-#: src/Admin/HistoryPage.php:630
+#: src/Admin/HistoryPage.php:640
 msgid "分類「%s」を削除"
 msgstr "分類「%s」を削除"
 
 #. translators: %s: restored term name.
-#: src/Admin/HistoryPage.php:631
+#: src/Admin/HistoryPage.php:641
 msgid "分類「%s」を復元"
 msgstr "分類「%s」を復元"
 
 #. translators: %s: restored term name.
-#: src/Admin/HistoryPage.php:632
+#: src/Admin/HistoryPage.php:642
 msgid "統合元の投稿割り当てを復元"
 msgstr "統合元の投稿割り当てを復元"
 
-#: src/Admin/HistoryPage.php:633
+#: src/Admin/HistoryPage.php:643
 msgid "元操作が追加した統合先の割り当てを削除"
 msgstr "元操作が追加した統合先の割り当てを削除"
 
-#: src/Admin/HistoryPage.php:634
+#: src/Admin/HistoryPage.php:644
 msgid "名前を復元"
 msgstr "名前を復元"
 
-#: src/Admin/HistoryPage.php:635
+#: src/Admin/HistoryPage.php:645
 msgid "スラッグを復元"
 msgstr "スラッグを復元"
 
-#: src/Admin/HistoryPage.php:646
+#: src/Admin/HistoryPage.php:656
 #: src/Admin/PlanBoard.php:771
 msgid "操作の有効期限が切れました。画面を更新して再試行してください。"
 msgstr "操作の有効期限が切れました。画面を更新して再試行してください。"
 
-#: src/Admin/HistoryPage.php:647
+#: src/Admin/HistoryPage.php:657
 msgid "この操作は安全に元へ戻せません。"
 msgstr "この操作は安全に元へ戻せません。"
 
-#: src/Admin/HistoryPage.php:648
+#: src/Admin/HistoryPage.php:658
 msgid "確認後に状態が変わったため、取り消しを開始しませんでした。もう一度確認してください。"
 msgstr "確認後に状態が変わったため、取り消しを開始しませんでした。もう一度確認してください。"
 
-#: src/Admin/HistoryPage.php:649
+#: src/Admin/HistoryPage.php:659
 msgid "別の処理が実行中です。しばらくしてから再試行してください。"
 msgstr "別の処理が実行中です。しばらくしてから再試行してください。"
 
-#: src/Admin/HistoryPage.php:650
+#: src/Admin/HistoryPage.php:660
 msgid "操作履歴または取り消し処理を確認できませんでした。"
 msgstr "操作履歴または取り消し処理を確認できませんでした。"
 
@@ -1357,22 +1325,22 @@ msgstr "処理件数：%d件"
 #. translators: %d: affected published post count.
 #. translators: %d: number of affected published posts.
 #: src/Admin/PlanBoard.php:582
-#: src/Admin/PlanningPanel.php:372
+#: src/Admin/PlanningPanel.php:373
 msgid "影響を受ける公開済み投稿：%d件"
 msgstr "影響を受ける公開済み投稿：%d件"
 
 #: src/Admin/PlanBoard.php:589
-#: src/Admin/PlanningPanel.php:375
+#: src/Admin/PlanningPanel.php:376
 msgid "処理後に削除"
 msgstr "処理後に削除"
 
 #: src/Admin/PlanBoard.php:589
-#: src/Admin/PlanningPanel.php:375
+#: src/Admin/PlanningPanel.php:376
 msgid "削除せず保持"
 msgstr "削除せず保持"
 
 #: src/Admin/PlanBoard.php:597
-#: src/Admin/PlanningPanel.php:386
+#: src/Admin/PlanningPanel.php:387
 msgid "対象投稿を取得できませんでした。"
 msgstr "対象投稿を取得できませんでした。"
 
@@ -1390,6 +1358,7 @@ msgstr "処理を完了できませんでした。"
 
 #: src/Admin/PlanBoard.php:722
 #: src/Admin/PlanBoard.php:744
+#: src/Admin/PlanningPanel.php:714
 msgid "見つからない分類"
 msgstr "見つからない分類"
 
@@ -1429,36 +1398,37 @@ msgstr "操作計画を処理できませんでした。もう一度お試しく
 msgid "カテゴリー・タグ一覧"
 msgstr "カテゴリー・タグ一覧"
 
-#: src/Admin/PlanningPanel.php:220
+#: src/Admin/PlanningPanel.php:214
+#: src/Admin/PlanningPanel.php:221
 msgid "選択していた統合先が統合元に含まれたため、選択を解除しました。"
 msgstr "選択していた統合先が統合元に含まれたため、選択を解除しました。"
 
-#: src/Admin/PlanningPanel.php:246
+#: src/Admin/PlanningPanel.php:247
 msgid "計画に追加"
 msgstr "計画に追加"
 
-#: src/Admin/PlanningPanel.php:367
+#: src/Admin/PlanningPanel.php:368
 msgid "変更後"
 msgstr "変更後"
 
-#: src/Admin/PlanningPanel.php:370
+#: src/Admin/PlanningPanel.php:371
 msgid "変更後のslug"
 msgstr "変更後のslug"
 
-#: src/Admin/PlanningPanel.php:377
+#: src/Admin/PlanningPanel.php:378
 msgid "理由"
 msgstr "理由"
 
 #. translators: %d: number of affected published posts.
-#: src/Admin/PlanningPanel.php:386
+#: src/Admin/PlanningPanel.php:387
 msgid "対象投稿を確認（%d件）"
 msgstr "対象投稿を確認（%d件）"
 
-#: src/Admin/PlanningPanel.php:795
+#: src/Admin/PlanningPanel.php:823
 msgid "対象外"
 msgstr "対象外"
 
-#: src/Admin/PlanningPanel.php:830
+#: src/Admin/PlanningPanel.php:858
 msgid "操作計画に追加しました。"
 msgstr "操作計画に追加しました。"
 
@@ -1496,3 +1466,20 @@ msgstr "現在の使用状況を確認できません。"
 #: src/Admin/PlanBoard.php:793
 msgid "削除を開始できませんでした。「%1$s」は%2$s"
 msgstr "削除を開始できませんでした。「%1$s」は%2$s"
+
+#: src/Admin/HistoryPage.php:175
+msgid "操作の詳細"
+msgstr "操作の詳細"
+
+#: src/Admin/HistoryPage.php:197
+msgid "元の操作を表示"
+msgstr "元の操作を表示"
+
+#. translators: %s: target term names.
+#: src/Admin/HistoryPage.php:247
+msgid "元に戻す対象：%s"
+msgstr "元に戻す対象：%s"
+
+#: src/Admin/PlanningPanel.php:220
+msgid "Select an existing term in the same taxonomy."
+msgstr "同じ種類の既存のカテゴリーまたはタグを選択してください。"

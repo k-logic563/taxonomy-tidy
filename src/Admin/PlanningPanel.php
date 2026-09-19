@@ -168,9 +168,9 @@ final class PlanningPanel {
 				<section id="taxonomy-tidy-selection-section" class="taxonomy-tidy-process-group" aria-labelledby="taxonomy-tidy-target-heading">
 					<h3 id="taxonomy-tidy-target-heading"><?php echo esc_html__( 'Selected targets', 'taxonomy-tidy' ); ?></h3>
 					<p class="taxonomy-tidy-selected-count" aria-live="polite"><?php echo esc_html( $this->selected_count_label( count( $selected ) ) ); ?></p>
-					<div class="taxonomy-tidy-selected-terms" aria-live="polite" data-selection-error="<?php echo isset( $field_errors['selection'] ) ? '1' : '0'; ?>" data-empty="<?php echo esc_attr__( 'Select a category or tag to process from the list.', 'taxonomy-tidy' ); ?>" data-published="<?php echo esc_attr__( 'Published posts', 'taxonomy-tidy' ); ?>" data-total="<?php echo esc_attr__( 'Total relationships', 'taxonomy-tidy' ); ?>" data-more="<?php /* translators: %d: number of additional selected terms. */ echo esc_attr__( '%d more', 'taxonomy-tidy' ); ?>">
+					<div class="taxonomy-tidy-selected-terms" aria-live="polite" data-selection-error="<?php echo isset( $field_errors['selection'] ) ? '1' : '0'; ?>" data-empty="<?php echo esc_attr__( 'Select a category or tag to process from the list.', 'taxonomy-tidy' ); ?>" data-more="<?php /* translators: %d: number of additional selected terms. */ echo esc_attr__( '%d more', 'taxonomy-tidy' ); ?>">
 						<?php if ( ! isset( $field_errors['selection'] ) || array() !== $items ) : ?>
-							<?php $this->render_selected_targets( $taxonomy, $items ); ?>
+							<?php $this->render_selected_targets( $items ); ?>
 						<?php endif; ?>
 					</div>
 					<?php if ( Action::MERGE->value !== $action ) : ?>
@@ -211,12 +211,13 @@ final class PlanningPanel {
 								<?php $this->render_field_errors( $field_errors, 'selection', 'taxonomy-tidy-merge-source-error' ); ?>
 							<?php endif; ?>
 						</div>
-						<div id="taxonomy-tidy-merge-destination-group" class="taxonomy-tidy-field-group">
+						<div id="taxonomy-tidy-merge-destination-group" class="taxonomy-tidy-field-group" data-cleared="<?php echo esc_attr__( '選択していた統合先が統合元に含まれたため、選択を解除しました。', 'taxonomy-tidy' ); ?>">
 							<label class="taxonomy-tidy-field-label" for="taxonomy-tidy-destination"><?php echo esc_html__( 'Merge destination', 'taxonomy-tidy' ); ?></label>
-							<input class="taxonomy-tidy-field-control" id="taxonomy-tidy-destination" type="search" name="destination" list="taxonomy-tidy-destinations" value="<?php echo esc_attr( (string) ( $input['destination'] ?? '' ) ); ?>" autocomplete="off" aria-describedby="taxonomy-tidy-destination-help taxonomy-tidy-destination-selection-notice<?php echo isset( $field_errors['destination'] ) ? ' ' . esc_attr( $this->field_error_ids( $field_errors, 'destination', 'taxonomy-tidy-destination-error' ) ) : ''; ?>" <?php echo isset( $field_errors['destination'] ) ? 'aria-invalid="true"' : ''; ?> <?php echo 'destination' === $focus ? 'data-error-focus="true"' : ''; ?>>
-							<datalist id="taxonomy-tidy-destinations"><?php $this->render_destinations( $taxonomy, $selected ); ?></datalist>
-							<template class="taxonomy-tidy-destination-options"><?php $this->render_destinations( $taxonomy, array() ); ?></template>
-							<p id="taxonomy-tidy-destination-help" class="description taxonomy-tidy-field-help"><?php echo esc_html__( 'Search and select an existing term in the same taxonomy.', 'taxonomy-tidy' ); ?></p>
+							<select class="taxonomy-tidy-field-control" id="taxonomy-tidy-destination" name="destination" aria-describedby="taxonomy-tidy-destination-help taxonomy-tidy-destination-selection-notice<?php echo isset( $field_errors['destination'] ) ? ' ' . esc_attr( $this->field_error_ids( $field_errors, 'destination', 'taxonomy-tidy-destination-error' ) ) : ''; ?>" <?php echo isset( $field_errors['destination'] ) ? 'aria-invalid="true"' : ''; ?> <?php echo 'destination' === $focus ? 'data-error-focus="true"' : ''; ?>>
+								<option value=""><?php echo esc_html__( 'Select a merge destination.', 'taxonomy-tidy' ); ?></option>
+								<?php $this->render_destinations( $taxonomy, $selected, (string) ( $input['destination'] ?? '' ) ); ?>
+							</select>
+							<p id="taxonomy-tidy-destination-help" class="description taxonomy-tidy-field-help"><?php echo esc_html__( 'Select an existing term in the same taxonomy.', 'taxonomy-tidy' ); ?></p>
 							<p id="taxonomy-tidy-destination-selection-notice" class="description taxonomy-tidy-field-help" role="status" <?php echo $destination_removed ? '' : 'hidden'; ?>><?php echo esc_html__( '選択していた統合先が統合元に含まれたため、選択を解除しました。', 'taxonomy-tidy' ); ?></p>
 							<?php $this->render_field_errors( $field_errors, 'destination', 'taxonomy-tidy-destination-error' ); ?>
 						</div>
@@ -225,7 +226,7 @@ final class PlanningPanel {
 					<div class="taxonomy-tidy-action-fields" data-action-fields="delete" <?php echo Action::DELETE->value !== $action ? 'hidden' : ''; ?>>
 						<div class="taxonomy-tidy-field-group taxonomy-tidy-readonly-field" <?php echo isset( $field_errors['delete'] ) ? 'aria-invalid="true" aria-describedby="' . esc_attr( $this->field_error_ids( $field_errors, 'delete', 'taxonomy-tidy-delete-error' ) ) . '"' : ''; ?>>
 							<span class="taxonomy-tidy-field-label"><?php echo esc_html__( 'Deletion targets', 'taxonomy-tidy' ); ?></span>
-							<div class="taxonomy-tidy-field-display taxonomy-tidy-delete-targets" data-empty="<?php echo esc_attr__( 'No deletion targets selected.', 'taxonomy-tidy' ); ?>" data-published="<?php echo esc_attr__( 'Published posts', 'taxonomy-tidy' ); ?>" data-total="<?php echo esc_attr__( 'Total relationships', 'taxonomy-tidy' ); ?>" data-available="<?php echo esc_attr__( 'Deletion available', 'taxonomy-tidy' ); ?>" data-unavailable="<?php echo esc_attr__( 'Deletion unavailable', 'taxonomy-tidy' ); ?>"><?php $this->render_delete_targets( $taxonomy, $items ); ?></div>
+							<div class="taxonomy-tidy-field-display taxonomy-tidy-delete-targets" data-empty="<?php echo esc_attr__( 'No deletion targets selected.', 'taxonomy-tidy' ); ?>"><?php $this->render_delete_targets( $items ); ?></div>
 							<?php $this->render_field_errors( $field_errors, 'delete', 'taxonomy-tidy-delete-error' ); ?>
 						</div>
 					</div>
@@ -414,31 +415,63 @@ final class PlanningPanel {
 	}
 
 	/**
-	 * Renders searchable destination values.
+	 * Renders all same-taxonomy destinations independently of inventory paging.
 	 *
-	 * @param Taxonomy $taxonomy Current taxonomy.
-	 * @param array    $excluded Selected source term IDs.
+	 * @param Taxonomy $taxonomy    Current taxonomy.
+	 * @param array    $excluded    Selected source term IDs.
+	 * @param string   $destination Submitted stable destination value.
 	 */
-	private function render_destinations( Taxonomy $taxonomy, array $excluded ): void {
+	private function render_destinations( Taxonomy $taxonomy, array $excluded, string $destination ): void {
 		$terms = get_terms(
 			array(
 				'taxonomy'   => $taxonomy->value,
 				'hide_empty' => false,
 				'orderby'    => 'name',
+				'order'      => 'ASC',
 				'number'     => 0,
 			)
 		);
 		if ( ! is_array( $terms ) ) {
 			return;
 		}
+		$terms_by_id = array();
+		$name_counts = array();
 		foreach ( $terms as $term ) {
-			if ( $term instanceof WP_Term && ! in_array( $term->term_id, $excluded, true ) ) {
-				$value = sprintf( '%d:%d — %s', $term->term_id, $term->term_taxonomy_id, $term->name );
-				?>
-				<option value="<?php echo esc_attr( $value ); ?>" data-term-key="<?php echo esc_attr( (string) $term->term_id ); ?>" data-term-taxonomy-key="<?php echo esc_attr( (string) $term->term_taxonomy_id ); ?>"><?php echo esc_html( $term->slug ); ?></option>
-				<?php
+			if ( $term instanceof WP_Term ) {
+				$terms_by_id[ $term->term_id ] = $term;
+				$name_counts[ $term->name ]    = ( $name_counts[ $term->name ] ?? 0 ) + 1;
 			}
 		}
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof WP_Term || in_array( $term->term_id, $excluded, true ) ) {
+				continue;
+			}
+			$value = sprintf( '%d:%d', $term->term_id, $term->term_taxonomy_id );
+			$label = Taxonomy::CATEGORY === $taxonomy && 1 < $name_counts[ $term->name ]
+				? $this->category_path_label( $term, $terms_by_id )
+				: $term->name;
+			?>
+			<option value="<?php echo esc_attr( $value ); ?>" data-term-key="<?php echo esc_attr( (string) $term->term_id ); ?>" <?php selected( $destination, $value ); ?>><?php echo esc_html( $label ); ?></option>
+			<?php
+		}
+	}
+
+	/**
+	 * Disambiguates duplicate category names with category names only.
+	 *
+	 * @param WP_Term             $term        Destination category.
+	 * @param array<int, WP_Term> $terms_by_id Categories indexed by stable ID.
+	 */
+	private function category_path_label( WP_Term $term, array $terms_by_id ): string {
+		$names  = array( $term->name );
+		$seen   = array( $term->term_id => true );
+		$parent = (int) $term->parent;
+		while ( 0 < $parent && isset( $terms_by_id[ $parent ] ) && ! isset( $seen[ $parent ] ) ) {
+			$seen[ $parent ] = true;
+			array_unshift( $names, $terms_by_id[ $parent ]->name );
+			$parent = (int) $terms_by_id[ $parent ]->parent;
+		}
+		return implode( ' › ', $names );
 	}
 
 	/**
@@ -471,21 +504,19 @@ final class PlanningPanel {
 	/**
 	 * Renders representative selected terms and their current counts.
 	 *
-	 * @param Taxonomy                   $taxonomy Current taxonomy.
-	 * @param list<array<string, mixed>> $items    Selected inventory rows.
+	 * @param list<array<string, mixed>> $items Selected inventory rows.
 	 */
-	private function render_selected_targets( Taxonomy $taxonomy, array $items ): void {
+	private function render_selected_targets( array $items ): void {
 		if ( array() === $items ) {
 			?>
 			<p class="taxonomy-tidy-selected-empty"><?php echo esc_html__( 'Select a category or tag to process from the list.', 'taxonomy-tidy' ); ?></p>
 			<?php
 			return;
 		}
-		$type = Taxonomy::CATEGORY === $taxonomy ? __( 'Category', 'taxonomy-tidy' ) : __( 'Tag', 'taxonomy-tidy' );
 		?>
 		<ul class="taxonomy-tidy-selected-list">
 		<?php foreach ( array_slice( $items, 0, 5 ) as $item ) : ?>
-			<li><strong><?php echo esc_html( (string) $item['name'] ); ?></strong><span><?php echo esc_html( $type ); ?> · <?php echo esc_html__( 'Published posts', 'taxonomy-tidy' ); ?>: <?php echo esc_html( number_format_i18n( (int) $item['published_post_count'] ) ); ?> · <?php echo esc_html__( 'Total relationships', 'taxonomy-tidy' ); ?>: <?php echo esc_html( number_format_i18n( (int) $item['total_relationship_count'] ) ); ?></span></li>
+			<li><?php echo esc_html( (string) $item['name'] ); ?></li>
 		<?php endforeach; ?>
 		<?php if ( 5 < count( $items ) ) : ?>
 			<li><?php /* translators: %d: number of additional selected terms. */ echo esc_html( sprintf( __( '%d more', 'taxonomy-tidy' ), count( $items ) - 5 ) ); ?></li>
@@ -627,24 +658,21 @@ final class PlanningPanel {
 	}
 
 	/**
-	 * Renders deletion eligibility and counts for selected targets.
+	 * Renders deletion target names without exposing internal details.
 	 *
-	 * @param Taxonomy                   $taxonomy Current taxonomy.
-	 * @param list<array<string, mixed>> $items    Selected inventory rows.
+	 * @param list<array<string, mixed>> $items Selected inventory rows.
 	 */
-	private function render_delete_targets( Taxonomy $taxonomy, array $items ): void {
+	private function render_delete_targets( array $items ): void {
 		if ( array() === $items ) {
 			?>
 			<p><?php echo esc_html__( 'No deletion targets selected.', 'taxonomy-tidy' ); ?></p>
 			<?php
 			return;
 		}
-		$default_category = (int) get_option( 'default_category' );
 		?>
 		<ul class="taxonomy-tidy-delete-list">
 		<?php foreach ( $items as $item ) : ?>
-			<?php $available = 0 === (int) $item['total_relationship_count'] && ! ( Taxonomy::CATEGORY === $taxonomy && $default_category === (int) $item['term_id'] ); ?>
-			<li><strong><?php echo esc_html( (string) $item['name'] ); ?></strong><span><?php echo esc_html__( 'Published posts', 'taxonomy-tidy' ); ?>: <?php echo esc_html( number_format_i18n( (int) $item['published_post_count'] ) ); ?> · <?php echo esc_html__( 'Total relationships', 'taxonomy-tidy' ); ?>: <?php echo esc_html( number_format_i18n( (int) $item['total_relationship_count'] ) ); ?> · <?php echo esc_html( $available ? __( 'Deletion available', 'taxonomy-tidy' ) : __( 'Deletion unavailable', 'taxonomy-tidy' ) ); ?></span></li>
+			<li><?php echo esc_html( (string) $item['name'] ); ?></li>
 		<?php endforeach; ?>
 		</ul>
 		<?php
@@ -683,7 +711,7 @@ final class PlanningPanel {
 		$names = array();
 		foreach ( $item['sources'] as $source ) {
 			$term    = get_term( (int) $source['term_id'], $taxonomy->value );
-			$names[] = $term instanceof WP_Term ? $term->name : '#' . (int) $source['term_id'];
+			$names[] = $term instanceof WP_Term ? $term->name : __( '見つからない分類', 'taxonomy-tidy' );
 		}
 		return implode( ', ', $names );
 	}
