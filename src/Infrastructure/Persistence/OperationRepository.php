@@ -146,6 +146,27 @@ final class OperationRepository {
 	}
 
 	/**
+	 * Returns the latest draft for one administrator and taxonomy.
+	 *
+	 * @param int      $user_id  Administrator user ID.
+	 * @param Taxonomy $taxonomy Supported taxonomy.
+	 * @return array<string, mixed>|null
+	 */
+	public function find_draft( int $user_id, Taxonomy $taxonomy ): ?array {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom operation table has no core API or object cache.
+		$operation_id = $this->database->get_var(
+			$this->database->prepare(
+				'SELECT id FROM %i WHERE user_id = %d AND taxonomy = %s AND status = %s ORDER BY id DESC LIMIT 1',
+				$this->table,
+				$user_id,
+				$taxonomy->value,
+				Status::DRAFT->value
+			)
+		);
+		return null === $operation_id ? null : $this->find( (int) $operation_id );
+	}
+
+	/**
 	 * Returns the latest interrupted running record for one owner and taxonomy.
 	 *
 	 * @param int      $user_id  Administrator user ID.

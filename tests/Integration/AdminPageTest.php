@@ -13,6 +13,9 @@ use RuntimeException;
 use TaxonomyTidy\Admin\Access;
 use TaxonomyTidy\Admin\Page;
 use TaxonomyTidy\Admin\PlanController;
+use TaxonomyTidy\Application\Planning\PlanService;
+use TaxonomyTidy\Domain\Operation\Taxonomy;
+use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
 use WP_UnitTestCase;
 
 /**
@@ -106,7 +109,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<label for="taxonomy-tidy-order">Direction</label>', $output );
 		$this->assertStringContainsString( 'Apply conditions', $output );
 		$this->assertStringContainsString( 'Reset conditions', $output );
-		$this->assertSame( 2, substr_count( $output, '<form ' ) );
+		$this->assertSame( 4, substr_count( $output, '<form ' ) );
 		$this->assertStringContainsString( 'class="taxonomy-tidy-select-page"', $output );
 		$this->assertStringContainsString( 'No terms selected', $output );
 		$this->assertStringContainsString( '0 processes configured', $output );
@@ -116,7 +119,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Action method', $output );
 		$this->assertStringContainsString( 'Changes', $output );
 		$this->assertStringContainsString( 'Notices and validation results', $output );
-		$this->assertStringContainsString( 'name="plan_command" value="execute">Execute</button>', $output );
+		$this->assertStringContainsString( 'name="plan_command" value="add">計画に追加</button>', $output );
 		$this->assertStringContainsString( 'id="taxonomy-tidy-merge-source-group" class="taxonomy-tidy-field-group taxonomy-tidy-readonly-field"', $output );
 		$this->assertStringContainsString( 'class="taxonomy-tidy-field-display taxonomy-tidy-merge-sources"', $output );
 		$this->assertStringContainsString( 'id="taxonomy-tidy-merge-destination-group" class="taxonomy-tidy-field-group"', $output );
@@ -126,7 +129,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'taxonomy-tidy-actions-heading', $output );
 		$this->assertStringNotContainsString( 'name="change_slug"', $output );
 		$this->assertStringNotContainsString( 'name="delete_confirmed"', $output );
-		$this->assertStringNotContainsString( 'Add process to plan', $output );
+		$this->assertStringNotContainsString( 'Execute', $output );
 
 		$search_position = strpos( $output, 'taxonomy-tidy-filter-panel' );
 		$action_position = strpos( $output, 'taxonomy-tidy-process-panel' );
@@ -141,7 +144,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$method_group_position     = strpos( $output, '<h3 id="taxonomy-tidy-operation-heading">Action method</h3>' );
 		$changes_group_position    = strpos( $output, 'taxonomy-tidy-change-heading' );
 		$validation_group_position = strpos( $output, 'taxonomy-tidy-validation-heading' );
-		$execute_position          = strpos( $output, 'taxonomy-tidy-execute' );
+		$execute_position          = strpos( $output, 'name="plan_command" value="add"' );
 		$this->assertIsInt( $target_group_position );
 		$this->assertIsInt( $method_group_position );
 		$this->assertIsInt( $changes_group_position );
@@ -152,6 +155,79 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertLessThan( $validation_group_position, $changes_group_position );
 		$this->assertLessThan( $execute_position, $validation_group_position );
 		$this->assertMatchesRegularExpression( '/class="taxonomy-tidy-process-group taxonomy-tidy-validation"[^>]+hidden>/', $output );
+	}
+
+	/** Four tabs show the current administrator's combined draft count. */
+	public function test_plan_tab_groups_two_drafts_and_marks_current_view(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		foreach ( array(
+			'category' => 'Tab category',
+			'post_tag' => 'Tab tag',
+		) as $taxonomy => $name ) {
+			$term_id = self::factory()->term->create(
+				array(
+					'taxonomy' => $taxonomy,
+					'name'     => $name,
+				)
+			);
+			$term    = get_term( $term_id, $taxonomy );
+			$this->assertInstanceOf( \WP_Term::class, $term );
+			$_GET                      = array( 'taxonomy' => $taxonomy );
+			$_SERVER['REQUEST_METHOD'] = 'POST';
+			$_POST                     = array(
+				'taxonomy'                  => $taxonomy,
+				'plan_command'              => 'add',
+				'operation_action'          => 'rename',
+				'selected_terms'            => array( (string) $term_id ),
+				'term_taxonomy_ids'         => array( $term_id => (string) $term->term_taxonomy_id ),
+				'new_name'                  => $name . ' renamed',
+				PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
+			);
+			ob_start();
+			$this->page->render();
+			ob_end_clean();
+		}
+		$_GET                      = array( 'view' => 'plan' );
+		$_POST                     = array();
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		ob_start();
+		$this->page->render();
+		$output = (string) ob_get_clean();
+		$this->assertSame( 4, substr_count( $output, '<a class="nav-tab' ) );
+		$this->assertStringContainsString( 'aria-label="操作計画（2件）"', $output );
+		$this->assertStringContainsString( 'class="nav-tab nav-tab-active"', $output );
+		$this->assertStringContainsString( 'Tab category renamed', $output );
+		$this->assertStringContainsString( 'Tab tag renamed', $output );
+		$this->assertStringNotContainsString( 'role="dialog"', $output );
+		global $wpdb;
+		$operation = ( new OperationRepository( $wpdb ) )->find_draft( get_current_user_id(), Taxonomy::CATEGORY );
+		$this->assertIsArray( $operation );
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST                     = array(
+			'view'                      => 'plan',
+			'plan_command'              => 'remove_item',
+			'taxonomy'                  => 'category',
+			'operation_id'              => (string) $operation['id'],
+			'item_index'                => '0',
+			'expected_plan_hash'        => ( new PlanService() )->plan_hash( $operation['requested_data']['plan'] ),
+			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
+		);
+		ob_start();
+		$this->page->render();
+		$after_delete = (string) ob_get_clean();
+		$this->assertStringContainsString( 'aria-label="操作計画（1件）"', $after_delete );
+		$this->assertStringContainsString( '操作計画から削除しました。', $after_delete );
+		$this->assertStringNotContainsString( 'Tab category renamed', $after_delete );
+		$this->assertStringContainsString( 'Tab tag renamed', $after_delete );
+
+		$_GET                      = array( 'view' => 'history' );
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_POST                     = array();
+		ob_start();
+		$this->page->render();
+		$history = (string) ob_get_clean();
+		$this->assertStringContainsString( '操作履歴は今後のフェーズで表示します。', $history );
+		$this->assertStringNotContainsString( 'Tab category renamed', $history );
 	}
 
 	/**
@@ -172,7 +248,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_POST                     = array(
 			'taxonomy'                  => 'post_tag',
-			'plan_command'              => 'execute',
+			'plan_command'              => 'add',
 			'operation_action'          => 'rename',
 			'selected_terms'            => array( (string) $term_id ),
 			'term_taxonomy_ids'         => array( $term_id => (string) $term->term_taxonomy_id ),
@@ -198,6 +274,107 @@ final class AdminPageTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A valid preview is confined to a dialog and keeps post titles out of initial markup.
+	 */
+	public function test_valid_preview_renders_compact_modal_only(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Modal source',
+			)
+		);
+		$term    = get_term( $term_id, 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $term );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_title'  => 'Lazy title fixture',
+			)
+		);
+		wp_set_object_terms( $post_id, $term_id, 'post_tag' );
+		$_GET                      = array( 'taxonomy' => 'post_tag' );
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST                     = array(
+			'taxonomy'                  => 'post_tag',
+			'plan_command'              => 'add',
+			'operation_action'          => 'rename',
+			'selected_terms'            => array( (string) $term_id ),
+			'term_taxonomy_ids'         => array( $term_id => (string) $term->term_taxonomy_id ),
+			'new_name'                  => 'Modal renamed',
+			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
+		);
+		ob_start();
+		$this->page->render();
+		ob_end_clean();
+		$_GET  = array( 'view' => 'plan' );
+		$_POST = array(
+			'plan_command'              => 'preview_all',
+			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
+		);
+		ob_start();
+		$this->page->render();
+		$output = (string) ob_get_clean();
+		$this->assertSame( 1, substr_count( $output, 'role="dialog"' ) );
+		$this->assertStringContainsString( 'aria-modal="true"', $output );
+		$this->assertStringContainsString( 'data-auto-open="1" hidden', $output );
+		$this->assertStringContainsString( 'Modal renamed', $output );
+		$this->assertStringContainsString( '対象投稿を確認', $output );
+		$this->assertStringNotContainsString( 'Lazy title fixture', $output );
+		$this->assertStringNotContainsString( '変更後のslug', $output );
+		$this->assertStringNotContainsString( 'Preview created:', $output );
+		$this->assertStringNotContainsString( 'Warnings: 0', $output );
+		$this->assertStringContainsString( 'class="button taxonomy-tidy-modal__cancel"', $output );
+		$this->assertStringContainsString( 'name="plan_command" value="run_all"', $output );
+		$this->assertStringNotContainsString( 'value="discard"', $output );
+		$this->assertStringNotContainsString( 'value="revise"', $output );
+		$this->assertStringNotContainsString( 'value="run"', substr( $output, 0, strpos( $output, '</form>' ) ) );
+	}
+
+	/**
+	 * Only an explicitly changed slug appears in the preview.
+	 */
+	public function test_preview_shows_changed_slug(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Slug source',
+				'slug'     => 'slug-source',
+			)
+		);
+		$term    = get_term( $term_id, 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $term );
+		$_GET                      = array( 'taxonomy' => 'post_tag' );
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST                     = array(
+			'taxonomy'                  => 'post_tag',
+			'plan_command'              => 'add',
+			'operation_action'          => 'rename',
+			'selected_terms'            => array( (string) $term_id ),
+			'term_taxonomy_ids'         => array( $term_id => (string) $term->term_taxonomy_id ),
+			'new_name'                  => 'Slug source renamed',
+			'new_slug'                  => 'slug-changed',
+			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
+		);
+		ob_start();
+		$this->page->render();
+		ob_end_clean();
+		$_GET  = array( 'view' => 'plan' );
+		$_POST = array(
+			'plan_command'              => 'preview_all',
+			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
+		);
+		ob_start();
+		$this->page->render();
+		$output = (string) ob_get_clean();
+		$this->assertStringContainsString( 'Slug source renamed / slug-changed', $output );
+		$this->assertStringContainsString( 'slug-changed', $output );
+		$this->assertStringNotContainsString( '対象投稿を確認（0件）', $output );
+	}
+
+	/**
 	 * Selection and action errors render once in their corresponding sections.
 	 */
 	public function test_execute_groups_multiple_errors_by_section(): void {
@@ -206,7 +383,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_POST                     = array(
 			'taxonomy'                  => 'category',
-			'plan_command'              => 'execute',
+			'plan_command'              => 'add',
 			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
 		);
 
@@ -233,7 +410,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertInstanceOf( \WP_Term::class, $term );
 		$_POST = array(
 			'taxonomy'                  => 'category',
-			'plan_command'              => 'execute',
+			'plan_command'              => 'add',
 			'selected_terms'            => array( (string) $term_id ),
 			'term_taxonomy_ids'         => array( $term_id => (string) $term->term_taxonomy_id ),
 			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
@@ -262,7 +439,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_POST                     = array(
 			'taxonomy'                  => 'post_tag',
-			'plan_command'              => 'execute',
+			'plan_command'              => 'add',
 			'operation_action'          => 'merge',
 			'selected_terms'            => array( (string) $term_id ),
 			'term_taxonomy_ids'         => array( $term_id => (string) $term->term_taxonomy_id ),

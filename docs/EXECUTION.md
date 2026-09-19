@@ -2,6 +2,8 @@
 
 Phase 5 applies only a current, administrator-approved Phase 4 preview. It implements rename, merge, and globally-unused deletion. Undo and the history UI remain outside this phase.
 
+The operation-plan tab groups the current administrator's category and tag drafts for review. They remain separate operations, each with one taxonomy, plan hash, state fingerprint, lock, batches, and result. A single preview dialog displays both. Before either starts, both previews are validated; a stale preview stops the whole start request. The existing batch workflow runs once per operation in sequence. After execution begins, each result remains independent, and the dialog identifies a partial outcome when one side fails.
+
 ## Request flow
 
 1. An authenticated POST verifies the three required capabilities, nonce, taxonomy, operation owner, and operation status.
@@ -48,4 +50,4 @@ Phase 6 may read the immutable actual-change journal to determine Undo eligibili
 
 The Phase 5 integration suite covers name-only rename, journal snapshots, bounded merge batches, continuation from pending items, a destination already assigned to a post, multiple sources sharing one post, preservation of unrelated assignments, excluded-object source retention, globally-unused deletion, stale fingerprints, changed plan hashes, terminal re-execution rejection, and `partial_failed` results after a between-batch conflict. Existing persistence tests cover lock contention, TTL expiry, token ownership, pending-item discovery, and idempotent journal keys. Controller tests cover the shared capability and nonce gate used by execution commands.
 
-At the latest Phase 5 verification, PHPCS checked 48 files with no errors or warnings, JavaScript lint passed, and PHPUnit passed 55 tests with 711 assertions. The Docker development site started and the plugin was active. An authenticated destructive UI smoke run was not completed because the execution environment rejected the mutating POST; its temporary user, terms, and posts were removed and verified absent. The phase remains `In progress` until that manual UI execution is confirmed.
+At the latest Phase 5 verification, PHPCS checked 50 files with no errors or warnings, JavaScript lint passed, and PHPUnit passed 66 tests with 840 assertions. The Docker development site started and the plan tab rendered with all four navigation tabs. An authenticated destructive UI smoke run has not been completed. The phase remains `In progress` until that manual UI execution is confirmed.

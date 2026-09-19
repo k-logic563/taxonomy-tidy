@@ -205,4 +205,192 @@
 	if ( errorFocus ) {
 		globalThis.requestAnimationFrame( () => errorFocus.focus() );
 	}
+
+	let modal = document.querySelector( '.taxonomy-tidy-modal' );
+	let opener = null;
+	let busy = false;
+	let navigating = false;
+	let originalOverflow = '';
+
+	function closeModal() {
+		if ( ! modal || busy ) {
+			return;
+		}
+		modal.hidden = true;
+		document.body.style.overflow = originalOverflow;
+		if ( opener && opener.isConnected ) {
+			opener.focus();
+		}
+	}
+
+	function openModal( trigger ) {
+		if ( ! modal ) {
+			return;
+		}
+		opener = trigger;
+		originalOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		modal.hidden = false;
+		modal.querySelector( '.taxonomy-tidy-modal__close' ).focus();
+	}
+
+	function installModal( nextModal, trigger ) {
+		if ( modal ) {
+			modal.remove();
+		}
+		modal = document.importNode( nextModal, true );
+		document.body.append( modal );
+		openModal( trigger );
+	}
+
+	function showServerErrors( page ) {
+		form.querySelectorAll( '.taxonomy-tidy-field-error' ).forEach( ( error ) => error.remove() );
+		const panel = form.querySelector( '.taxonomy-tidy-process-panel' );
+		panel.open = true;
+		let first = null;
+		page.querySelectorAll( '.taxonomy-tidy-process-group' ).forEach( ( section ) => {
+			const heading = section.querySelector( 'h3[id]' );
+			const target = heading && form.querySelector( `#${ heading.id }` )?.closest( '.taxonomy-tidy-process-group' );
+			if ( ! target ) {
+				return;
+			}
+			section.querySelectorAll( '.taxonomy-tidy-field-error' ).forEach( ( error ) => {
+				const copy = document.importNode( error, true );
+				target.append( copy );
+				first ||= copy;
+			} );
+		} );
+		if ( first ) {
+			first.focus();
+		}
+	}
+
+	form.addEventListener( 'submit', async ( event ) => {
+		const submitter = event.submitter;
+		if ( ! submitter || ! [ 'execute', 'preview', 'run' ].includes( submitter.value ) ) {
+			return;
+		}
+		event.preventDefault();
+		if ( busy ) {
+			return;
+		}
+		busy = true;
+		submitter.disabled = true;
+		if ( submitter.value === 'run' ) {
+			modal.querySelector( '.taxonomy-tidy-modal__cancel' ).disabled = true;
+			modal.querySelector( '.taxonomy-tidy-modal__close' ).disabled = true;
+		}
+		try {
+			const data = new globalThis.FormData( form );
+			data.set( 'plan_command', submitter.value );
+			if ( submitter.value === 'run' ) {
+				data.set( 'operation_id', modal.querySelector( '[name="operation_id"]' ).value );
+			}
+			const response = await globalThis.fetch( globalThis.location.href, { method: 'POST', body: data, credentials: 'same-origin' } );
+			if ( ! response.ok ) {
+				throw new Error( 'request failed' );
+			}
+			const page = new globalThis.DOMParser().parseFromString( await response.text(), 'text/html' );
+			if ( submitter.value === 'run' ) {
+				const progress = page.querySelector( '#taxonomy-tidy-progress-heading' );
+				if ( progress ) {
+					navigating = true;
+					globalThis.location.reload();
+					return;
+				}
+				const error = page.querySelector( '.taxonomy-tidy-error-summary' );
+				if ( error ) {
+					modal.querySelector( '.taxonomy-tidy-modal__body' ).prepend( document.importNode( error, true ) );
+				}
+				modal.querySelector( '.taxonomy-tidy-modal__cancel' ).disabled = false;
+				modal.querySelector( '.taxonomy-tidy-modal__close' ).disabled = false;
+				return;
+			}
+			const nextModal = page.querySelector( '.taxonomy-tidy-modal[data-auto-open="1"]' );
+			if ( nextModal ) {
+				const savedPlan = form.querySelector( '.taxonomy-tidy-plan' );
+				const nextPlan = page.querySelector( '.taxonomy-tidy-plan' );
+				if ( nextPlan ) {
+					if ( savedPlan ) {
+						savedPlan.replaceWith( document.importNode( nextPlan, true ) );
+					} else {
+						form.append( document.importNode( nextPlan, true ) );
+					}
+				}
+				installModal( nextModal, submitter );
+			} else {
+				showServerErrors( page );
+			}
+		} catch {
+			globalThis.location.reload();
+		} finally {
+			if ( ! navigating ) {
+				busy = false;
+				submitter.disabled = false;
+			}
+		}
+	} );
+
+	document.addEventListener( 'click', ( event ) => {
+		if ( event.target.closest( '.taxonomy-tidy-reopen-preview' ) ) {
+			openModal( event.target.closest( 'button' ) );
+		} else if ( modal && ( event.target === modal || event.target.closest( '.taxonomy-tidy-modal__cancel, .taxonomy-tidy-modal__close' ) ) ) {
+			closeModal();
+		}
+	} );
+
+	document.addEventListener( 'keydown', ( event ) => {
+		if ( ! modal || modal.hidden || busy ) {
+			return;
+		}
+		if ( event.key === 'Escape' ) {
+			event.preventDefault();
+			closeModal();
+		} else if ( event.key === 'Tab' ) {
+			const focusable = Array.from( modal.querySelectorAll( 'button:not(:disabled), summary' ) );
+			const first = focusable[ 0 ];
+			const last = focusable[ focusable.length - 1 ];
+			if ( event.shiftKey && document.activeElement === first ) {
+				event.preventDefault();
+				last.focus();
+			} else if ( ! event.shiftKey && document.activeElement === last ) {
+				event.preventDefault();
+				first.focus();
+			}
+		}
+	} );
+
+	document.addEventListener( 'toggle', async ( event ) => {
+		const details = event.target;
+		if ( ! details.matches?.( '.taxonomy-tidy-preview-posts' ) || ! details.open || details.dataset.loaded ) {
+			return;
+		}
+		const data = new globalThis.FormData();
+		data.set( 'action', 'taxonomy_tidy_preview_posts' );
+		data.set( 'taxonomy', details.dataset.taxonomy );
+		data.set( 'operation_id', details.dataset.operation );
+		data.set( 'item_index', details.dataset.item );
+		data.set( 'taxonomy_tidy_nonce', form.querySelector( '[name="taxonomy_tidy_nonce"]' ).value );
+		try {
+			const response = await globalThis.fetch( globalThis.ajaxurl, { method: 'POST', body: data, credentials: 'same-origin' } );
+			const result = await response.json();
+			if ( ! result.success ) {
+				throw new Error( 'request failed' );
+			}
+			result.data.titles.forEach( ( title ) => {
+				const item = document.createElement( 'li' );
+				item.textContent = title;
+				details.querySelector( 'ul' ).append( item );
+			} );
+			details.dataset.loaded = '1';
+		} catch {
+			const item = document.createElement( 'li' );
+			item.textContent = details.dataset.error;
+			details.querySelector( 'ul' ).append( item );
+		}
+	}, true );
+
+	if ( modal?.dataset.autoOpen === '1' ) {
+		openModal( form.querySelector( '.taxonomy-tidy-execute' ) || form.querySelector( '[value="preview"]' ) );
+	}
 }() );

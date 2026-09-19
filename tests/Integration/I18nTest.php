@@ -158,7 +158,7 @@ final class I18nTest extends WP_UnitTestCase {
 		foreach ( $this->planning_error_messages() as $code => $messages ) {
 			$this->assertSame( $messages['ja'], ErrorMessages::label( $code ), 'Incorrect Japanese error for ' . $code );
 		}
-		foreach ( array( '検索パネル', 'キーワードで探す', '3件の条件を適用中', 'キーワード：Locale Inventory', '名前 · 降順', '条件を適用', '条件をリセット', '公開済み投稿数', '全体の使用数', '完全に未使用', '処理パネル', '選択中の対象', '処理方法', '変更内容', '注意事項・検証結果', '実行する', 'Locale Inventory 001', '前へ' ) as $expected_output ) {
+		foreach ( array( '検索パネル', 'キーワードで探す', '3件の条件を適用中', 'キーワード：Locale Inventory', '名前 · 降順', '条件を適用', '条件をリセット', '公開済み投稿数', '全体の使用数', '完全に未使用', '処理パネル', '選択中の対象', '処理方法', '変更内容', '注意事項・検証結果', '計画に追加', 'Locale Inventory 001', '前のページへ' ) as $expected_output ) {
 			$this->assertStringContainsString( $expected_output, $output, 'Missing translated output: ' . $expected_output );
 		}
 		$this->assertSame( 1, preg_match( '/<tbody>(.*?)<\/tbody>/s', $output, $table_match ) );
@@ -175,7 +175,7 @@ final class I18nTest extends WP_UnitTestCase {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_POST                     = array(
 			'taxonomy'                  => 'post_tag',
-			'plan_command'              => 'execute',
+			'plan_command'              => 'add',
 			PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
 		);
 		ob_start();
@@ -229,7 +229,7 @@ final class I18nTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Action panel', $output );
 		$this->assertStringContainsString( 'Selected targets', $output );
 		$this->assertStringContainsString( 'Action method', $output );
-		$this->assertStringContainsString( 'Execute', $output );
+		$this->assertStringContainsString( '計画に追加', $output );
 		$this->assertStringNotContainsString( '検索・絞り込み', $output );
 		foreach ( $this->planning_error_messages() as $code => $messages ) {
 			$this->assertSame( $messages['en'], ErrorMessages::label( $code ), 'Incorrect English error for ' . $code );

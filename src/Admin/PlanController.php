@@ -65,6 +65,7 @@ final class PlanController {
 	 *
 	 * @param Taxonomy $taxonomy Current URL taxonomy.
 	 * @return array{operation: array<string, mixed>|null, errors: list<string>, field_errors: array<string, list<string>>, notice: string|null, selected_ids: list<int>, input: array<string, mixed>}
+	 * @throws PlanValidationException When a running operation cannot accept a draft item.
 	 */
 	public function handle( Taxonomy $taxonomy ): array {
 		$user_id = get_current_user_id();
@@ -129,27 +130,17 @@ final class PlanController {
 		$state['input']        = $this->sanitize_input( $request );
 
 		try {
-			if ( 'run' === $command || 'continue' === $command ) {
-				if ( null === $this->execution ) {
-					$state['errors'][] = PlanErrorCode::UNKNOWN_ERROR;
-				} else {
-					$state['operation'] = $this->execution->run_batch( absint( $request['operation_id'] ?? 0 ), $user_id, $taxonomy );
-					$state['notice']    = 'execution_updated';
+			if ( 'add' === $command ) {
+				if ( null !== $this->execution && null !== $this->execution->latest( $user_id, $taxonomy ) ) {
+					// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal validation code only.
+					throw new PlanValidationException( array( PlanErrorCode::PLAN_INVALID ) );
 				}
-			} elseif ( 'execute' === $command ) {
-				$state['operation']    = $this->workflow->preview_with_item( $user_id, $taxonomy, $this->build_item( $request, $selected_ids ) );
-				$state['notice']       = 'preview_created';
-				$state['selected_ids'] = array();
-			} elseif ( 'add' === $command ) {
 				$state['operation']    = $this->workflow->add( $user_id, $taxonomy, $this->build_item( $request, $selected_ids ) );
 				$state['notice']       = 'plan_item_added';
 				$state['selected_ids'] = array();
 			} elseif ( 'remove' === $command ) {
 				$state['operation'] = $this->workflow->remove( $user_id, $taxonomy, absint( $request['remove_index'] ?? -1 ) );
 				$state['notice']    = 'plan_item_removed';
-			} elseif ( 'preview' === $command ) {
-				$state['operation'] = $this->workflow->preview( $user_id, $taxonomy );
-				$state['notice']    = 'preview_created';
 			} elseif ( 'revise' === $command ) {
 				$state['operation'] = $this->workflow->revise( $user_id, $taxonomy );
 				$state['notice']    = 'preview_invalidated';

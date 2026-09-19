@@ -120,6 +120,31 @@ final class ExecutionWorkflow {
 	}
 
 	/**
+	 * Checks a preview before a shared UI starts either taxonomy operation.
+	 *
+	 * @param int      $operation_id Previewed operation ID.
+	 * @param int      $user_id      Owning administrator ID.
+	 * @param Taxonomy $taxonomy     Expected taxonomy.
+	 * @throws ExecutionException When the operation cannot safely start.
+	 */
+	public function validate_start( int $operation_id, int $user_id, Taxonomy $taxonomy ): void {
+		$operation = $this->operations->find( $operation_id );
+		if ( null === $operation || $user_id !== (int) $operation['user_id'] || $taxonomy->value !== $operation['taxonomy'] || Status::PREVIEWED->value !== $operation['status'] ) {
+			$this->failure( ExecutionErrorCode::INVALID_OPERATION );
+		}
+		$requested = is_array( $operation['requested_data'] ) ? $operation['requested_data'] : array();
+		$plan      = is_array( $requested['plan'] ?? null ) ? array_values( $requested['plan'] ) : array();
+		$preview   = is_array( $requested['preview'] ?? null ) ? $requested['preview'] : array();
+		if ( array() === $plan || count( $plan ) !== count( (array) ( $preview['items'] ?? array() ) ) ) {
+			$this->failure( ExecutionErrorCode::STALE_PREVIEW );
+		}
+		$hash = $this->plans->plan_hash( $plan );
+		if ( ! is_string( $operation['plan_hash'] ) || ! hash_equals( $operation['plan_hash'], $hash ) || ! is_string( $operation['state_fingerprint'] ) || ! $this->plans->is_current( $taxonomy, $plan, $operation['state_fingerprint'] ) ) {
+			$this->failure( ExecutionErrorCode::STALE_PREVIEW );
+		}
+	}
+
+	/**
 	 * Returns an interrupted running record with current item counts.
 	 *
 	 * @param int      $user_id  Administrator user ID.
@@ -142,6 +167,7 @@ final class ExecutionWorkflow {
 	 * @throws ExecutionException When the preview is stale or invalid.
 	 */
 	private function start( array $operation, Taxonomy $taxonomy ): void {
+		$this->validate_start( (int) $operation['id'], (int) $operation['user_id'], $taxonomy );
 		$requested = is_array( $operation['requested_data'] ) ? $operation['requested_data'] : array();
 		$plan      = is_array( $requested['plan'] ?? null ) ? array_values( $requested['plan'] ) : array();
 		$preview   = is_array( $requested['preview'] ?? null ) ? $requested['preview'] : array();

@@ -128,7 +128,7 @@ final class PlanControllerTest extends WP_UnitTestCase {
 		$this->post(
 			array(
 				'taxonomy'                  => 'post_tag',
-				'plan_command'              => 'execute',
+				'plan_command'              => 'add',
 				'operation_action'          => 'rename',
 				'selected_terms'            => array( (string) $term_id ),
 				'term_taxonomy_ids'         => array( $term_id => '999999' ),
@@ -150,7 +150,7 @@ final class PlanControllerTest extends WP_UnitTestCase {
 		$this->post(
 			array(
 				'taxonomy'                  => 'category',
-				'plan_command'              => 'execute',
+				'plan_command'              => 'add',
 				'operation_action'          => 'not-an-action<script>',
 				'new_name'                  => '<script>alert(1)</script>Safe',
 				PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
@@ -168,9 +168,9 @@ final class PlanControllerTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Execute creates a preview with stable identifiers without changing the term.
+	 * Adding a draft item does not preview or change the term.
 	 */
-	public function test_valid_execute_creates_preview_without_changing_term(): void {
+	public function test_valid_add_creates_draft_without_changing_term(): void {
 		$this->login_admin();
 		$term_id = self::factory()->term->create(
 			array(
@@ -184,7 +184,7 @@ final class PlanControllerTest extends WP_UnitTestCase {
 		$this->post(
 			array(
 				'taxonomy'                  => 'post_tag',
-				'plan_command'              => 'execute',
+				'plan_command'              => 'add',
 				'operation_action'          => 'rename',
 				'selected_terms'            => array( (string) $term_id ),
 				'term_taxonomy_ids'         => array( $term_id => (string) $term->term_taxonomy_id ),
@@ -196,14 +196,41 @@ final class PlanControllerTest extends WP_UnitTestCase {
 		$state  = $this->controller->handle( Taxonomy::POST_TAG );
 		$stored = get_term( $term_id, 'post_tag' );
 		$this->assertSame( array(), $state['errors'] );
-		$this->assertSame( 'preview_created', $state['notice'] );
-		$this->assertSame( Status::PREVIEWED->value, $state['operation']['status'] );
+		$this->assertSame( 'plan_item_added', $state['notice'] );
+		$this->assertSame( Status::DRAFT->value, $state['operation']['status'] );
 		$this->assertSame( $term_id, $state['operation']['requested_data']['plan'][0]['sources'][0]['term_id'] );
-		$this->assertNotEmpty( $state['operation']['plan_hash'] );
-		$this->assertNotEmpty( $state['operation']['state_fingerprint'] );
-		$this->assertIsArray( $state['operation']['requested_data']['preview']['target_post_ids'] );
+		$this->assertNull( $state['operation']['plan_hash'] );
+		$this->assertNull( $state['operation']['state_fingerprint'] );
 		$this->assertInstanceOf( WP_Term::class, $stored );
 		$this->assertSame( 'Safe source', $stored->name );
+	}
+
+	/** The taxonomy tab cannot create a preview or start execution directly. */
+	public function test_taxonomy_tab_rejects_old_preview_and_run_commands(): void {
+		$this->login_admin();
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Blocked direct action',
+			)
+		);
+		$term    = get_term( $term_id, 'post_tag' );
+		$this->assertInstanceOf( WP_Term::class, $term );
+		foreach ( array( 'execute', 'preview', 'run' ) as $command ) {
+			$this->post(
+				array(
+					'taxonomy'                  => 'post_tag',
+					'plan_command'              => $command,
+					'operation_action'          => 'rename',
+					'selected_terms'            => array( (string) $term_id ),
+					'term_taxonomy_ids'         => array( $term_id => (string) $term->term_taxonomy_id ),
+					'new_name'                  => 'Forbidden change',
+					PlanController::NONCE_FIELD => wp_create_nonce( PlanController::NONCE_ACTION ),
+				)
+			);
+			$this->assertSame( array( 'unknown_error' ), $this->controller->handle( Taxonomy::POST_TAG )['errors'] );
+			$this->assertSame( 'Blocked direct action', get_term( $term_id )->name );
+		}
 	}
 
 	/**

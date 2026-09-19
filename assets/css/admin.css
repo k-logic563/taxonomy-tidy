@@ -443,6 +443,202 @@
 	gap: 12px;
 }
 
+.taxonomy-tidy-modal[hidden] {
+	display: none;
+}
+
+.taxonomy-tidy-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 100100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	background: rgb(0 0 0 / 55%);
+}
+
+.taxonomy-tidy-modal__dialog {
+	display: flex;
+	flex-direction: column;
+	width: min(100%, 620px);
+	max-height: min(90vh, 780px);
+	background: #fff;
+	box-shadow: 0 8px 32px rgb(0 0 0 / 25%);
+}
+
+.taxonomy-tidy-modal__header,
+.taxonomy-tidy-modal__footer {
+	flex: none;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 20px;
+}
+
+.taxonomy-tidy-modal__header {
+	border-bottom: 1px solid #dcdcde;
+}
+
+.taxonomy-tidy-modal__header h2 {
+	margin: 0;
+}
+
+.taxonomy-tidy-modal__close {
+	border: 0;
+	background: transparent;
+	font-size: 26px;
+	cursor: pointer;
+}
+
+.taxonomy-tidy-modal__body {
+	min-height: 0;
+	overflow-y: auto;
+	padding: 4px 20px 20px;
+}
+
+.taxonomy-tidy-modal__footer {
+	justify-content: flex-end;
+	gap: 10px;
+	border-top: 1px solid #dcdcde;
+}
+
+.taxonomy-tidy-modal__footer input {
+	display: none;
+}
+
+.taxonomy-tidy-preview-item {
+	padding: 12px 0;
+	border: 0;
+}
+
+.taxonomy-tidy-preview-item + .taxonomy-tidy-preview-item {
+	border-top: 1px solid #dcdcde;
+}
+
+.taxonomy-tidy-preview-posts {
+	margin-top: 14px;
+}
+
+.taxonomy-tidy-tab-count {
+	display: inline-block;
+	min-width: 1.4em;
+	margin-left: 4px;
+	padding: 0 5px;
+	border-radius: 10px;
+	background: #dcdcde;
+	text-align: center;
+}
+
+.taxonomy-tidy-plan-table {
+	margin-bottom: 24px;
+}
+
+.taxonomy-tidy-plan-table .taxonomy-tidy-plan-table__delete {
+	width: 76px;
+	padding-left: 16px;
+	padding-right: 12px;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.taxonomy-tidy-plan-table__delete form {
+	margin: 0;
+}
+
+.taxonomy-tidy-plan-delete {
+	display: inline-block;
+	min-width: 42px;
+	padding: 3px 4px;
+	color: #b32d2e;
+	text-align: center;
+}
+
+.taxonomy-tidy-board-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-top: 24px;
+}
+
+.taxonomy-tidy-table-nav {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 10px 20px;
+	width: 100%;
+	height: auto;
+	min-height: 40px;
+	margin: 12px 0;
+	box-sizing: border-box;
+}
+
+.taxonomy-tidy-page-size,
+.taxonomy-tidy-pagination {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.taxonomy-tidy-page-size label {
+	margin-right: 4px;
+	font-weight: 600;
+}
+
+.taxonomy-tidy-page-size select {
+	min-width: 88px;
+}
+
+.taxonomy-tidy-page-range {
+	color: #50575e;
+}
+
+.taxonomy-tidy-table-nav .tablenav-pages {
+	float: none;
+	margin: 0;
+}
+
+.taxonomy-tidy-page-link {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	min-width: 34px;
+	height: 34px !important;
+	padding: 0 7px !important;
+	box-sizing: border-box;
+	border-radius: 0 !important;
+	line-height: 1 !important;
+}
+
+.taxonomy-tidy-page-current {
+	border-color: var(--wp-admin-theme-color, #2271b1) !important;
+	background: var(--wp-admin-theme-color, #2271b1) !important;
+	color: #fff !important;
+	cursor: default !important;
+}
+
+.taxonomy-tidy-page-disabled {
+	border-color: #dcdcde !important;
+	background: #f6f7f7 !important;
+	color: #8c8f94 !important;
+	cursor: default !important;
+}
+
+.taxonomy-tidy-page-ellipsis {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 20px;
+	height: 34px;
+}
+
+.taxonomy-tidy-table-nav--top + .taxonomy-tidy-inventory-table {
+	margin-top: 0;
+}
+
 @media screen and (max-width: 960px) {
 	.taxonomy-tidy-filter-form__groups {
 		grid-template-columns: minmax(240px, 1.5fr) minmax(180px, 1fr);

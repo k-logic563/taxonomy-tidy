@@ -212,6 +212,20 @@ final class TermInventoryQueryTest extends WP_UnitTestCase {
 		$this->assertSame( 1000, $tags['total'] );
 		$this->assertSame( 20, $tags['total_pages'] );
 		$this->assertCount( 50, $tags['items'] );
+		$default = $this->query->find( Taxonomy::POST_TAG, 'Inventory Scale Tag' );
+		$this->assertSame( 20, $default['per_page'] );
+		$this->assertCount( 20, $default['items'] );
+		$twenty = $this->query->find( Taxonomy::POST_TAG, 'Inventory Scale Tag', 2, 20 );
+		$this->assertSame( 50, $twenty['total_pages'] );
+		$this->assertCount( 20, $twenty['items'] );
+		$this->assertSame( 'Inventory Scale Tag 0021', $twenty['items'][0]['name'] );
+		$hundred = $this->query->find( Taxonomy::POST_TAG, 'Inventory Scale Tag', 2, 100 );
+		$this->assertSame( 10, $hundred['total_pages'] );
+		$this->assertCount( 100, $hundred['items'] );
+		$this->assertSame( 'Inventory Scale Tag 0101', $hundred['items'][0]['name'] );
+		$overflow = $this->query->find( Taxonomy::POST_TAG, 'Inventory Scale Tag', 999, 100 );
+		$this->assertSame( 10, $overflow['page'] );
+		$this->assertCount( 100, $overflow['items'] );
 	}
 
 	/**

@@ -134,7 +134,7 @@ final class PlanWorkflow {
 	 */
 	public function remove( int $user_id, Taxonomy $taxonomy, int $index ): ?array {
 		$operation = $this->current( $user_id, $taxonomy );
-		if ( null === $operation ) {
+		if ( null === $operation || Status::DRAFT->value !== $operation['status'] ) {
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal validation codes are not HTML output.
 			throw new PlanValidationException( array( PlanErrorCode::PLAN_INVALID ) );
 		}

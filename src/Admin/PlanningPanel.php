@@ -26,8 +26,9 @@ final class PlanningPanel {
 	 * @param string               $type_label Translated taxonomy label.
 	 * @param array<string, mixed> $inventory Current inventory page.
 	 * @param array<string, mixed> $state     Request state.
+	 * @param callable             $render_pagination Renders controls around the inventory table.
 	 */
-	public function render( Taxonomy $taxonomy, string $type_label, array $inventory, array $state ): void {
+	public function render( Taxonomy $taxonomy, string $type_label, array $inventory, array $state, callable $render_pagination ): void {
 		$operation    = is_array( $state['operation'] ) ? $state['operation'] : null;
 		$plan         = is_array( $operation['requested_data']['plan'] ?? null ) ? $operation['requested_data']['plan'] : array();
 		$errors       = is_array( $state['errors'] ) ? $state['errors'] : array();
@@ -37,14 +38,14 @@ final class PlanningPanel {
 
 		$this->render_notice( $state['notice'] ?? null, $errors );
 		?>
-		<form class="taxonomy-tidy-planning-form" method="post">
+		<form id="taxonomy-tidy-planning-form" class="taxonomy-tidy-planning-form" method="post">
 			<?php wp_nonce_field( PlanController::NONCE_ACTION, PlanController::NONCE_FIELD ); ?>
 			<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy->value ); ?>">
 			<?php if ( null === $operation || in_array( $operation['status'], array( Status::DRAFT->value, Status::PREVIEWED->value ), true ) ) : ?>
 				<?php $this->render_process_panel( $taxonomy, $inventory, $selected, $plan, $input, $errors, $field_errors ); ?>
 			<?php endif; ?>
-			<?php $this->render_table( $taxonomy, $type_label, $inventory, $selected ); ?>
-			<?php $this->render_plan( $taxonomy, $operation, $plan ); ?>
+			<?php $this->render_table( $taxonomy, $type_label, $inventory, $selected, $render_pagination ); ?>
+			<?php // The shared operation-plan tab owns saved-plan review and preview. ?>
 			<?php if ( null !== $operation && in_array( $operation['status'], array( Status::RUNNING->value, Status::COMPLETED->value, Status::PARTIAL_FAILED->value, Status::FAILED->value ), true ) ) : ?>
 				<?php $this->render_execution( $operation ); ?>
 			<?php endif; ?>
@@ -59,8 +60,9 @@ final class PlanningPanel {
 	 * @param string               $type_label Translated taxonomy label.
 	 * @param array<string, mixed> $inventory Current inventory page.
 	 * @param array                $selected Selected term IDs after an error.
+	 * @param callable             $render_pagination Renders table navigation.
 	 */
-	private function render_table( Taxonomy $taxonomy, string $type_label, array $inventory, array $selected ): void {
+	private function render_table( Taxonomy $taxonomy, string $type_label, array $inventory, array $selected, callable $render_pagination ): void {
 		$default_category = (int) get_option( 'default_category' );
 		$parent_ids       = array();
 		if ( Taxonomy::CATEGORY === $taxonomy ) {
@@ -76,6 +78,7 @@ final class PlanningPanel {
 			}
 		}
 		?>
+		<?php $render_pagination( 'top' ); ?>
 		<table class="wp-list-table widefat fixed striped taxonomy-tidy-inventory-table">
 			<thead><tr>
 				<td class="manage-column check-column"><input type="checkbox" class="taxonomy-tidy-select-page" aria-label="<?php echo esc_attr__( 'Select all terms on this page', 'taxonomy-tidy' ); ?>"></td>
@@ -121,6 +124,7 @@ final class PlanningPanel {
 			<?php endif; ?>
 			</tbody>
 		</table>
+		<?php $render_pagination( 'bottom' ); ?>
 		<?php
 	}
 
@@ -229,7 +233,7 @@ final class PlanningPanel {
 				</section>
 
 				<div class="taxonomy-tidy-process-actions">
-					<button type="submit" class="button button-primary taxonomy-tidy-execute" name="plan_command" value="execute"><?php echo esc_html__( 'Execute', 'taxonomy-tidy' ); ?></button>
+					<button type="submit" class="button button-primary" name="plan_command" value="add"><?php echo esc_html__( '計画に追加', 'taxonomy-tidy' ); ?></button>
 				</div>
 			</div>
 		</details>
@@ -272,15 +276,7 @@ final class PlanningPanel {
 			<?php if ( Status::DRAFT->value === $operation['status'] ) : ?>
 				<p class="taxonomy-tidy-preview-action"><button type="submit" class="button button-primary button-hero" name="plan_command" value="preview"><?php echo esc_html__( 'Review changes', 'taxonomy-tidy' ); ?></button></p>
 			<?php elseif ( Status::PREVIEWED->value === $operation['status'] ) : ?>
-				<?php $this->render_preview( $operation ); ?>
-				<div class="taxonomy-tidy-preview-actions">
-					<?php if ( true === ( $operation['preview_current'] ?? true ) ) : ?>
-						<input type="hidden" name="operation_id" value="<?php echo esc_attr( (string) $operation['id'] ); ?>">
-						<button type="submit" class="button button-primary" name="plan_command" value="run"><?php echo esc_html__( 'Run approved changes', 'taxonomy-tidy' ); ?></button>
-					<?php endif; ?>
-					<button type="submit" class="button" name="plan_command" value="revise"><?php echo esc_html__( 'Revise plan', 'taxonomy-tidy' ); ?></button>
-					<button type="submit" class="button-link-delete" name="plan_command" value="discard"><?php echo esc_html__( 'Discard plan', 'taxonomy-tidy' ); ?></button>
-				</div>
+				<p class="taxonomy-tidy-preview-action"><button type="button" class="button taxonomy-tidy-reopen-preview"><?php echo esc_html__( 'Review changes', 'taxonomy-tidy' ); ?></button></p>
 			<?php endif; ?>
 		</section>
 		<?php
@@ -338,53 +334,53 @@ final class PlanningPanel {
 	 * Renders the persisted preview summary and per-operation effects.
 	 *
 	 * @param array<string, mixed> $operation Previewed operation.
+	 * @param bool                 $auto_open Whether this request just created the preview.
 	 */
-	private function render_preview( array $operation ): void {
+	private function render_preview( array $operation, bool $auto_open ): void {
 		$preview = $operation['requested_data']['preview'] ?? null;
 		if ( ! is_array( $preview ) ) {
 			return;
 		}
-		$summary = is_array( $preview['summary'] ?? null ) ? $preview['summary'] : array();
 		?>
-		<section class="taxonomy-tidy-preview" aria-labelledby="taxonomy-tidy-preview-heading">
-			<h2 id="taxonomy-tidy-preview-heading"><?php echo esc_html__( 'Change preview', 'taxonomy-tidy' ); ?></h2>
+		<div class="taxonomy-tidy-modal" data-auto-open="<?php echo $auto_open ? '1' : '0'; ?>" hidden>
+			<div class="taxonomy-tidy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="taxonomy-tidy-preview-heading" tabindex="-1">
+			<header class="taxonomy-tidy-modal__header"><h2 id="taxonomy-tidy-preview-heading"><?php echo esc_html__( 'Change preview', 'taxonomy-tidy' ); ?></h2><button type="button" class="taxonomy-tidy-modal__close" aria-label="<?php echo esc_attr__( '閉じる', 'taxonomy-tidy' ); ?>">&times;</button></header>
+			<div class="taxonomy-tidy-modal__body">
 			<?php if ( false === ( $operation['preview_current'] ?? true ) ) : ?>
 				<p class="taxonomy-tidy-message taxonomy-tidy-message--error" role="alert"><strong><?php echo esc_html__( 'Error', 'taxonomy-tidy' ); ?>:</strong> <?php echo esc_html( ErrorMessages::label( PlanErrorCode::STALE_PREVIEW ) ); ?></p>
 			<?php endif; ?>
-			<p class="notice notice-info inline"><strong><?php echo esc_html__( 'No changes have been executed yet.', 'taxonomy-tidy' ); ?></strong></p>
-			<ul class="taxonomy-tidy-preview-summary">
-				<li><?php /* translators: %d: number of operations. */ echo esc_html( sprintf( __( 'Operations: %d', 'taxonomy-tidy' ), (int) ( $summary['operation_count'] ?? 0 ) ) ); ?></li>
-				<li><?php /* translators: %d: number of affected posts. */ echo esc_html( sprintf( __( 'Published posts affected: %d', 'taxonomy-tidy' ), (int) ( $summary['target_post_count'] ?? 0 ) ) ); ?></li>
-				<li><?php /* translators: %d: number of terms. */ echo esc_html( sprintf( __( 'Terms planned for deletion: %d', 'taxonomy-tidy' ), (int) ( $summary['delete_term_count'] ?? 0 ) ) ); ?></li>
-				<li><?php /* translators: %d: number of terms. */ echo esc_html( sprintf( __( 'Terms planned for retention: %d', 'taxonomy-tidy' ), (int) ( $summary['retain_term_count'] ?? 0 ) ) ); ?></li>
-				<li><?php /* translators: %d: number of warnings. */ echo esc_html( sprintf( __( 'Warnings: %d', 'taxonomy-tidy' ), (int) ( $summary['warning_count'] ?? 0 ) ) ); ?></li>
-				<li><?php /* translators: %d: number of errors. */ echo esc_html( sprintf( __( 'Errors: %d', 'taxonomy-tidy' ), (int) ( $summary['error_count'] ?? 0 ) ) ); ?></li>
-				<li><?php /* translators: %s: UTC preview creation time. */ echo esc_html( sprintf( __( 'Preview created: %s UTC', 'taxonomy-tidy' ), (string) ( $preview['created_at'] ?? '' ) ) ); ?></li>
-			</ul>
-			<?php foreach ( (array) ( $preview['items'] ?? array() ) as $item ) : ?>
+			<?php foreach ( (array) ( $preview['items'] ?? array() ) as $index => $item ) : ?>
 				<article class="taxonomy-tidy-preview-item">
 					<h3><?php echo esc_html( $this->action_label( (string) $item['action'] ) ); ?></h3>
-					<p><strong><?php echo esc_html__( 'Planned change', 'taxonomy-tidy' ); ?>:</strong> <?php echo esc_html( $this->preview_change( $item ) ); ?></p>
-					<?php foreach ( (array) $item['sources'] as $source ) : ?>
-						<p><strong><?php echo esc_html( (string) $source['name'] ); ?></strong> — <?php /* translators: 1: published post count, 2: excluded object count. */ echo esc_html( sprintf( __( '%1$d published posts; %2$d excluded objects', 'taxonomy-tidy' ), (int) $source['published_count'], (int) $source['excluded_count'] ) ); ?></p>
-						<p><?php echo esc_html( $source['delete_source'] ? __( 'Source term is planned for deletion.', 'taxonomy-tidy' ) : __( 'Source term will be retained.', 'taxonomy-tidy' ) ); ?> <?php echo esc_html( implode( ' ', array_map( array( $this, 'reason_label' ), $source['reasons'] ) ) ); ?></p>
-					<?php endforeach; ?>
-					<?php if ( array() !== $item['warnings'] ) : ?>
-						<p class="taxonomy-tidy-message taxonomy-tidy-message--warning"><strong><?php echo esc_html__( 'Warning', 'taxonomy-tidy' ); ?>:</strong> <?php echo esc_html( implode( ' ', array_map( array( $this, 'warning_label' ), $item['warnings'] ) ) ); ?></p>
+					<p><strong><?php echo esc_html__( 'Targets', 'taxonomy-tidy' ); ?>:</strong> <?php echo esc_html( implode( '、', array_column( $item['sources'], 'name' ) ) ); ?></p>
+					<?php if ( Action::DELETE->value !== $item['action'] ) : ?>
+						<p><strong><?php echo esc_html__( '変更後', 'taxonomy-tidy' ); ?>:</strong> <?php echo esc_html( Action::MERGE->value === $item['action'] ? (string) ( $item['destination']['name'] ?? '' ) : (string) $item['new_name'] ); ?></p>
+					<?php endif; ?>
+					<?php if ( Action::RENAME->value === $item['action'] && null !== $item['new_slug'] && (string) ( $item['sources'][0]['slug'] ?? '' ) !== (string) $item['new_slug'] ) : ?>
+						<p><strong><?php echo esc_html__( '変更後のslug', 'taxonomy-tidy' ); ?>:</strong> <?php echo esc_html( (string) $item['new_slug'] ); ?></p>
+					<?php endif; ?>
+					<p><?php /* translators: %d: number of affected published posts. */ echo esc_html( sprintf( __( '影響を受ける公開済み投稿：%d件', 'taxonomy-tidy' ), count( $item['affected_posts'] ) ) ); ?></p>
+					<?php if ( Action::MERGE->value === $item['action'] ) : ?>
+						<?php foreach ( $item['sources'] as $source ) : ?>
+							<p><?php echo esc_html( (string) $source['name'] ); ?>：<?php echo esc_html( $source['delete_source'] ? __( '処理後に削除', 'taxonomy-tidy' ) : __( '削除せず保持', 'taxonomy-tidy' ) ); ?></p>
+							<?php if ( ! $source['delete_source'] ) : ?>
+								<p><?php echo esc_html__( '理由', 'taxonomy-tidy' ); ?>：<?php echo esc_html( implode( ' ', array_map( array( $this, 'reason_label' ), $source['reasons'] ) ) ); ?></p>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					<?php endif; ?>
+					<?php $blocking_warnings = array_diff( $item['warnings'], array( 'has_child_categories', 'used_by_excluded_objects' ) ); ?>
+					<?php if ( array() !== $blocking_warnings ) : ?>
+						<p class="taxonomy-tidy-message taxonomy-tidy-message--warning"><strong><?php echo esc_html__( 'Warning', 'taxonomy-tidy' ); ?>:</strong> <?php echo esc_html( implode( ' ', array_map( array( $this, 'warning_label' ), $blocking_warnings ) ) ); ?></p>
 					<?php endif; ?>
 					<?php if ( array() !== $item['affected_posts'] ) : ?>
-						<details>
-							<summary><?php echo esc_html__( 'Affected published posts', 'taxonomy-tidy' ); ?></summary>
-							<ul>
-							<?php foreach ( $item['affected_posts'] as $post ) : ?>
-								<li>#<?php echo esc_html( (string) $post['id'] ); ?> — <?php echo esc_html( (string) $post['title'] ); ?></li>
-							<?php endforeach; ?>
-							</ul>
-						</details>
+						<details class="taxonomy-tidy-preview-posts" data-item="<?php echo esc_attr( (string) $index ); ?>" data-operation="<?php echo esc_attr( (string) $operation['id'] ); ?>" data-taxonomy="<?php echo esc_attr( (string) $operation['taxonomy'] ); ?>" data-error="<?php echo esc_attr__( '対象投稿を取得できませんでした。', 'taxonomy-tidy' ); ?>"><summary><?php /* translators: %d: number of affected published posts. */ echo esc_html( sprintf( __( '対象投稿を確認（%d件）', 'taxonomy-tidy' ), count( $item['affected_posts'] ) ) ); ?></summary><ul></ul></details>
 					<?php endif; ?>
 				</article>
 			<?php endforeach; ?>
-		</section>
+			</div>
+			<footer class="taxonomy-tidy-modal__footer"><button type="button" class="button taxonomy-tidy-modal__cancel"><?php echo esc_html__( 'キャンセル', 'taxonomy-tidy' ); ?></button><button type="submit" form="taxonomy-tidy-planning-form" class="button button-primary taxonomy-tidy-modal__run" name="plan_command" value="run" <?php disabled( false === ( $operation['preview_current'] ?? true ) ); ?>><?php echo esc_html__( 'Execute', 'taxonomy-tidy' ); ?></button><input type="hidden" name="operation_id" form="taxonomy-tidy-planning-form" value="<?php echo esc_attr( (string) $operation['id'] ); ?>"></footer>
+			</div>
+		</div>
 		<?php
 	}
 
@@ -754,23 +750,6 @@ final class PlanningPanel {
 	}
 
 	/**
-	 * Returns the preview destination or new value.
-	 *
-	 * @param array<string, mixed> $item Preview item.
-	 * @return string
-	 */
-	private function preview_change( array $item ): string {
-		if ( Action::RENAME->value === $item['action'] ) {
-			$value = (string) $item['new_name'];
-			return null === $item['new_slug'] ? $value : $value . ' / ' . (string) $item['new_slug'];
-		}
-		if ( Action::MERGE->value === $item['action'] && is_array( $item['destination'] ) ) {
-			return (string) $item['destination']['name'] . ' / ' . (string) $item['destination']['slug'];
-		}
-		return __( 'Delete the confirmed globally unused term', 'taxonomy-tidy' );
-	}
-
-	/**
 	 * Returns a translated action label.
 	 *
 	 * @param string $action Internal action value.
@@ -795,7 +774,7 @@ final class PlanningPanel {
 			?>
 			<div class="notice notice-error inline taxonomy-tidy-error-summary" role="alert"><p><strong><?php echo esc_html__( 'The request could not be completed.', 'taxonomy-tidy' ); ?></strong></p></div>
 			<?php
-		} elseif ( is_string( $notice ) && '' !== $notice ) {
+		} elseif ( is_string( $notice ) && '' !== $notice && 'preview_created' !== $notice ) {
 			?>
 			<div class="notice notice-success inline" role="status"><p><?php echo esc_html( $this->notice_label( $notice ) ); ?></p></div>
 			<?php
@@ -811,7 +790,7 @@ final class PlanningPanel {
 	private function notice_label( string $notice ): string {
 		return match ( $notice ) {
 			'execution_updated' => __( 'Execution progress was updated.', 'taxonomy-tidy' ),
-			'plan_item_added'   => __( 'The process was added to the plan.', 'taxonomy-tidy' ),
+			'plan_item_added'   => __( '操作計画に追加しました。', 'taxonomy-tidy' ),
 			'plan_item_removed' => __( 'The process was removed from the plan.', 'taxonomy-tidy' ),
 			'preview_created'   => __( 'The preview was created without changing WordPress data.', 'taxonomy-tidy' ),
 			'preview_invalidated' => __( 'The previous preview was invalidated. You can now revise the plan.', 'taxonomy-tidy' ),

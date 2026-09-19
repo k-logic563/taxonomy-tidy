@@ -55,14 +55,13 @@ final class TermInventoryQuery {
 		Taxonomy $taxonomy,
 		string $search = '',
 		int $page = 1,
-		int $per_page = 50,
+		int $per_page = 20,
 		string $orderby = 'name',
 		string $order = 'asc',
 		bool $globally_unused = false
 	): array {
 		$page       = max( 1, $page );
 		$per_page   = min( self::MAX_PER_PAGE, max( 1, $per_page ) );
-		$offset     = ( $page - 1 ) * $per_page;
 		$search     = trim( $search );
 		$order_sql  = 'desc' === strtolower( $order ) ? 'DESC' : 'ASC';
 		$sort_sql   = 'published_count' === $orderby
@@ -80,7 +79,7 @@ final class TermInventoryQuery {
 			$filter_values[] = $like;
 		}
 
-		$list_sql    = "SELECT
+		$list_sql     = "SELECT
 				t.term_id,
 				t.name,
 				t.slug,
@@ -103,20 +102,6 @@ final class TermInventoryQuery {
 			{$having_sql}
 			ORDER BY {$sort_sql}
 			LIMIT %d OFFSET %d";
-		$list_values = array_merge(
-			array(
-				$this->database->terms,
-				$this->database->term_taxonomy,
-				$this->database->term_relationships,
-				$this->database->posts,
-				'post',
-				'publish',
-				$this->database->terms,
-			),
-			$filter_values,
-			array( $per_page, $offset )
-		);
-
 		$count_sql    = "SELECT COUNT(*) FROM (
 			SELECT tt.term_taxonomy_id
 			FROM %i AS t
@@ -135,15 +120,30 @@ final class TermInventoryQuery {
 			$filter_values
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- SQL placeholders are prepared below; dynamic clauses are selected from fixed local values.
-		$prepared_list = $this->database->prepare( $list_sql, $list_values );
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- SQL placeholders are prepared below; the optional HAVING clause is fixed.
 		$prepared_count = $this->database->prepare( $count_sql, $count_values );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Read-only reporting query requires counts outside the core term API.
-		$rows = $this->database->get_results( $prepared_list, ARRAY_A );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Read-only reporting query requires an independently filtered total.
-		$total = (int) $this->database->get_var( $prepared_count );
+		$total       = (int) $this->database->get_var( $prepared_count );
+		$pages       = (int) ceil( $total / $per_page );
+		$page        = min( $page, max( 1, $pages ) );
+		$offset      = ( $page - 1 ) * $per_page;
+		$list_values = array_merge(
+			array(
+				$this->database->terms,
+				$this->database->term_taxonomy,
+				$this->database->term_relationships,
+				$this->database->posts,
+				'post',
+				'publish',
+				$this->database->terms,
+			),
+			$filter_values,
+			array( $per_page, $offset )
+		);
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- SQL placeholders are prepared below; dynamic clauses are selected from fixed local values.
+		$prepared_list = $this->database->prepare( $list_sql, $list_values );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Read-only reporting query requires counts outside the core term API.
+		$rows  = $this->database->get_results( $prepared_list, ARRAY_A );
 		$items = array_map( array( $this, 'normalize_row' ), is_array( $rows ) ? $rows : array() );
 
 		return array(
@@ -151,7 +151,7 @@ final class TermInventoryQuery {
 			'total'       => $total,
 			'page'        => $page,
 			'per_page'    => $per_page,
-			'total_pages' => (int) ceil( $total / $per_page ),
+			'total_pages' => $pages,
 		);
 	}
 
