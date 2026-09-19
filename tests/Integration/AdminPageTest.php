@@ -99,7 +99,9 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'nav-tab-wrapper', $output );
 		$this->assertStringContainsString( '<details class="taxonomy-tidy-panel taxonomy-tidy-filter-panel">', $output );
 		$this->assertStringContainsString( '<details class="taxonomy-tidy-panel taxonomy-tidy-process-panel" >', $output );
-		$this->assertStringContainsString( '<summary class="taxonomy-tidy-panel__summary">', $output );
+		$this->assertSame( 2, substr_count( $output, 'class="taxonomy-tidy-panel__summary" aria-expanded="false"' ) );
+		$this->assertStringContainsString( 'class="taxonomy-tidy-table-scroll" tabindex="0" role="region"', $output );
+		$this->assertStringContainsString( 'class="taxonomy-tidy-number"', $output );
 		$this->assertStringContainsString( 'Search panel', $output );
 		$this->assertStringContainsString( 'Action panel', $output );
 		$this->assertStringContainsString( 'No active conditions', $output );
@@ -230,6 +232,29 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'Tab category renamed', $history );
 	}
 
+	/** Parent cells use words instead of ambiguous empty values or punctuation. */
+	public function test_parent_column_has_meaningful_values_for_both_taxonomies(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Parent label tag',
+			)
+		);
+
+		$_GET = array( 'taxonomy' => 'category' );
+		ob_start();
+		$this->page->render();
+		$categories = (string) ob_get_clean();
+		$this->assertStringContainsString( 'data-label="Parent category">なし</td>', $categories );
+
+		$_GET = array( 'taxonomy' => 'post_tag' );
+		ob_start();
+		$this->page->render();
+		$tags = (string) ob_get_clean();
+		$this->assertStringContainsString( 'data-label="Parent category">対象外</td>', $tags );
+	}
+
 	/**
 	 * A validation error opens the process panel and preserves submitted input.
 	 */
@@ -261,6 +286,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->page->render();
 		$output = (string) ob_get_clean();
 		$this->assertStringContainsString( '<details class="taxonomy-tidy-panel taxonomy-tidy-process-panel" open>', $output );
+		$this->assertStringContainsString( 'class="taxonomy-tidy-panel__summary" aria-expanded="true"', $output );
 		$this->assertStringContainsString( 'id="taxonomy-tidy-new-name-error-0"', $output );
 		$this->assertStringContainsString( 'aria-invalid="true" aria-describedby="taxonomy-tidy-new-name-error-0"', $output );
 		$this->assertStringContainsString( 'Enter a new name.', $output );
@@ -391,6 +417,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->page->render();
 		$output = (string) ob_get_clean();
 		$this->assertStringContainsString( '<details class="taxonomy-tidy-panel taxonomy-tidy-process-panel" open>', $output );
+		$this->assertStringContainsString( 'class="taxonomy-tidy-panel__summary" aria-expanded="true"', $output );
 		$this->assertStringContainsString( 'id="taxonomy-tidy-selection-error-0"', $output );
 		$this->assertStringContainsString( 'id="taxonomy-tidy-operation-error-0"', $output );
 		$this->assertSame( 1, substr_count( $output, 'Select a category or tag to process.</p>' ) );

@@ -132,7 +132,10 @@ final class ExecutionWorkflowTest extends WP_UnitTestCase {
 		$result  = $this->execution()->run_batch( (int) $preview['id'], $user_id, Taxonomy::POST_TAG );
 		$this->assertSame( Status::COMPLETED->value, $result['status'] );
 		$this->assertNull( get_term( $deleted, 'post_tag' ) );
-		$this->assertSame( 'term_deleted', $this->journal()->find_for_operation( (int) $preview['id'] )[0]['change_type'] );
+		$delete_change = $this->journal()->find_for_operation( (int) $preview['id'] )[0];
+		$this->assertSame( 'term_deleted', $delete_change['change_type'] );
+		$this->assertSame( 0, $delete_change['before_data']['relationship_count'] );
+		$this->assertSame( 'deleted', $delete_change['after_data']['result'] );
 
 		$stale   = $this->term( 'post_tag', 'Stale source', 'stale-source' );
 		$preview = $this->preview( $user_id, Taxonomy::POST_TAG, array( $this->item( 'rename', array( $stale ), array( 'new_name' => 'Never applied' ) ) ) );
@@ -145,6 +148,55 @@ final class ExecutionWorkflowTest extends WP_UnitTestCase {
 		}
 		$this->assertSame( Status::PREVIEWED->value, ( new OperationRepository( $GLOBALS['wpdb'] ) )->find( (int) $preview['id'] )['status'] );
 		$this->assertSame( array(), ( new OperationItemRepository( $GLOBALS['wpdb'] ) )->find_for_operation( (int) $preview['id'] ) );
+	}
+
+	/** All delete targets are preflighted before the first term is removed. */
+	public function test_delete_preflight_rejects_all_targets_without_deleting_any(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$first   = $this->term( 'post_tag', 'Preflight first', 'preflight-first' );
+		$second  = $this->term( 'post_tag', 'Preflight second', 'preflight-second' );
+		$preview = $this->preview( $user_id, Taxonomy::POST_TAG, array( $this->item( 'delete', array( $first, $second ) ) ) );
+		$draft   = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		wp_set_object_terms( $draft, array( $second ), 'post_tag' );
+
+		try {
+			$this->execution()->run_batch( (int) $preview['id'], $user_id, Taxonomy::POST_TAG );
+			$this->fail( 'A changed delete target must reject the complete start.' );
+		} catch ( ExecutionException $exception ) {
+			$this->assertSame( ExecutionErrorCode::STALE_PREVIEW, $exception->error_code() );
+			$this->assertSame( 'Preflight second', $exception->target_name() );
+			$this->assertSame( 'relationships_added', $exception->reason() );
+		}
+
+		$this->assertInstanceOf( WP_Term::class, get_term( $first, 'post_tag' ) );
+		$this->assertInstanceOf( WP_Term::class, get_term( $second, 'post_tag' ) );
+		$this->assertSame( array(), ( new OperationItemRepository( $GLOBALS['wpdb'] ) )->find_for_operation( (int) $preview['id'] ) );
+	}
+
+	/** Multiple delete items stay bounded, resume pending work, and report a late conflict. */
+	public function test_multiple_deletes_are_batched_and_late_use_is_partial_failure(): void {
+		$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$term_ids = array();
+		foreach ( range( 1, 11 ) as $index ) {
+			$term_ids[] = $this->term( 'post_tag', sprintf( 'Batch delete %02d', $index ), sprintf( 'batch-delete-%02d', $index ) );
+		}
+		$preview = $this->preview( $user_id, Taxonomy::POST_TAG, array( $this->item( 'delete', $term_ids ) ) );
+		$first   = $this->execution()->run_batch( (int) $preview['id'], $user_id, Taxonomy::POST_TAG );
+
+		$this->assertSame( Status::RUNNING->value, $first['status'] );
+		$this->assertSame( 10, $first['progress']['completed'] );
+		$this->assertSame( 1, $first['progress']['pending'] );
+		$draft = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		wp_set_object_terms( $draft, array( $term_ids[10] ), 'post_tag' );
+		$final = $this->execution()->run_batch( (int) $preview['id'], $user_id, Taxonomy::POST_TAG );
+
+		$this->assertSame( Status::PARTIAL_FAILED->value, $final['status'] );
+		$this->assertSame( 10, $final['progress']['completed'] );
+		$this->assertSame( 1, $final['progress']['failed'] );
+		$this->assertInstanceOf( WP_Term::class, get_term( $term_ids[10], 'post_tag' ) );
+		$changes = $this->journal()->find_for_operation( (int) $preview['id'] );
+		$this->assertCount( 10, array_filter( $changes, static fn( array $change ): bool => 'term_deleted' === $change['change_type'] ) );
+		$this->assertCount( 1, array_filter( $changes, static fn( array $change ): bool => 'item_failed' === $change['change_type'] ) );
 	}
 
 	/** A conflict after one batch produces a truthful partial-failure state. */

@@ -145,8 +145,9 @@ final class HistoryPage {
 			return;
 		}
 		?>
+		<div class="taxonomy-tidy-table-scroll" tabindex="0" role="region" aria-label="<?php echo esc_attr__( '操作履歴一覧', 'taxonomy-tidy' ); ?>">
 		<table class="wp-list-table widefat fixed striped taxonomy-tidy-history-table">
-			<thead><tr><th><?php echo esc_html__( '実行日時', 'taxonomy-tidy' ); ?></th><th><?php echo esc_html__( '種別', 'taxonomy-tidy' ); ?></th><th><?php echo esc_html__( '処理内容', 'taxonomy-tidy' ); ?></th><th><?php echo esc_html__( '対象件数', 'taxonomy-tidy' ); ?></th><th><?php echo esc_html__( '変更件数', 'taxonomy-tidy' ); ?></th><th><?php echo esc_html__( '結果', 'taxonomy-tidy' ); ?></th><th><?php echo esc_html__( '取り消し', 'taxonomy-tidy' ); ?></th><th><span class="screen-reader-text"><?php echo esc_html__( '詳細', 'taxonomy-tidy' ); ?></span></th></tr></thead>
+			<thead><tr><th scope="col"><?php echo esc_html__( '実行日時', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '種別', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '処理内容', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '対象件数', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '変更件数', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '結果', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '取り消し', 'taxonomy-tidy' ); ?></th><th scope="col"><span class="screen-reader-text"><?php echo esc_html__( '詳細', 'taxonomy-tidy' ); ?></span></th></tr></thead>
 			<tbody>
 			<?php foreach ( $history['items'] as $operation ) : ?>
 				<?php $assessment = null === $operation['parent_operation_id'] ? $this->planner->assess( (int) $operation['id'], $user_id ) : null; ?>
@@ -154,6 +155,7 @@ final class HistoryPage {
 			<?php endforeach; ?>
 			</tbody>
 		</table>
+		</div>
 		<?php $this->render_pagination( $history ); ?>
 		<?php
 	}

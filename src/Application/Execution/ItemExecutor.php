@@ -175,7 +175,18 @@ final class ItemExecutor {
 		if ( $result instanceof WP_Error || false === $result ) {
 			$this->failure( ExecutionErrorCode::UPDATE_FAILED );
 		}
-		$this->record( $item, 'term:delete', $merge ? 'source_deleted' : 'term_deleted', $snapshot, array( 'deleted_at' => current_time( 'mysql', true ) ), $term->term_id );
+		$snapshot['relationship_count'] = count( $relationships );
+		$this->record(
+			$item,
+			'term:delete',
+			$merge ? 'source_deleted' : 'term_deleted',
+			$snapshot,
+			array(
+				'deleted_at' => current_time( 'mysql', true ),
+				'result'     => 'deleted',
+			),
+			$term->term_id
+		);
 		return 'completed';
 	}
 

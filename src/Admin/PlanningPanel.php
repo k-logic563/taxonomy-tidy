@@ -27,8 +27,9 @@ final class PlanningPanel {
 	 * @param array<string, mixed> $inventory Current inventory page.
 	 * @param array<string, mixed> $state     Request state.
 	 * @param callable             $render_pagination Renders controls around the inventory table.
+	 * @param callable             $render_sort_header Renders one sortable column heading.
 	 */
-	public function render( Taxonomy $taxonomy, string $type_label, array $inventory, array $state, callable $render_pagination ): void {
+	public function render( Taxonomy $taxonomy, string $type_label, array $inventory, array $state, callable $render_pagination, callable $render_sort_header ): void {
 		$operation    = is_array( $state['operation'] ) ? $state['operation'] : null;
 		$plan         = is_array( $operation['requested_data']['plan'] ?? null ) ? $operation['requested_data']['plan'] : array();
 		$errors       = is_array( $state['errors'] ) ? $state['errors'] : array();
@@ -44,7 +45,7 @@ final class PlanningPanel {
 			<?php if ( null === $operation || in_array( $operation['status'], array( Status::DRAFT->value, Status::PREVIEWED->value ), true ) ) : ?>
 				<?php $this->render_process_panel( $taxonomy, $inventory, $selected, $plan, $input, $errors, $field_errors ); ?>
 			<?php endif; ?>
-			<?php $this->render_table( $taxonomy, $type_label, $inventory, $selected, $render_pagination ); ?>
+			<?php $this->render_table( $taxonomy, $type_label, $inventory, $selected, $render_pagination, $render_sort_header ); ?>
 			<?php // The shared operation-plan tab owns saved-plan review and preview. ?>
 			<?php if ( null !== $operation && in_array( $operation['status'], array( Status::RUNNING->value, Status::COMPLETED->value, Status::PARTIAL_FAILED->value, Status::FAILED->value ), true ) ) : ?>
 				<?php $this->render_execution( $operation ); ?>
@@ -61,8 +62,9 @@ final class PlanningPanel {
 	 * @param array<string, mixed> $inventory Current inventory page.
 	 * @param array                $selected Selected term IDs after an error.
 	 * @param callable             $render_pagination Renders table navigation.
+	 * @param callable             $render_sort_header Renders one sortable column heading.
 	 */
-	private function render_table( Taxonomy $taxonomy, string $type_label, array $inventory, array $selected, callable $render_pagination ): void {
+	private function render_table( Taxonomy $taxonomy, string $type_label, array $inventory, array $selected, callable $render_pagination, callable $render_sort_header ): void {
 		$default_category = (int) get_option( 'default_category' );
 		$parent_ids       = array();
 		if ( Taxonomy::CATEGORY === $taxonomy ) {
@@ -79,14 +81,15 @@ final class PlanningPanel {
 		}
 		?>
 		<?php $render_pagination( 'top' ); ?>
+		<div class="taxonomy-tidy-table-scroll" tabindex="0" role="region" aria-label="<?php echo esc_attr__( 'カテゴリー・タグ一覧', 'taxonomy-tidy' ); ?>">
 		<table class="wp-list-table widefat fixed striped taxonomy-tidy-inventory-table">
 			<thead><tr>
 				<td class="manage-column check-column"><input type="checkbox" class="taxonomy-tidy-select-page" aria-label="<?php echo esc_attr__( 'Select all terms on this page', 'taxonomy-tidy' ); ?>"></td>
-				<th scope="col"><?php echo esc_html__( 'Name', 'taxonomy-tidy' ); ?></th>
+				<?php $render_sort_header( 'name', __( 'Name', 'taxonomy-tidy' ) ); ?>
 				<th scope="col"><?php echo esc_html__( 'Slug', 'taxonomy-tidy' ); ?></th>
 				<th scope="col"><?php echo esc_html__( 'Type', 'taxonomy-tidy' ); ?></th>
 				<th scope="col"><?php echo esc_html__( 'Parent category', 'taxonomy-tidy' ); ?></th>
-				<th scope="col"><?php echo esc_html__( 'Published posts', 'taxonomy-tidy' ); ?></th>
+				<?php $render_sort_header( 'published_count', __( 'Published posts', 'taxonomy-tidy' ) ); ?>
 				<th scope="col"><?php echo esc_html__( 'Total relationships', 'taxonomy-tidy' ); ?></th>
 				<th scope="col"><?php echo esc_html__( 'Usage', 'taxonomy-tidy' ); ?></th>
 			</tr></thead>
@@ -115,15 +118,16 @@ final class PlanningPanel {
 						<td data-label="<?php echo esc_attr__( 'Name', 'taxonomy-tidy' ); ?>"><strong><?php echo esc_html( (string) $term['name'] ); ?></strong></td>
 						<td data-label="<?php echo esc_attr__( 'Slug', 'taxonomy-tidy' ); ?>"><code><?php echo esc_html( (string) $term['slug'] ); ?></code></td>
 						<td data-label="<?php echo esc_attr__( 'Type', 'taxonomy-tidy' ); ?>"><?php echo esc_html( $type_label ); ?></td>
-						<td data-label="<?php echo esc_attr__( 'Parent category', 'taxonomy-tidy' ); ?>"><?php echo esc_html( is_string( $term['parent_name'] ) ? $term['parent_name'] : '—' ); ?></td>
-						<td data-label="<?php echo esc_attr__( 'Published posts', 'taxonomy-tidy' ); ?>"><?php echo esc_html( number_format_i18n( (int) $term['published_post_count'] ) ); ?></td>
-						<td data-label="<?php echo esc_attr__( 'Total relationships', 'taxonomy-tidy' ); ?>"><?php echo esc_html( number_format_i18n( (int) $term['total_relationship_count'] ) ); ?></td>
+						<td data-label="<?php echo esc_attr__( 'Parent category', 'taxonomy-tidy' ); ?>"><?php echo esc_html( $this->parent_label( $taxonomy, $term['parent_name'] ) ); ?></td>
+						<td class="taxonomy-tidy-number" data-label="<?php echo esc_attr__( 'Published posts', 'taxonomy-tidy' ); ?>"><?php echo esc_html( number_format_i18n( (int) $term['published_post_count'] ) ); ?></td>
+						<td class="taxonomy-tidy-number" data-label="<?php echo esc_attr__( 'Total relationships', 'taxonomy-tidy' ); ?>"><?php echo esc_html( number_format_i18n( (int) $term['total_relationship_count'] ) ); ?></td>
 						<td data-label="<?php echo esc_attr__( 'Usage', 'taxonomy-tidy' ); ?>"><?php echo esc_html( $this->usage_label( (string) $term['usage'] ) ); ?></td>
 					</tr>
 				<?php endforeach; ?>
 			<?php endif; ?>
 			</tbody>
 		</table>
+		</div>
 		<?php $render_pagination( 'bottom' ); ?>
 		<?php
 	}
@@ -151,7 +155,7 @@ final class PlanningPanel {
 		$selected_format = __( '%d terms selected', 'taxonomy-tidy' );
 		?>
 		<details class="taxonomy-tidy-panel taxonomy-tidy-process-panel" <?php echo array() !== $errors ? 'open' : ''; ?>>
-			<summary class="taxonomy-tidy-panel__summary">
+			<summary class="taxonomy-tidy-panel__summary" aria-expanded="<?php echo array() !== $errors ? 'true' : 'false'; ?>">
 				<span class="taxonomy-tidy-panel__heading"><span class="taxonomy-tidy-panel__icon" aria-hidden="true"></span><span><?php echo esc_html__( 'Action panel', 'taxonomy-tidy' ); ?></span></span>
 				<span class="taxonomy-tidy-filter-summary" aria-live="polite">
 					<span class="taxonomy-tidy-selection-summary" data-none="<?php echo esc_attr__( 'No terms selected', 'taxonomy-tidy' ); ?>" data-selected="<?php echo esc_attr( $selected_format ); ?>">
@@ -778,6 +782,22 @@ final class PlanningPanel {
 			'merge'  => __( 'Merge', 'taxonomy-tidy' ),
 			default  => __( 'Delete', 'taxonomy-tidy' ),
 		};
+	}
+
+	/**
+	 * Returns a meaningful parent value for categories and tags.
+	 *
+	 * @param Taxonomy $taxonomy    Current taxonomy.
+	 * @param mixed    $parent_name Parent term name from the inventory query.
+	 */
+	private function parent_label( Taxonomy $taxonomy, mixed $parent_name ): string {
+		if ( Taxonomy::POST_TAG === $taxonomy ) {
+			return __( '対象外', 'taxonomy-tidy' );
+		}
+
+		return is_string( $parent_name ) && '' !== $parent_name
+			? $parent_name
+			: __( 'なし', 'taxonomy-tidy' );
 	}
 
 	/**

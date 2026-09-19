@@ -70,12 +70,13 @@ final class PlanBoard {
 	public function handle(): array {
 		$user_id = get_current_user_id();
 		$state   = array(
-			'operations'  => $this->load_operations( $user_id ),
-			'errors'      => array(),
-			'notice'      => null,
-			'notice_type' => 'success',
-			'modal'       => false,
-			'results'     => array(),
+			'operations'     => $this->load_operations( $user_id ),
+			'errors'         => array(),
+			'error_messages' => array(),
+			'notice'         => null,
+			'notice_type'    => 'success',
+			'modal'          => false,
+			'results'        => array(),
 		);
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- Request method is used only for a fixed HTTP verb comparison.
 		if ( 'POST' !== strtoupper( (string) ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) ) {
@@ -132,6 +133,9 @@ final class PlanBoard {
 			$state['errors'] = $exception->codes();
 		} catch ( ExecutionException $exception ) {
 			$state['errors'] = array( $exception->error_code() );
+			if ( null !== $exception->target_name() ) {
+				$state['error_messages'][] = $this->delete_start_error( $exception );
+			}
 		} catch ( \Throwable $exception ) {
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 				error_log( $exception->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Internal diagnostic only.
@@ -423,7 +427,7 @@ final class PlanBoard {
 		<div id="taxonomy-tidy-board-content">
 		<h2><?php echo esc_html__( '操作計画', 'taxonomy-tidy' ); ?></h2>
 		<?php if ( array() !== $state['errors'] ) : ?>
-			<div class="notice notice-error inline" role="alert"><p><?php echo esc_html( implode( ' ', array_map( array( $this, 'error_label' ), $state['errors'] ) ) ); ?></p></div>
+			<div class="notice notice-error inline" role="alert"><p><?php echo esc_html( array() !== (array) ( $state['error_messages'] ?? array() ) ? implode( ' ', $state['error_messages'] ) : implode( ' ', array_map( array( $this, 'error_label' ), $state['errors'] ) ) ); ?></p></div>
 		<?php elseif ( is_string( $state['notice'] ) ) : ?>
 			<div class="notice notice-<?php echo esc_attr( 'warning' === ( $state['notice_type'] ?? 'success' ) ? 'warning' : 'success' ); ?> inline" role="status"><p><?php echo esc_html( $state['notice'] ); ?></p></div>
 		<?php endif; ?>
@@ -454,6 +458,7 @@ final class PlanBoard {
 				}
 				?>
 				<h3><?php echo esc_html( $this->taxonomy_label( $taxonomy ) ); ?></h3>
+			<div class="taxonomy-tidy-table-scroll" tabindex="0" role="region" aria-label="<?php /* translators: %s: taxonomy label. */ echo esc_attr( sprintf( __( '%sの操作計画', 'taxonomy-tidy' ), $this->taxonomy_label( $taxonomy ) ) ); ?>">
 			<table class="wp-list-table widefat fixed striped taxonomy-tidy-plan-table"><thead><tr><th scope="col"><?php echo esc_html__( '処理方法', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '種別', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '対象', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '変更内容', 'taxonomy-tidy' ); ?></th><th scope="col"><?php echo esc_html__( '状態', 'taxonomy-tidy' ); ?></th><th scope="col" class="taxonomy-tidy-plan-table__delete"><span class="screen-reader-text"><?php echo esc_html__( '削除', 'taxonomy-tidy' ); ?></span></th></tr></thead><tbody>
 				<?php foreach ( (array) $operation['requested_data']['plan'] as $index => $item ) : ?>
 					<?php
@@ -471,6 +476,7 @@ final class PlanBoard {
 				</td></tr>
 				<?php endforeach; ?>
 				</tbody></table>
+			</div>
 			<?php endforeach; ?>
 			<form id="taxonomy-tidy-board-form" method="post">
 				<input type="hidden" name="<?php echo esc_attr( PlanController::NONCE_FIELD ); ?>" value="<?php echo esc_attr( wp_create_nonce( PlanController::NONCE_ACTION ) ); ?>">
@@ -537,7 +543,9 @@ final class PlanBoard {
 		$count = 0;
 		foreach ( $operations as $operation ) {
 			if ( Status::PREVIEWED->value === $operation['status'] ) {
-				$count += count( (array) ( $operation['requested_data']['preview']['items'] ?? array() ) );
+				foreach ( (array) ( $operation['requested_data']['preview']['items'] ?? array() ) as $item ) {
+					$count += Action::DELETE->value === ( $item['action'] ?? '' ) ? count( (array) ( $item['sources'] ?? array() ) ) : 1;
+				}
 			}
 		}
 		?>
@@ -552,9 +560,25 @@ final class PlanBoard {
 			if ( ! is_array( $preview ) ) {
 				continue;
 			}
+			$delete_sources = array();
+			foreach ( (array) ( $preview['items'] ?? array() ) as $item ) {
+				if ( Action::DELETE->value === ( $item['action'] ?? '' ) ) {
+					$delete_sources = array_merge( $delete_sources, (array) ( $item['sources'] ?? array() ) );
+				}
+			}
 			?>
 			<h3><?php echo esc_html( $this->taxonomy_label( $taxonomy ) ); ?></h3>
+			<?php if ( array() !== $delete_sources ) : ?>
+				<article class="taxonomy-tidy-preview-item taxonomy-tidy-preview-delete"><h4><?php /* translators: %s: taxonomy label. */ echo esc_html( sprintf( __( '%sを削除', 'taxonomy-tidy' ), $this->taxonomy_label( $taxonomy ) ) ); ?></h4><p><?php /* translators: %d: number of terms to delete. */ echo esc_html( sprintf( __( '削除対象：%d件', 'taxonomy-tidy' ), count( $delete_sources ) ) ); ?></p><ul class="taxonomy-tidy-preview-delete__targets">
+				<?php foreach ( $delete_sources as $source ) : ?>
+					<li><?php echo esc_html( (string) ( $source['name'] ?? '' ) ); ?></li>
+				<?php endforeach; ?>
+				</ul></article>
+			<?php endif; ?>
 			<?php foreach ( (array) ( $preview['items'] ?? array() ) as $index => $item ) : ?>
+				<?php if ( Action::DELETE->value === ( $item['action'] ?? '' ) ) : ?>
+					<?php continue; ?>
+				<?php endif; ?>
 				<article class="taxonomy-tidy-preview-item"><h4><?php echo esc_html( $this->action_label( (string) $item['action'] ) ); ?></h4><p><?php echo esc_html( implode( '、', array_column( (array) $item['sources'], 'name' ) ) ); ?> → <?php echo esc_html( $this->change_label( $item ) ); ?></p><p><?php /* translators: %d: affected published post count. */ echo esc_html( sprintf( __( '影響を受ける公開済み投稿：%d件', 'taxonomy-tidy' ), count( (array) $item['affected_posts'] ) ) ); ?></p>
 				<?php
 				foreach ( (array) $item['sources'] as $source ) :
@@ -749,5 +773,23 @@ final class PlanBoard {
 			PlanErrorCode::UNKNOWN_ERROR => __( '操作計画を処理できませんでした。もう一度お試しください。', 'taxonomy-tidy' ),
 			default => ErrorMessages::label( $code ),
 		};
+	}
+
+	/**
+	 * Returns a target-specific delete preflight error without technical details.
+	 *
+	 * @param ExecutionException $exception Coded failure with safe target context.
+	 */
+	private function delete_start_error( ExecutionException $exception ): string {
+		$target = '' !== (string) $exception->target_name() ? (string) $exception->target_name() : __( '対象の分類', 'taxonomy-tidy' );
+		$reason = match ( $exception->reason() ) {
+			'relationships_added' => __( '現在、別のオブジェクトで使用されています。', 'taxonomy-tidy' ),
+			'term_missing' => __( 'すでに削除されているか、見つかりません。', 'taxonomy-tidy' ),
+			'taxonomy_changed' => __( '種別が操作計画と一致しません。', 'taxonomy-tidy' ),
+			'duplicate_target' => __( '操作計画へ重複して追加されています。', 'taxonomy-tidy' ),
+			default => __( '現在の使用状況を確認できません。', 'taxonomy-tidy' ),
+		};
+		/* translators: 1: deletion target name, 2: reason deletion cannot start. */
+		return sprintf( __( '削除を開始できませんでした。「%1$s」は%2$s', 'taxonomy-tidy' ), $target, $reason );
 	}
 }

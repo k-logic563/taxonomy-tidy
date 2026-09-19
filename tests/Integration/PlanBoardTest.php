@@ -200,6 +200,43 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->assertSame( 'Only tag changed', get_term( $tag )->name );
 	}
 
+	/** Multiple tag deletions are listed together and start from one modal action. */
+	public function test_multiple_tag_deletions_use_one_preview_action_and_one_operation(): void {
+		global $wpdb;
+		$user_id   = $this->login_admin();
+		$first     = $this->term( 'post_tag', 'Unused tag A' );
+		$second    = $this->term( 'post_tag', 'Unused tag B' );
+		$third     = $this->term( 'post_tag', 'Unused tag C' );
+		$operation = $this->workflow->add( $user_id, Taxonomy::POST_TAG, $this->delete_item( array( $first, $second ) ) );
+		$updated   = $this->workflow->add( $user_id, Taxonomy::POST_TAG, $this->delete_item( array( $third ) ) );
+
+		$this->assertSame( $operation['id'], $updated['id'] );
+		$this->assertCount( 2, $updated['requested_data']['plan'] );
+		$this->post( 'preview_all' );
+		$preview = $this->board->handle();
+		ob_start();
+		$this->board->render( $preview );
+		$output = (string) ob_get_clean();
+
+		$this->assertStringContainsString( '<h4>タグを削除</h4>', $output );
+		$this->assertStringContainsString( '削除対象：3件', $output );
+		$this->assertStringContainsString( '<li>Unused tag A</li>', $output );
+		$this->assertStringContainsString( '<li>Unused tag B</li>', $output );
+		$this->assertStringContainsString( '<li>Unused tag C</li>', $output );
+		$this->assertSame( 1, substr_count( $output, 'value="run_all"' ) );
+		$this->assertSame( 1, substr_count( $output, 'taxonomy-tidy-modal__cancel' ) );
+		$this->assertStringNotContainsString( 'taxonomy-tidy-preview-delete__targets"><li>Unused tag A <button', $output );
+
+		$this->post( 'run_all' );
+		$result = $this->board->handle();
+		$this->assertSame( Status::COMPLETED->value, $result['results']['post_tag']['status'] );
+		$this->assertSame( 3, $result['results']['post_tag']['progress']['completed'] );
+		$this->assertCount( 3, ( new OperationItemRepository( $wpdb ) )->find_for_operation( (int) $operation['id'] ) );
+		$this->assertNull( get_term( $first, 'post_tag' ) );
+		$this->assertNull( get_term( $second, 'post_tag' ) );
+		$this->assertNull( get_term( $third, 'post_tag' ) );
+	}
+
 	/** The category-only path uses the same shared preview and execution action. */
 	public function test_category_plan_runs_without_tag_plan(): void {
 		$user_id  = $this->login_admin();
@@ -234,6 +271,29 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->assertSame( Status::PREVIEWED->value, $this->operations->find( (int) $category_operation['id'] )['status'] );
 		$this->assertSame( Status::PREVIEWED->value, $this->operations->find( (int) $tag_operation['id'] )['status'] );
 		$this->assertSame( 'Stable category', get_term( $category )->name );
+	}
+
+	/** A changed delete target is named in Japanese and prevents every deletion. */
+	public function test_delete_preflight_error_names_changed_target(): void {
+		$user_id = $this->login_admin();
+		$first   = $this->term( 'post_tag', 'Safe delete target' );
+		$second  = $this->term( 'post_tag', 'Changed delete target' );
+		$this->workflow->add( $user_id, Taxonomy::POST_TAG, $this->delete_item( array( $first, $second ) ) );
+		$this->post( 'preview_all' );
+		$this->assertSame( array(), $this->board->handle()['errors'] );
+		$draft = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		wp_set_object_terms( $draft, array( $second ), 'post_tag' );
+
+		$this->post( 'run_all' );
+		$result = $this->board->handle();
+		ob_start();
+		$this->board->render( $result );
+		$output = (string) ob_get_clean();
+
+		$this->assertSame( array( 'execution_stale_preview' ), $result['errors'] );
+		$this->assertStringContainsString( '削除を開始できませんでした。「Changed delete target」は現在、別のオブジェクトで使用されています。', $output );
+		$this->assertInstanceOf( WP_Term::class, get_term( $first, 'post_tag' ) );
+		$this->assertInstanceOf( WP_Term::class, get_term( $second, 'post_tag' ) );
 	}
 
 	/** A lock failure in the second taxonomy prevents the first from starting. */
@@ -351,6 +411,7 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->assertSame( 2, substr_count( $output, 'value="remove_item"' ) );
 		$this->assertStringContainsString( '<span class="screen-reader-text">削除</span>', $output );
 		$this->assertStringContainsString( '<th scope="col">種別</th>', $output );
+		$this->assertStringContainsString( 'role="region" aria-label="カテゴリーの操作計画"', $output );
 		$this->assertStringContainsString( 'カテゴリー「Visible category」の名称変更を操作計画から削除', $output );
 		$this->assertStringContainsString( 'タグ「Visible tag」の名称変更を操作計画から削除', $output );
 		$this->assertStringNotContainsString( '>操作</th>', $output );
@@ -568,6 +629,26 @@ final class PlanBoardTest extends WP_UnitTestCase {
 			'source_ids'    => array( $term_id ),
 			'source_tt_ids' => array( $term_id => (int) $term->term_taxonomy_id ),
 			'new_name'      => $new_name,
+		);
+	}
+
+	/**
+	 * Creates a raw delete item with stable taxonomy IDs.
+	 *
+	 * @param array<int> $term_ids Term IDs.
+	 * @return array<string, mixed>
+	 */
+	private function delete_item( array $term_ids ): array {
+		$taxonomy_ids = array();
+		foreach ( $term_ids as $term_id ) {
+			$term = get_term( $term_id );
+			$this->assertInstanceOf( WP_Term::class, $term );
+			$taxonomy_ids[ $term_id ] = (int) $term->term_taxonomy_id;
+		}
+		return array(
+			'action'        => 'delete',
+			'source_ids'    => $term_ids,
+			'source_tt_ids' => $taxonomy_ids,
 		);
 	}
 

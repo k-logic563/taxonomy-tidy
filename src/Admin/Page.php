@@ -210,7 +210,7 @@ final class Page {
 			<h2><?php echo esc_html( $taxonomy_label ); ?></h2>
 
 			<details class="taxonomy-tidy-panel taxonomy-tidy-filter-panel">
-				<summary class="taxonomy-tidy-panel__summary">
+				<summary class="taxonomy-tidy-panel__summary" aria-expanded="false">
 					<span class="taxonomy-tidy-panel__heading">
 						<span class="taxonomy-tidy-panel__icon" aria-hidden="true"></span>
 						<span><?php echo esc_html__( 'Search panel', 'taxonomy-tidy' ); ?></span>
@@ -285,7 +285,16 @@ final class Page {
 			</details>
 
 			<?php $this->render_page_size_forms( $taxonomy, $search, $orderby, $order, $unused ); ?>
-			<?php ( new PlanningPanel() )->render( $taxonomy, $type_label, $inventory, $plan_state, fn( string $position ) => $this->render_pagination( $position, $taxonomy, $search, $orderby, $order, $unused, $inventory ) ); ?>
+			<?php
+			( new PlanningPanel() )->render(
+				$taxonomy,
+				$type_label,
+				$inventory,
+				$plan_state,
+				fn( string $position ) => $this->render_pagination( $position, $taxonomy, $search, $orderby, $order, $unused, $inventory ),
+				fn( string $key, string $label ) => $this->render_sort_header( $key, $label, $taxonomy, $search, $orderby, $order, $unused, $per_page )
+			);
+			?>
 		</div>
 		<?php
 	}
@@ -647,6 +656,40 @@ final class Page {
 		$url = add_query_arg( $args, admin_url( 'tools.php' ) );
 		?>
 		<a class="button taxonomy-tidy-page-link" href="<?php echo esc_url( $url ); ?>" aria-label="<?php echo esc_attr( $label ); ?>"><?php echo esc_html( $text ); ?></a>
+		<?php
+	}
+
+	/**
+	 * Renders a sortable inventory heading while preserving list conditions.
+	 *
+	 * @param string   $key       Supported sort key.
+	 * @param string   $label     Localized heading label.
+	 * @param Taxonomy $taxonomy  Current taxonomy.
+	 * @param string   $search    Search value.
+	 * @param string   $orderby   Current sort key.
+	 * @param string   $order     Current direction.
+	 * @param bool     $unused    Global-unused filter.
+	 * @param int      $per_page  Current page size.
+	 */
+	private function render_sort_header( string $key, string $label, Taxonomy $taxonomy, string $search, string $orderby, string $order, bool $unused, int $per_page ): void {
+		$active     = $key === $orderby;
+		$next_order = $active && 'asc' === $order ? 'desc' : 'asc';
+		$args       = array(
+			'page'     => self::SLUG,
+			'taxonomy' => $taxonomy->value,
+			'orderby'  => $key,
+			'order'    => $next_order,
+			'per_page' => $per_page,
+		);
+		if ( '' !== $search ) {
+			$args['s'] = $search;
+		}
+		if ( $unused ) {
+			$args['unused'] = '1';
+		}
+		$url = add_query_arg( $args, admin_url( 'tools.php' ) );
+		?>
+		<th scope="col" class="manage-column <?php echo esc_attr( $active ? 'sorted ' . $order : 'sortable asc' ); ?>" <?php echo $active ? 'aria-sort="' . esc_attr( 'asc' === $order ? 'ascending' : 'descending' ) . '"' : ''; ?>><a href="<?php echo esc_url( $url ); ?>"><span><?php echo esc_html( $label ); ?></span><span class="sorting-indicators" aria-hidden="true"><span class="sorting-indicator asc"></span><span class="sorting-indicator desc"></span></span></a></th>
 		<?php
 	}
 }

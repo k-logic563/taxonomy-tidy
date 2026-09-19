@@ -101,6 +101,9 @@ final class HistoryPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '実行中', $output );
 		$this->assertStringContainsString( '完了', $output );
+		$this->assertStringContainsString( 'role="region" aria-label="操作履歴一覧"', $output );
+		$this->assertStringContainsString( '<th scope="col">実行日時</th>', $output );
+		$this->assertStringContainsString( '<th scope="col"><span class="screen-reader-text">詳細</span></th>', $output );
 		$this->assertStringContainsString( 'history_id=' . $running, $output );
 		$this->assertStringContainsString( 'history_id=' . $complete, $output );
 		$this->assertStringNotContainsString( 'history_id=' . $draft, $output );

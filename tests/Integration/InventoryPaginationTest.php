@@ -124,6 +124,10 @@ final class InventoryPaginationTest extends WP_UnitTestCase {
 		$this->assertSame( 2, substr_count( $output, '全45件中 21〜40件を表示' ) );
 		$this->assertSame( 2, substr_count( $output, 'aria-current="page" aria-label="2ページ目"' ) );
 		$this->assertSame( 2, substr_count( $output, 'class="tablenav-pages taxonomy-tidy-pagination"' ) );
+		$this->assertStringContainsString( 'class="manage-column sorted desc" aria-sort="descending"', $output );
+		$this->assertStringContainsString( 'class="manage-column sortable asc"', $output );
+		$this->assertStringContainsString( 'orderby=name', $output );
+		$this->assertStringContainsString( 'order=asc', $output );
 		$this->assertSame( 2, substr_count( $output, 'name="per_page" form="taxonomy-tidy-page-size-' ) );
 		$this->assertSame( 2, substr_count( $output, '>適用</button>' ) );
 		$this->assertLessThan( strpos( $output, 'taxonomy-tidy-inventory-table' ), strpos( $output, 'taxonomy-tidy-table-nav--top' ) );

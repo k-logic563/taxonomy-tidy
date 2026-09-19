@@ -6,6 +6,11 @@
 	background: #fff;
 }
 
+.taxonomy-tidy-screen .nav-tab-wrapper {
+	display: flex;
+	flex-wrap: wrap;
+}
+
 .taxonomy-tidy-process-panel {
 	margin-top: 0;
 }
@@ -165,6 +170,35 @@
 
 .taxonomy-tidy-inventory-table {
 	margin-top: 20px;
+}
+
+.taxonomy-tidy-table-scroll {
+	max-width: 100%;
+	overflow-x: auto;
+}
+
+.taxonomy-tidy-table-scroll:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.taxonomy-tidy-inventory-table th,
+.taxonomy-tidy-inventory-table td,
+.taxonomy-tidy-plan-table th,
+.taxonomy-tidy-plan-table td,
+.taxonomy-tidy-history-table th,
+.taxonomy-tidy-history-table td {
+	overflow-wrap: anywhere;
+}
+
+.taxonomy-tidy-inventory-table .taxonomy-tidy-number {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+.taxonomy-tidy-plan-table,
+.taxonomy-tidy-history-table {
+	min-width: 720px;
 }
 
 .taxonomy-tidy-history-table {
@@ -819,6 +853,10 @@
 		margin-left: -76%;
 		font-weight: 600;
 		content: attr(data-label);
+	}
+
+	.taxonomy-tidy-inventory-table .taxonomy-tidy-number {
+		text-align: left;
 	}
 
 	.taxonomy-tidy-inventory-table__empty {

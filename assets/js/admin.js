@@ -5,6 +5,13 @@
 	if ( ! form ) {
 		return;
 	}
+	const panels = Array.from( document.querySelectorAll( '.taxonomy-tidy-panel' ) );
+	panels.forEach( ( panel ) => {
+		const summary = panel.querySelector( '.taxonomy-tidy-panel__summary' );
+		const updateExpanded = () => summary?.setAttribute( 'aria-expanded', panel.open ? 'true' : 'false' );
+		updateExpanded();
+		panel.addEventListener( 'toggle', updateExpanded );
+	} );
 
 	const termCheckboxes = Array.from( form.querySelectorAll( '.taxonomy-tidy-term-select' ) );
 	const selectPage = form.querySelector( '.taxonomy-tidy-select-page' );

@@ -168,9 +168,66 @@ final class ExecutionWorkflow {
 			$this->failure( ExecutionErrorCode::STALE_PREVIEW );
 		}
 		$hash = $this->plans->plan_hash( $plan );
-		if ( ! is_string( $operation['plan_hash'] ) || ! hash_equals( $operation['plan_hash'], $hash ) || ! is_string( $operation['state_fingerprint'] ) || ! $this->plans->is_current( $taxonomy, $plan, $operation['state_fingerprint'] ) ) {
+		if ( ! is_string( $operation['plan_hash'] ) || ! hash_equals( $operation['plan_hash'], $hash ) || ! is_string( $operation['state_fingerprint'] ) ) {
 			$this->failure( ExecutionErrorCode::STALE_PREVIEW );
 		}
+		$this->validate_delete_targets( $taxonomy, $plan, $preview );
+		if ( ! $this->plans->is_current( $taxonomy, $plan, $operation['state_fingerprint'] ) ) {
+			$this->failure( ExecutionErrorCode::STALE_PREVIEW );
+		}
+	}
+
+	/**
+	 * Rechecks every explicit deletion before any item is seeded or changed.
+	 *
+	 * @param Taxonomy                   $taxonomy Expected taxonomy.
+	 * @param list<array<string, mixed>> $plan     Normalized operation plan.
+	 * @param array<string, mixed>       $preview  Stored preview labels.
+	 */
+	private function validate_delete_targets( Taxonomy $taxonomy, array $plan, array $preview ): void {
+		$seen          = array();
+		$preview_items = is_array( $preview['items'] ?? null ) ? array_values( $preview['items'] ) : array();
+		foreach ( $plan as $item_index => $item ) {
+			if ( Action::DELETE->value !== ( $item['action'] ?? '' ) ) {
+				continue;
+			}
+			$preview_item = is_array( $preview_items[ $item_index ] ?? null ) ? $preview_items[ $item_index ] : array();
+			foreach ( (array) ( $item['sources'] ?? array() ) as $source_index => $source ) {
+				$preview_source = is_array( $preview_item['sources'][ $source_index ] ?? null ) ? $preview_item['sources'][ $source_index ] : array();
+				$name           = (string) ( $preview_source['name'] ?? '' );
+				$term_id        = (int) ( $source['term_id'] ?? 0 );
+				if ( isset( $seen[ $term_id ] ) ) {
+					$this->delete_start_failure( $name, 'duplicate_target' );
+				}
+				$seen[ $term_id ] = true;
+				$term             = get_term( $term_id );
+				if ( ! $term instanceof WP_Term ) {
+					$this->delete_start_failure( $name, 'term_missing' );
+				}
+				if ( $taxonomy->value !== $term->taxonomy || (int) ( $source['term_taxonomy_id'] ?? 0 ) !== (int) $term->term_taxonomy_id ) {
+					$this->delete_start_failure( $name, 'taxonomy_changed' );
+				}
+				$relationships = get_objects_in_term( $term_id, $taxonomy->value );
+				if ( is_wp_error( $relationships ) ) {
+					$this->delete_start_failure( $name, 'state_unavailable' );
+				}
+				if ( array() !== $relationships ) {
+					$this->delete_start_failure( $name, 'relationships_added' );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Throws a delete-specific stale-preview failure without exposing internals.
+	 *
+	 * @param string $target_name Stored preview label.
+	 * @param string $reason      Stable reason code.
+	 * @throws ExecutionException Always.
+	 */
+	private function delete_start_failure( string $target_name, string $reason ): never {
+		// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Safe context is escaped by the administration renderer.
+		throw new ExecutionException( ExecutionErrorCode::STALE_PREVIEW, $target_name, $reason );
 	}
 
 	/**
