@@ -50,14 +50,15 @@ final class ExecutionWorkflow {
 	/**
 	 * Starts or resumes one bounded execution request.
 	 *
-	 * @param int      $operation_id Previewed or running operation ID.
-	 * @param int      $user_id      Current administrator ID.
-	 * @param Taxonomy $taxonomy     Current screen taxonomy.
+	 * @param int         $operation_id Previewed or running operation ID.
+	 * @param int         $user_id      Current administrator ID.
+	 * @param Taxonomy    $taxonomy     Current screen taxonomy.
+	 * @param string|null $reserved_token Preflight reservation for a combined start.
 	 * @return array<string, mixed>
 	 * @throws ExecutionException When authorization context, preview, state, or lock is invalid.
 	 * @throws \Throwable When persistence fails or an interrupted item cannot be marked terminal.
 	 */
-	public function run_batch( int $operation_id, int $user_id, Taxonomy $taxonomy ): array {
+	public function run_batch( int $operation_id, int $user_id, Taxonomy $taxonomy, ?string $reserved_token = null ): array {
 		$operation = $this->operations->find( $operation_id );
 		if ( null === $operation || $user_id !== (int) $operation['user_id'] || $taxonomy->value !== $operation['taxonomy'] ) {
 			$this->failure( ExecutionErrorCode::INVALID_OPERATION );
@@ -67,8 +68,8 @@ final class ExecutionWorkflow {
 			$this->failure( ExecutionErrorCode::INVALID_OPERATION );
 		}
 
-		$token = $this->lock->acquire( $operation_id, self::LOCK_TTL );
-		if ( null === $token ) {
+		$token = $reserved_token ?? $this->lock->acquire( $operation_id, self::LOCK_TTL );
+		if ( null === $token || ( null !== $reserved_token && ! $this->lock->owns( $operation_id, $token, self::LOCK_TTL ) ) ) {
 			$this->failure( ExecutionErrorCode::LOCKED );
 		}
 
@@ -117,6 +118,34 @@ final class ExecutionWorkflow {
 		} finally {
 			$this->lock->release( $operation_id, $token );
 		}
+	}
+
+	/**
+	 * Reserves a taxonomy lock after validating one member of a combined start.
+	 *
+	 * @param int      $operation_id Previewed operation ID.
+	 * @param int      $user_id      Owning administrator ID.
+	 * @param Taxonomy $taxonomy     Expected taxonomy.
+	 * @return string Opaque lock token.
+	 * @throws ExecutionException When validation or reservation fails.
+	 */
+	public function reserve_start( int $operation_id, int $user_id, Taxonomy $taxonomy ): string {
+		$this->validate_start( $operation_id, $user_id, $taxonomy );
+		$token = $this->lock->acquire( $operation_id, self::LOCK_TTL );
+		if ( null === $token ) {
+			$this->failure( ExecutionErrorCode::LOCKED );
+		}
+		return $token;
+	}
+
+	/**
+	 * Releases a combined-start reservation that was not consumed by a batch.
+	 *
+	 * @param int    $operation_id Operation that owns the reservation.
+	 * @param string $token        Reservation token.
+	 */
+	public function release_reservation( int $operation_id, string $token ): void {
+		$this->lock->release( $operation_id, $token );
 	}
 
 	/**

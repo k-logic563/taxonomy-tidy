@@ -98,7 +98,7 @@ final class PlanningPanel {
 					<?php $deletion_available = 0 === (int) $term['total_relationship_count'] && ! ( Taxonomy::CATEGORY === $taxonomy && $default_category === (int) $term['term_id'] ); ?>
 					<?php $has_children = in_array( (int) $term['term_id'], $parent_ids, true ); ?>
 					<?php $excluded_use = (int) $term['total_relationship_count'] > (int) $term['published_post_count']; ?>
-					<tr data-term-name="<?php echo esc_attr( (string) $term['name'] ); ?>" data-term-slug="<?php echo esc_attr( (string) $term['slug'] ); ?>" data-published-count="<?php echo esc_attr( (string) $term['published_post_count'] ); ?>" data-total-count="<?php echo esc_attr( (string) $term['total_relationship_count'] ); ?>" data-deletion-available="<?php echo $deletion_available ? '1' : '0'; ?>" data-merge-retained="<?php echo $excluded_use || $has_children ? '1' : '0'; ?>" data-excluded-use="<?php echo $excluded_use ? '1' : '0'; ?>" data-has-children="<?php echo $has_children ? '1' : '0'; ?>" data-default-category="<?php echo Taxonomy::CATEGORY === $taxonomy && $default_category === (int) $term['term_id'] ? '1' : '0'; ?>">
+					<tr data-term-key="<?php echo esc_attr( (string) $term['term_id'] ); ?>" data-term-name="<?php echo esc_attr( (string) $term['name'] ); ?>" data-term-slug="<?php echo esc_attr( (string) $term['slug'] ); ?>" data-published-count="<?php echo esc_attr( (string) $term['published_post_count'] ); ?>" data-total-count="<?php echo esc_attr( (string) $term['total_relationship_count'] ); ?>" data-deletion-available="<?php echo $deletion_available ? '1' : '0'; ?>" data-merge-retained="<?php echo $excluded_use || $has_children ? '1' : '0'; ?>" data-excluded-use="<?php echo $excluded_use ? '1' : '0'; ?>" data-has-children="<?php echo $has_children ? '1' : '0'; ?>" data-default-category="<?php echo Taxonomy::CATEGORY === $taxonomy && $default_category === (int) $term['term_id'] ? '1' : '0'; ?>">
 						<th scope="row" class="check-column">
 							<label class="screen-reader-text" for="taxonomy-tidy-term-<?php echo esc_attr( (string) $term['term_id'] ); ?>">
 								<?php
@@ -140,9 +140,13 @@ final class PlanningPanel {
 	 * @param array<string, list<string>> $field_errors Validation errors grouped by field.
 	 */
 	private function render_process_panel( Taxonomy $taxonomy, array $inventory, array $selected, array $plan, array $input, array $errors, array $field_errors ): void {
-		$action = is_string( $input['operation_action'] ?? null ) ? $input['operation_action'] : '';
-		$focus  = $this->error_focus( $field_errors );
-		$items  = $this->selected_items( $inventory, $selected );
+		$action              = is_string( $input['operation_action'] ?? null ) ? $input['operation_action'] : '';
+		$focus               = $this->error_focus( $field_errors );
+		$items               = $this->selected_items( $inventory, $selected );
+		$destination_removed = Action::MERGE->value === $action && $this->destination_is_selected_source( (string) ( $input['destination'] ?? '' ), $selected );
+		if ( $destination_removed ) {
+			$input['destination'] = '';
+		}
 		/* translators: %d: number of selected terms. */
 		$selected_format = __( '%d terms selected', 'taxonomy-tidy' );
 		?>
@@ -205,9 +209,11 @@ final class PlanningPanel {
 						</div>
 						<div id="taxonomy-tidy-merge-destination-group" class="taxonomy-tidy-field-group">
 							<label class="taxonomy-tidy-field-label" for="taxonomy-tidy-destination"><?php echo esc_html__( 'Merge destination', 'taxonomy-tidy' ); ?></label>
-							<input class="taxonomy-tidy-field-control" id="taxonomy-tidy-destination" type="search" name="destination" list="taxonomy-tidy-destinations" value="<?php echo esc_attr( (string) ( $input['destination'] ?? '' ) ); ?>" autocomplete="off" aria-describedby="taxonomy-tidy-destination-help<?php echo isset( $field_errors['destination'] ) ? ' ' . esc_attr( $this->field_error_ids( $field_errors, 'destination', 'taxonomy-tidy-destination-error' ) ) : ''; ?>" <?php echo isset( $field_errors['destination'] ) ? 'aria-invalid="true"' : ''; ?> <?php echo 'destination' === $focus ? 'data-error-focus="true"' : ''; ?>>
-							<datalist id="taxonomy-tidy-destinations"><?php $this->render_destinations( $taxonomy ); ?></datalist>
+							<input class="taxonomy-tidy-field-control" id="taxonomy-tidy-destination" type="search" name="destination" list="taxonomy-tidy-destinations" value="<?php echo esc_attr( (string) ( $input['destination'] ?? '' ) ); ?>" autocomplete="off" aria-describedby="taxonomy-tidy-destination-help taxonomy-tidy-destination-selection-notice<?php echo isset( $field_errors['destination'] ) ? ' ' . esc_attr( $this->field_error_ids( $field_errors, 'destination', 'taxonomy-tidy-destination-error' ) ) : ''; ?>" <?php echo isset( $field_errors['destination'] ) ? 'aria-invalid="true"' : ''; ?> <?php echo 'destination' === $focus ? 'data-error-focus="true"' : ''; ?>>
+							<datalist id="taxonomy-tidy-destinations"><?php $this->render_destinations( $taxonomy, $selected ); ?></datalist>
+							<template class="taxonomy-tidy-destination-options"><?php $this->render_destinations( $taxonomy, array() ); ?></template>
 							<p id="taxonomy-tidy-destination-help" class="description taxonomy-tidy-field-help"><?php echo esc_html__( 'Search and select an existing term in the same taxonomy.', 'taxonomy-tidy' ); ?></p>
+							<p id="taxonomy-tidy-destination-selection-notice" class="description taxonomy-tidy-field-help" role="status" <?php echo $destination_removed ? '' : 'hidden'; ?>><?php echo esc_html__( '選択していた統合先が統合元に含まれたため、選択を解除しました。', 'taxonomy-tidy' ); ?></p>
 							<?php $this->render_field_errors( $field_errors, 'destination', 'taxonomy-tidy-destination-error' ); ?>
 						</div>
 					</div>
@@ -407,8 +413,9 @@ final class PlanningPanel {
 	 * Renders searchable destination values.
 	 *
 	 * @param Taxonomy $taxonomy Current taxonomy.
+	 * @param array    $excluded Selected source term IDs.
 	 */
-	private function render_destinations( Taxonomy $taxonomy ): void {
+	private function render_destinations( Taxonomy $taxonomy, array $excluded ): void {
 		$terms = get_terms(
 			array(
 				'taxonomy'   => $taxonomy->value,
@@ -421,13 +428,23 @@ final class PlanningPanel {
 			return;
 		}
 		foreach ( $terms as $term ) {
-			if ( $term instanceof WP_Term ) {
+			if ( $term instanceof WP_Term && ! in_array( $term->term_id, $excluded, true ) ) {
 				$value = sprintf( '%d:%d — %s', $term->term_id, $term->term_taxonomy_id, $term->name );
 				?>
-				<option value="<?php echo esc_attr( $value ); ?>"><?php echo esc_html( $term->slug ); ?></option>
+				<option value="<?php echo esc_attr( $value ); ?>" data-term-key="<?php echo esc_attr( (string) $term->term_id ); ?>" data-term-taxonomy-key="<?php echo esc_attr( (string) $term->term_taxonomy_id ); ?>"><?php echo esc_html( $term->slug ); ?></option>
 				<?php
 			}
 		}
+	}
+
+	/**
+	 * Checks a destination value against selected sources by stable term ID.
+	 *
+	 * @param string $destination Submitted datalist value.
+	 * @param array  $selected    Selected source term IDs.
+	 */
+	private function destination_is_selected_source( string $destination, array $selected ): bool {
+		return 1 === preg_match( '/^(\d+):/', $destination, $matches ) && in_array( (int) $matches[1], $selected, true );
 	}
 
 	/**

@@ -28,9 +28,6 @@ final class PlanBoard {
 	/** Supported taxonomies in display and execution order. */
 	private const TAXONOMIES = array( Taxonomy::CATEGORY, Taxonomy::POST_TAG );
 
-	/** Last paired execution displayed to one administrator after reload. */
-	private const LAST_RUN_META = 'taxonomy_tidy_last_board_run';
-
 	/**
 	 * Stores the existing planning and execution services.
 	 *
@@ -73,23 +70,15 @@ final class PlanBoard {
 	public function handle(): array {
 		$user_id = get_current_user_id();
 		$state   = array(
-			'operations' => $this->load_operations( $user_id ),
-			'errors'     => array(),
-			'notice'     => null,
-			'modal'      => false,
-			'results'    => array(),
+			'operations'  => $this->load_operations( $user_id ),
+			'errors'      => array(),
+			'notice'      => null,
+			'notice_type' => 'success',
+			'modal'       => false,
+			'results'     => array(),
 		);
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- Request method is used only for a fixed HTTP verb comparison.
 		if ( 'POST' !== strtoupper( (string) ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) ) {
-			if ( $this->has_running( $state['operations'] ) || array() === $state['operations'] ) {
-				$state['results'] = $this->last_run_results( $user_id );
-				if ( array() === $state['results'] && $this->has_running( $state['operations'] ) ) {
-					$state['results'] = $state['operations'];
-				}
-			}
-			if ( array() !== $state['results'] ) {
-				$state['modal'] = true;
-			}
 			return $state;
 		}
 		if ( ! Access::current_user_can_access() ) {
@@ -111,11 +100,11 @@ final class PlanBoard {
 				$this->preview_all( $user_id );
 				$state['modal'] = true;
 			} elseif ( 'run_all' === $command ) {
-				$state['modal']   = true;
 				$state['results'] = $this->run_all( $user_id );
+				$this->set_execution_feedback( $state );
 			} elseif ( 'continue_all' === $command ) {
-				$state['modal']   = true;
 				$state['results'] = $this->continue_all( $user_id, $request );
+				$this->set_execution_feedback( $state );
 			} elseif ( 'remove_item' === $command ) {
 				$this->require_no_running( $user_id );
 				$taxonomy = $this->requested_taxonomy( $request );
@@ -216,8 +205,21 @@ final class PlanBoard {
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal validation code only.
 			throw new PlanValidationException( array( PlanErrorCode::PLAN_INVALID ) );
 		}
-		update_user_meta( $user_id, self::LAST_RUN_META, $start );
-		return $this->run_ids( $user_id, $start );
+
+		$reservations = array();
+		try {
+			foreach ( self::TAXONOMIES as $taxonomy ) {
+				$id = $start[ $taxonomy->value ] ?? 0;
+				if ( 0 !== $id ) {
+					$reservations[ $taxonomy->value ] = $this->execution->reserve_start( $id, $user_id, $taxonomy );
+				}
+			}
+			return $this->run_ids( $user_id, $start, $reservations );
+		} finally {
+			foreach ( $reservations as $taxonomy => $token ) {
+				$this->execution->release_reservation( $start[ $taxonomy ], $token );
+			}
+		}
 	}
 
 	/**
@@ -252,12 +254,13 @@ final class PlanBoard {
 	/**
 	 * Applies each operation through the existing bounded workflow.
 	 *
-	 * @param int                $user_id Administrator ID.
-	 * @param array<string, int> $ids     Taxonomy-keyed operation IDs.
+	 * @param int                   $user_id      Administrator ID.
+	 * @param array<string, int>    $ids          Taxonomy-keyed operation IDs.
+	 * @param array<string, string> $reservations Optional preflight lock tokens.
 	 * @return array<string, array<string, mixed>>
 	 * @throws PlanValidationException When an operation is not owned by the administrator.
 	 */
-	private function run_ids( int $user_id, array $ids ): array {
+	private function run_ids( int $user_id, array $ids, array $reservations = array() ): array {
 		$results = array();
 		foreach ( self::TAXONOMIES as $taxonomy ) {
 			$id = $ids[ $taxonomy->value ] ?? 0;
@@ -274,7 +277,7 @@ final class PlanBoard {
 				continue;
 			}
 			try {
-				$results[ $taxonomy->value ] = $this->execution->run_batch( $id, $user_id, $taxonomy );
+				$results[ $taxonomy->value ] = $this->execution->run_batch( $id, $user_id, $taxonomy, $reservations[ $taxonomy->value ] ?? null );
 			} catch ( ExecutionException $exception ) {
 				$operation                   = $this->operations->find( $id ) ?? $operation;
 				$operation['board_error']    = $exception->error_code();
@@ -309,30 +312,36 @@ final class PlanBoard {
 	}
 
 	/**
-	 * Reloads the two independent statuses from the last combined start.
+	 * Keeps progress in the modal only while work is running and reports terminal results inline.
 	 *
-	 * @param int $user_id Administrator ID.
-	 * @return array<string, array<string, mixed>>
+	 * @param array<string, mixed> $state Board state.
 	 */
-	private function last_run_results( int $user_id ): array {
-		$ids     = get_user_meta( $user_id, self::LAST_RUN_META, true );
-		$results = array();
-		if ( ! is_array( $ids ) ) {
-			return $results;
+	private function set_execution_feedback( array &$state ): void {
+		$results     = (array) $state['results'];
+		$interrupted = false;
+		foreach ( $results as $result ) {
+			$interrupted = $interrupted || isset( $result['board_error'] );
 		}
-		foreach ( self::TAXONOMIES as $taxonomy ) {
-			$id = absint( $ids[ $taxonomy->value ] ?? 0 );
-			if ( 0 === $id ) {
-				continue;
-			}
-			$operation = $this->operations->find( $id );
-			if ( null === $operation || $user_id !== (int) $operation['user_id'] || $taxonomy->value !== $operation['taxonomy'] || ! in_array( $operation['status'], array( Status::RUNNING->value, Status::COMPLETED->value, Status::PARTIAL_FAILED->value, Status::FAILED->value ), true ) ) {
-				continue;
-			}
-			$operation['progress']       = $operation['result_data'];
-			$results[ $taxonomy->value ] = $operation;
+		$state['modal'] = ! $interrupted && $this->has_running( $results );
+		if ( $interrupted && $this->has_running( $results ) ) {
+			$state['notice_type'] = 'warning';
+			$state['notice']      = __( '処理を中断しました。操作計画から再開してください。', 'taxonomy-tidy' );
+			return;
 		}
-		return $results;
+		if ( $state['modal'] || array() === $results ) {
+			return;
+		}
+
+		$failed    = false;
+		$succeeded = false;
+		foreach ( $results as $result ) {
+			$failed    = $failed || isset( $result['board_error'] ) || in_array( $result['status'], array( Status::FAILED->value, Status::PARTIAL_FAILED->value ), true );
+			$succeeded = $succeeded || in_array( $result['status'], array( Status::COMPLETED->value, Status::PARTIAL_FAILED->value ), true );
+		}
+		$state['notice_type'] = $failed ? 'warning' : 'success';
+		$state['notice']      = $failed
+			? ( $succeeded ? __( '一部の処理に失敗しました。操作履歴を確認してください。', 'taxonomy-tidy' ) : __( '処理に失敗しました。操作履歴を確認してください。', 'taxonomy-tidy' ) )
+			: __( '処理が完了しました。', 'taxonomy-tidy' );
 	}
 
 	/**
@@ -416,7 +425,7 @@ final class PlanBoard {
 		<?php if ( array() !== $state['errors'] ) : ?>
 			<div class="notice notice-error inline" role="alert"><p><?php echo esc_html( implode( ' ', array_map( array( $this, 'error_label' ), $state['errors'] ) ) ); ?></p></div>
 		<?php elseif ( is_string( $state['notice'] ) ) : ?>
-			<div class="notice notice-success inline" role="status"><p><?php echo esc_html( $state['notice'] ); ?></p></div>
+			<div class="notice notice-<?php echo esc_attr( 'warning' === ( $state['notice_type'] ?? 'success' ) ? 'warning' : 'success' ); ?> inline" role="status"><p><?php echo esc_html( $state['notice'] ); ?></p></div>
 		<?php endif; ?>
 		<?php if ( 0 === $count ) : ?>
 			<p><?php echo esc_html__( '操作計画はまだありません。', 'taxonomy-tidy' ); ?><br><?php echo esc_html__( 'カテゴリーまたはタグを選択し、処理パネルから計画へ追加してください。', 'taxonomy-tidy' ); ?></p>
@@ -466,11 +475,20 @@ final class PlanBoard {
 			<form id="taxonomy-tidy-board-form" method="post">
 				<input type="hidden" name="<?php echo esc_attr( PlanController::NONCE_FIELD ); ?>" value="<?php echo esc_attr( wp_create_nonce( PlanController::NONCE_ACTION ) ); ?>">
 				<input type="hidden" name="view" value="plan">
-				<div class="taxonomy-tidy-board-actions"><button type="submit" class="button-link-delete taxonomy-tidy-discard" name="plan_command" value="discard_all" data-confirm="<?php echo esc_attr__( '編集中の操作計画をすべて破棄しますか？', 'taxonomy-tidy' ); ?>" <?php disabled( $this->has_running( $operations ) ); ?>><?php echo esc_html__( '計画をすべて破棄', 'taxonomy-tidy' ); ?></button><input type="hidden" name="confirmed" value="0"><button type="submit" class="button button-primary" name="plan_command" value="preview_all" <?php disabled( $this->has_running( $operations ) ); ?>><?php echo esc_html__( '変更内容を確認', 'taxonomy-tidy' ); ?></button></div>
+				<div class="taxonomy-tidy-board-actions"><button type="submit" class="button-link-delete taxonomy-tidy-discard" name="plan_command" value="discard_all" data-confirm="<?php echo esc_attr__( '編集中の操作計画をすべて破棄しますか？', 'taxonomy-tidy' ); ?>" <?php disabled( $this->has_running( $operations ) ); ?>><?php echo esc_html__( '計画をすべて破棄', 'taxonomy-tidy' ); ?></button><input type="hidden" name="confirmed" value="0">
+				<?php if ( $this->has_running( $operations ) ) : ?>
+					<?php
+					foreach ( $operations as $taxonomy => $operation ) :
+						?>
+						<input type="hidden" name="operation_ids[<?php echo esc_attr( $taxonomy ); ?>]" value="<?php echo esc_attr( (string) $operation['id'] ); ?>"><?php endforeach; ?>
+					<button type="submit" class="button button-primary" name="plan_command" value="continue_all"><?php echo esc_html__( '処理を再開', 'taxonomy-tidy' ); ?></button>
+				<?php else : ?>
+					<button type="submit" class="button button-primary" name="plan_command" value="preview_all"><?php echo esc_html__( '変更内容を確認', 'taxonomy-tidy' ); ?></button>
+				<?php endif; ?></div>
 			</form>
 		<?php endif; ?>
 		</div>
-		<?php if ( $state['modal'] || $this->has_preview( $operations ) ) : ?>
+		<?php if ( $state['modal'] ) : ?>
 			<?php $this->render_modal( $state ); ?>
 		<?php endif; ?>
 		<?php
@@ -485,7 +503,7 @@ final class PlanBoard {
 		$results = (array) $state['results'];
 		$active  = array() !== $results;
 		?>
-		<div class="taxonomy-tidy-modal taxonomy-tidy-board-modal" data-auto-open="<?php echo $state['modal'] ? '1' : '0'; ?>" hidden>
+		<div class="taxonomy-tidy-modal taxonomy-tidy-board-modal" data-auto-open="1" data-running="<?php echo $this->has_running( $results ) ? '1' : '0'; ?>" hidden>
 			<div class="taxonomy-tidy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="taxonomy-tidy-preview-heading" tabindex="-1">
 				<header class="taxonomy-tidy-modal__header"><h2 id="taxonomy-tidy-preview-heading"><?php echo esc_html( $active ? __( '実行結果', 'taxonomy-tidy' ) : __( '変更内容のプレビュー', 'taxonomy-tidy' ) ); ?></h2><button type="button" class="taxonomy-tidy-modal__close" aria-label="<?php echo esc_attr__( '閉じる', 'taxonomy-tidy' ); ?>" <?php disabled( $this->has_running( $results ) ); ?>>&times;</button></header>
 				<div class="taxonomy-tidy-modal__body" aria-live="polite">
@@ -497,10 +515,6 @@ final class PlanBoard {
 				</div>
 				<footer class="taxonomy-tidy-modal__footer"><button type="button" class="button taxonomy-tidy-modal__cancel" <?php disabled( $this->has_running( $results ) ); ?>><?php echo esc_html__( 'キャンセル', 'taxonomy-tidy' ); ?></button>
 				<?php if ( $active ) : ?>
-					<?php
-					if ( $this->has_running( $results ) ) :
-						?>
-						<button type="submit" form="taxonomy-tidy-board-form" class="button button-primary" name="plan_command" value="continue_all"><?php echo esc_html__( '次の処理を続ける', 'taxonomy-tidy' ); ?></button><?php endif; ?>
 					<?php
 					foreach ( $results as $taxonomy => $operation ) :
 						?>
@@ -613,20 +627,6 @@ final class PlanBoard {
 	private function has_draft( array $operations ): bool {
 		foreach ( $operations as $operation ) {
 			if ( Status::DRAFT->value === $operation['status'] ) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Checks a status in the currently visible operations.
-	 *
-	 * @param array<string, array<string, mixed>> $operations Operation map.
-	 */
-	private function has_preview( array $operations ): bool {
-		foreach ( $operations as $operation ) {
-			if ( Status::PREVIEWED->value === $operation['status'] ) {
 				return true;
 			}
 		}

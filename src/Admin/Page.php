@@ -13,6 +13,9 @@ use TaxonomyTidy\Application\Planning\PlanService;
 use TaxonomyTidy\Application\Planning\PlanWorkflow;
 use TaxonomyTidy\Application\Execution\ExecutionWorkflow;
 use TaxonomyTidy\Application\Execution\ItemExecutor;
+use TaxonomyTidy\Application\Undo\UndoItemExecutor;
+use TaxonomyTidy\Application\Undo\UndoPlanner;
+use TaxonomyTidy\Application\Undo\UndoWorkflow;
 use TaxonomyTidy\Domain\Operation\Taxonomy;
 use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
 use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
@@ -79,6 +82,13 @@ final class Page {
 			TAXONOMY_TIDY_VERSION,
 			true
 		);
+		wp_enqueue_script(
+			'taxonomy-tidy-history',
+			plugins_url( 'assets/js/history.js', TAXONOMY_TIDY_PLUGIN_FILE ),
+			array(),
+			TAXONOMY_TIDY_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -133,6 +143,7 @@ final class Page {
 			new ItemExecutor( new ChangeJournalRepository( $wpdb ) ),
 			new DatabaseTransaction( $wpdb )
 		);
+		$journal    = new ChangeJournalRepository( $wpdb );
 		$board      = new PlanBoard( $operations, $workflow, $plans, $execution );
 		$view       = $this->request_string( 'view' );
 		if ( 'plan' === $view || 'history' === $view ) {
@@ -149,8 +160,18 @@ final class Page {
 				<?php if ( null !== $board_state ) : ?>
 					<?php $board->render( $board_state ); ?>
 				<?php else : ?>
-					<h2><?php echo esc_html__( '操作履歴', 'taxonomy-tidy' ); ?></h2>
-					<p><?php echo esc_html__( '操作履歴は今後のフェーズで表示します。', 'taxonomy-tidy' ); ?></p>
+					<?php
+					$undo_planner = new UndoPlanner( $operations, $items, $journal );
+					$undo         = new UndoWorkflow(
+						$operations,
+						$items,
+						new OperationLock( $wpdb ),
+						$undo_planner,
+						new UndoItemExecutor( $journal ),
+						new DatabaseTransaction( $wpdb )
+					);
+					( new HistoryPage( $operations, $items, $journal, $undo_planner, $undo ) )->render();
+					?>
 				<?php endif; ?>
 			</div>
 			<?php

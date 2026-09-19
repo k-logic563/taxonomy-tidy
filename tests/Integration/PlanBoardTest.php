@@ -144,6 +144,15 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$output = (string) ob_get_clean();
 		$this->assertSame( 1, substr_count( $output, 'role="dialog"' ) );
 		$this->assertStringContainsString( 'value="run_all"', $output );
+		$this->assertSame( 1, substr_count( $output, 'value="run_all"' ) );
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_POST                     = array();
+		$closed                    = $this->board->handle();
+		ob_start();
+		$this->board->render( $closed );
+		$closed_output = (string) ob_get_clean();
+		$this->assertFalse( $closed['modal'] );
+		$this->assertStringNotContainsString( 'role="dialog"', $closed_output );
 
 		$this->post( 'run_all' );
 		$result = $this->board->handle();
@@ -152,6 +161,16 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->assertSame( Status::COMPLETED->value, $result['results']['post_tag']['status'] );
 		$this->assertSame( 'Run category changed', get_term( $category )->name );
 		$this->assertSame( 'Run tag changed', get_term( $tag )->name );
+		ob_start();
+		$this->board->render( $result );
+		$output = (string) ob_get_clean();
+		$this->assertStringContainsString( '処理が完了しました。', $output );
+		$this->assertStringNotContainsString( 'role="dialog"', $output );
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_POST                     = array();
+		$reloaded                  = $this->board->handle();
+		$this->assertFalse( $reloaded['modal'] );
+		$this->assertSame( array(), $reloaded['results'] );
 		$this->post_remove( $result['results']['category'], 'category', 0 );
 		$this->assertSame( array( 'plan_invalid' ), $this->board->handle()['errors'] );
 		$this->assertSame( 'Run category changed', get_term( $category )->name );
@@ -217,6 +236,30 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->assertSame( 'Stable category', get_term( $category )->name );
 	}
 
+	/** A lock failure in the second taxonomy prevents the first from starting. */
+	public function test_combined_start_reserves_every_lock_before_any_change(): void {
+		global $wpdb;
+		$user_id            = $this->login_admin();
+		$category           = $this->term( 'category', 'Lock category' );
+		$tag                = $this->term( 'post_tag', 'Lock tag' );
+		$category_operation = $this->workflow->add( $user_id, Taxonomy::CATEGORY, $this->rename_item( $category, 'Changed category' ) );
+		$tag_operation      = $this->workflow->add( $user_id, Taxonomy::POST_TAG, $this->rename_item( $tag, 'Changed tag' ) );
+		$this->post( 'preview_all' );
+		$this->assertSame( array(), $this->board->handle()['errors'] );
+		$lock  = new OperationLock( $wpdb );
+		$token = $lock->acquire( (int) $tag_operation['id'] );
+		$this->assertIsString( $token );
+
+		$this->post( 'run_all' );
+		$result = $this->board->handle();
+		$this->assertSame( array( 'execution_locked' ), $result['errors'] );
+		$this->assertSame( Status::PREVIEWED->value, $this->operations->find( (int) $category_operation['id'] )['status'] );
+		$this->assertSame( Status::PREVIEWED->value, $this->operations->find( (int) $tag_operation['id'] )['status'] );
+		$this->assertSame( 'Lock category', get_term( $category )->name );
+		$this->assertSame( 'Lock tag', get_term( $tag )->name );
+		$this->assertTrue( $lock->release( (int) $tag_operation['id'], $token ) );
+	}
+
 	/** A later category conflict leaves the completed tag operation successful. */
 	public function test_partial_failure_preserves_other_taxonomy_success(): void {
 		global $wpdb;
@@ -238,14 +281,36 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 		$_POST                     = array();
 		$reloaded                  = $this->board->handle();
-		$this->assertTrue( $reloaded['modal'] );
-		$this->assertSame( Status::RUNNING->value, $reloaded['results']['category']['status'] );
-		$this->assertSame( Status::COMPLETED->value, $reloaded['results']['post_tag']['status'] );
+		$this->assertFalse( $reloaded['modal'] );
+		$this->assertSame( array(), $reloaded['results'] );
+		ob_start();
+		$this->board->render( $reloaded );
+		$reloaded_output = (string) ob_get_clean();
+		$this->assertStringContainsString( 'value="continue_all"', $reloaded_output );
+		$this->assertStringContainsString( '処理を再開', $reloaded_output );
+		$this->assertStringNotContainsString( 'role="dialog"', $reloaded_output );
 		$this->post( 'discard_all', array( 'confirmed' => '1' ) );
 		$this->assertSame( array( 'plan_invalid' ), $this->board->handle()['errors'] );
 		$category_id = (int) $first['results']['category']['id'];
 		$tag_id      = (int) $first['results']['post_tag']['id'];
-		$pending     = ( new OperationItemRepository( $wpdb ) )->find_pending( $category_id, 10 );
+		$lock        = new OperationLock( $wpdb );
+		$token       = $lock->acquire( $category_id );
+		$this->assertIsString( $token );
+		$this->post(
+			'continue_all',
+			array(
+				'operation_ids' => array(
+					'category' => (string) $category_id,
+					'post_tag' => (string) $tag_id,
+				),
+			)
+		);
+		$interrupted = $this->board->handle();
+		$this->assertFalse( $interrupted['modal'] );
+		$this->assertSame( '処理を中断しました。操作計画から再開してください。', $interrupted['notice'] );
+		$this->assertSame( Status::RUNNING->value, $interrupted['results']['category']['status'] );
+		$this->assertTrue( $lock->release( $category_id, $token ) );
+		$pending = ( new OperationItemRepository( $wpdb ) )->find_pending( $category_id, 10 );
 		$this->assertCount( 1, $pending );
 		wp_update_term( (int) $pending[0]['payload']['term_id'], 'category', array( 'name' => 'Changed by another administrator' ) );
 		$this->post(
@@ -264,12 +329,13 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 		$_POST                     = array();
 		$reloaded                  = $this->board->handle();
-		$this->assertSame( Status::PARTIAL_FAILED->value, $reloaded['results']['category']['status'] );
-		$this->assertSame( Status::COMPLETED->value, $reloaded['results']['post_tag']['status'] );
+		$this->assertFalse( $reloaded['modal'] );
+		$this->assertSame( array(), $reloaded['results'] );
 		ob_start();
-		$this->board->render( $reloaded );
+		$this->board->render( $final );
 		$output = (string) ob_get_clean();
-		$this->assertStringContainsString( '一部の処理に失敗しました。', $output );
+		$this->assertStringContainsString( '一部の処理に失敗しました。操作履歴を確認してください。', $output );
+		$this->assertStringNotContainsString( 'role="dialog"', $output );
 	}
 
 	/** The board shows one direct delete action and no editing controls. */

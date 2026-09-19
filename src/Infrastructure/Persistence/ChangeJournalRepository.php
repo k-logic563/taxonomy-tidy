@@ -130,6 +130,61 @@ final class ChangeJournalRepository {
 	}
 
 	/**
+	 * Marks an original change undone only when it belongs to the expected operation.
+	 *
+	 * @param int $change_id    Change row ID.
+	 * @param int $operation_id Original operation ID.
+	 */
+	public function mark_undone_for_operation( int $change_id, int $operation_id ): bool {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom journal table has no core API or object cache.
+		$result = $this->database->query(
+			$this->database->prepare(
+				'UPDATE %i SET undone_at = %s WHERE id = %d AND operation_id = %d AND undone_at IS NULL',
+				$this->table,
+				current_time( 'mysql', true ),
+				$change_id,
+				$operation_id
+			)
+		);
+		return 1 === $result;
+	}
+
+	/**
+	 * Counts inverse changes already recorded by an Undo operation.
+	 *
+	 * @param int    $operation_id Undo operation ID.
+	 * @param string $change_key   Stable inverse key.
+	 */
+	public function has_change_key( int $operation_id, string $change_key ): bool {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom journal table has no core API or object cache.
+		$count = $this->database->get_var(
+			$this->database->prepare(
+				'SELECT COUNT(*) FROM %i WHERE operation_id = %d AND change_key = %s',
+				$this->table,
+				$operation_id,
+				$change_key
+			)
+		);
+		return 0 < (int) $count;
+	}
+
+	/**
+	 * Finds a term ID recreated by the current Undo operation.
+	 *
+	 * @param int $operation_id    Undo operation ID.
+	 * @param int $original_term_id Deleted term ID from the original operation.
+	 */
+	public function restored_term_id( int $operation_id, int $original_term_id ): ?int {
+		foreach ( $this->find_for_operation( $operation_id ) as $change ) {
+			if ( 'term_restored' === $change['change_type'] && (int) ( $change['before_data']['original_term_id'] ?? 0 ) === $original_term_id ) {
+				$term_id = (int) ( $change['after_data']['term_id'] ?? 0 );
+				return 0 === $term_id ? null : $term_id;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Normalizes a change journal row.
 	 *
 	 * @param array<string, mixed> $row Database row.

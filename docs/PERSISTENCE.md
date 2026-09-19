@@ -42,16 +42,19 @@ No post content is stored. JSON columns contain only structured operation metada
 
 ## Operation state transitions
 
-Only these transitions are accepted:
+Normal operations and their separate Undo operations use these transitions:
 
 ```text
 draft -> previewed -> running -> completed
                               -> partial_failed
                               -> failed
 
-completed -> undo_previewed -> undoing -> undone
-                                     -> undo_partial_failed
+draft -> undo_previewed -> undoing -> undone
+                                 -> undo_partial_failed
+                                 -> failed
 ```
+
+An Undo never advances the original operation through the Undo states. It creates a child operation whose `parent_operation_id` points to the immutable original operation. `started_at` is set when either normal execution enters `running` or Undo enters `undoing`; owner-scoped history therefore excludes draft and preview-only rows without guessing from status names.
 
 Unlisted transitions throw an `InvalidStatusTransition` before any state update. Repository updates include both the operation ID and expected current status, so a concurrent state change cannot be silently overwritten.
 

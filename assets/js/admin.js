@@ -21,6 +21,11 @@
 	const actionChoices = Array.from( form.querySelectorAll( 'input[name="operation_action"]' ) );
 	const actionFields = Array.from( form.querySelectorAll( '[data-action-fields]' ) );
 	const changesSection = form.querySelector( '.taxonomy-tidy-changes-section' );
+	const destination = form.querySelector( '#taxonomy-tidy-destination' );
+	const destinationList = form.querySelector( '#taxonomy-tidy-destinations' );
+	const destinationOptions = form.querySelector( '.taxonomy-tidy-destination-options' );
+	const destinationNotice = form.querySelector( '#taxonomy-tidy-destination-selection-notice' );
+	let sourceSignature = null;
 
 	function selectedRows() {
 		return termCheckboxes.filter( ( checkbox ) => checkbox.checked ).map( ( checkbox ) => checkbox.closest( 'tr' ) );
@@ -152,6 +157,30 @@
 		appendValidationMessage( 'info', validation.dataset.information, validation.dataset.impact.replace( '%d', String( published ) ) );
 	}
 
+	function updateDestinationCandidates( rows ) {
+		if ( ! destination || ! destinationList || ! destinationOptions ) {
+			return;
+		}
+		const sourceIds = new Set( rows.map( ( row ) => row.dataset.termKey ) );
+		const nextSignature = Array.from( sourceIds ).sort().join( ',' );
+		const selectionChanged = sourceSignature !== null && sourceSignature !== nextSignature;
+		const options = Array.from( destinationOptions.content.querySelectorAll( 'option' ) )
+			.filter( ( option ) => ! sourceIds.has( option.dataset.termKey ) )
+			.map( ( option ) => option.cloneNode( true ) );
+		destinationList.replaceChildren( ...options );
+
+		const match = destination.value.match( /^(\d+):/ );
+		if ( match && sourceIds.has( match[ 1 ] ) ) {
+			destination.value = '';
+			if ( destinationNotice ) {
+				destinationNotice.hidden = false;
+			}
+		} else if ( selectionChanged && destinationNotice ) {
+			destinationNotice.hidden = true;
+		}
+		sourceSignature = nextSignature;
+	}
+
 	function updateSelection() {
 		const rows = selectedRows();
 		const label = selectedLabel( rows.length );
@@ -162,6 +191,7 @@
 		renderSelectedTerms( rows );
 		renderOutcomes( rows );
 		updateValidation( rows );
+		updateDestinationCandidates( rows );
 		if ( currentName ) {
 			currentName.textContent = rows.length === 1 ? rows[ 0 ].dataset.termName : currentName.dataset.fallback;
 		}

@@ -2,7 +2,9 @@
 
 Phase 5 applies only a current, administrator-approved Phase 4 preview. It implements rename, merge, and globally-unused deletion. Undo and the history UI remain outside this phase.
 
-The operation-plan tab groups the current administrator's category and tag drafts for review. They remain separate operations, each with one taxonomy, plan hash, state fingerprint, lock, batches, and result. A single preview dialog displays both. Before either starts, both previews are validated; a stale preview stops the whole start request. The existing batch workflow runs once per operation in sequence. After execution begins, each result remains independent, and the dialog identifies a partial outcome when one side fails.
+The operation-plan tab groups the current administrator's category and tag drafts for review. They remain separate operations, each with one taxonomy, plan hash, state fingerprint, lock, batches, and result. A single preview dialog displays both and has one execution button for the whole preview. Before either starts, every preview is validated and every taxonomy lock is reserved; a stale preview or unavailable lock stops the whole start request without starting either operation. The existing batch workflow runs once per operation in sequence, and the browser continues authenticated bounded requests after the one explicit click. After execution begins, each result remains independent. Terminal results close the preview and appear as an inline Japanese summary and in history.
+
+The dialog is rendered and opened only in response to the explicit preview action or while that same execution request chain is actively progressing. A stored `previewed`, completed, or failed operation never opens it on GET, tab navigation, browser reload, or history navigation. An interrupted `running` operation is shown with an explicit resume action on the plan page instead of an automatically opened dialog.
 
 ## Request flow
 
@@ -42,12 +44,12 @@ The journal records actual outcomes with stable keys:
 
 Operation items separately retain attempts, terminal status, and the latest safe error code. A journal failure is never reported as successful.
 
-## Phase 6 handoff
+## Phase 6 integration
 
-Phase 6 may read the immutable actual-change journal to determine Undo eligibility. It must not infer Undo from the original plan, and it must recheck all current terms, relationships, and conflicts before applying an inverse change.
+Phase 6 reads the immutable actual-change journal plus its fixed operation-item context to determine Undo eligibility. It does not infer a mutation from the original plan. The Undo preview and execution start each recheck current terms, posts, relationships, names, slugs, and parents. A separate child Operation stores fixed inverse items, bounded progress, conflicts, and the inverse change journal; the original Operation remains unchanged as audit evidence. See `docs/UNDO.md`.
 
 ## Verification
 
 The Phase 5 integration suite covers name-only rename, journal snapshots, bounded merge batches, continuation from pending items, a destination already assigned to a post, multiple sources sharing one post, preservation of unrelated assignments, excluded-object source retention, globally-unused deletion, stale fingerprints, changed plan hashes, terminal re-execution rejection, and `partial_failed` results after a between-batch conflict. Existing persistence tests cover lock contention, TTL expiry, token ownership, pending-item discovery, and idempotent journal keys. Controller tests cover the shared capability and nonce gate used by execution commands.
 
-At the latest Phase 5 verification, PHPCS checked 50 files with no errors or warnings, JavaScript lint passed, and PHPUnit passed 66 tests with 840 assertions. The Docker development site started and the plan tab rendered with all four navigation tabs. An authenticated destructive UI smoke run has not been completed. The phase remains `In progress` until that manual UI execution is confirmed.
+At the latest Phase 5 and Phase 6 verification, PHPCS checked 59 files with no errors or warnings, JavaScript lint passed, and PHPUnit passed 88 tests with 1,214 assertions. In the authenticated Docker administration screen, a dedicated tag was added to a rename plan, previewed, executed successfully through the modal, shown in history, previewed for Undo, and restored successfully through a separate Undo operation. Its name returned to the original value while its unchanged slug remained intact. The dedicated term and audit fixtures were removed after verification. Phase 5 is complete; Phase 6 verification details are recorded in `docs/UNDO.md`.

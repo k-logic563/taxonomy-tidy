@@ -16,4 +16,5 @@ enum Action: string {
 	case RENAME = 'rename';
 	case MERGE  = 'merge';
 	case DELETE = 'delete';
+	case UNDO   = 'undo';
 }

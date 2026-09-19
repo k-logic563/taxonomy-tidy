@@ -167,6 +167,33 @@
 	margin-top: 20px;
 }
 
+.taxonomy-tidy-history-table {
+	margin-top: 16px;
+}
+
+.taxonomy-tidy-history-detail {
+	display: grid;
+	grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+	max-width: 900px;
+	margin: 16px 0 24px;
+	border-top: 1px solid #dcdcde;
+}
+
+.taxonomy-tidy-history-detail dt,
+.taxonomy-tidy-history-detail dd {
+	margin: 0;
+	padding: 10px 12px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.taxonomy-tidy-history-detail dt {
+	font-weight: 600;
+}
+
+.taxonomy-tidy-change-summary {
+	max-width: 900px;
+}
+
 .taxonomy-tidy-inventory-table .check-column {
 	width: 2.2em;
 }

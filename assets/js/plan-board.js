@@ -12,16 +12,18 @@
 	let modalOpen = false;
 	let originalOverflow = '';
 
-	function closeModal() {
-		if ( ! modal || busy || modal.querySelector( '.taxonomy-tidy-modal__close' )?.disabled ) {
+	function closeModal( force = false, restoreFocus = true ) {
+		if ( ! modal || ( ! force && ( busy || modal.querySelector( '.taxonomy-tidy-modal__close' )?.disabled ) ) ) {
 			return;
 		}
 		modal.hidden = true;
+		modal.dataset.autoOpen = '0';
 		document.body.style.overflow = originalOverflow;
 		modalOpen = false;
-		if ( opener?.isConnected ) {
+		if ( restoreFocus && opener?.isConnected ) {
 			opener.focus();
 		}
+		opener = null;
 	}
 
 	function openModal( trigger ) {
@@ -36,6 +38,45 @@
 		modal.hidden = false;
 		modalOpen = true;
 		( modal.querySelector( '.taxonomy-tidy-modal__close:not(:disabled)' ) || modal.querySelector( '.taxonomy-tidy-modal__footer button:not(:disabled)' ) )?.focus();
+	}
+
+	function replaceBoard( page, trigger ) {
+		const nextContent = page.querySelector( '#taxonomy-tidy-board-content' );
+		if ( nextContent ) {
+			document.querySelector( '#taxonomy-tidy-board-content' )?.replaceWith( document.importNode( nextContent, true ) );
+			form = document.querySelector( '#taxonomy-tidy-board-form' );
+		}
+		const nextTab = page.querySelector( '.nav-tab[href*="view=plan"]' );
+		const tab = document.querySelector( '.nav-tab[href*="view=plan"]' );
+		if ( nextTab && tab ) {
+			tab.innerHTML = nextTab.innerHTML;
+			tab.setAttribute( 'aria-label', nextTab.getAttribute( 'aria-label' ) );
+		}
+
+		const nextModal = page.querySelector( '.taxonomy-tidy-board-modal' );
+		if ( ! nextModal ) {
+			closeModal( true, false );
+			modal?.remove();
+			modal = null;
+			( form?.querySelector( '[value="preview_all"], [value="continue_all"]' ) || tab )?.focus();
+			return null;
+		}
+
+		const wasOpen = modalOpen;
+		const next = document.importNode( nextModal, true );
+		if ( modal ) {
+			modal.replaceWith( next );
+		} else {
+			document.querySelector( '.taxonomy-tidy-screen' )?.append( next );
+		}
+		modal = next;
+		if ( wasOpen ) {
+			modal.hidden = false;
+			document.body.style.overflow = 'hidden';
+		} else {
+			openModal( trigger );
+		}
+		return modal;
 	}
 
 	document.addEventListener( 'submit', async ( event ) => {
@@ -61,45 +102,34 @@
 		}
 		busy = true;
 		submitter.disabled = true;
+		const trigger = submitter.value === 'preview_all' ? submitter : ( opener || submitter );
 		try {
-			const data = new globalThis.FormData( form );
-			data.set( 'plan_command', submitter.value );
-			modal?.querySelectorAll( '[name^="operation_ids["]' ).forEach( ( field ) => data.set( field.name, field.value ) );
-			const response = await globalThis.fetch( globalThis.location.href, { method: 'POST', body: data, credentials: 'same-origin' } );
-			if ( ! response.ok ) {
-				throw new Error( 'request failed' );
-			}
-			const page = new globalThis.DOMParser().parseFromString( await response.text(), 'text/html' );
-			const nextModal = page.querySelector( '.taxonomy-tidy-board-modal' );
-			const error = page.querySelector( '#taxonomy-tidy-board-content .notice-error' );
-			if ( error ) {
-				document.querySelector( '#taxonomy-tidy-board-content .notice-error' )?.remove();
-				document.querySelector( '#taxonomy-tidy-board-content h2' )?.after( document.importNode( error, true ) );
-				if ( modal && ! modal.hidden ) {
-					modal.querySelector( '.taxonomy-tidy-modal__body' ).prepend( document.importNode( error, true ) );
+			let command = submitter.value;
+			do {
+				const data = new globalThis.FormData( form );
+				data.set( 'plan_command', command );
+				modal?.querySelectorAll( '[name^="operation_ids["]' ).forEach( ( field ) => data.set( field.name, field.value ) );
+				const response = await globalThis.fetch( globalThis.location.href, { method: 'POST', body: data, credentials: 'same-origin' } );
+				if ( ! response.ok ) {
+					throw new Error( 'request failed' );
 				}
-				return;
-			}
-			if ( ! nextModal ) {
-				throw new Error( 'missing result' );
-			}
-			const next = document.importNode( nextModal, true );
-			if ( modal ) {
-				modal.replaceWith( next );
-			} else {
-				document.querySelector( '.taxonomy-tidy-screen' ).append( next );
-			}
-			modal = next;
-			const nextContent = page.querySelector( '#taxonomy-tidy-board-content' );
-			document.querySelector( '#taxonomy-tidy-board-content' )?.replaceWith( document.importNode( nextContent, true ) );
-			form = document.querySelector( '#taxonomy-tidy-board-form' );
-			const nextTab = page.querySelector( '.nav-tab[href*="view=plan"]' );
-			const tab = document.querySelector( '.nav-tab[href*="view=plan"]' );
-			if ( nextTab && tab ) {
-				tab.innerHTML = nextTab.innerHTML;
-				tab.setAttribute( 'aria-label', nextTab.getAttribute( 'aria-label' ) );
-			}
-			openModal( form?.querySelector( '[value="preview_all"]' ) || tab );
+				const page = new globalThis.DOMParser().parseFromString( await response.text(), 'text/html' );
+				const error = page.querySelector( '#taxonomy-tidy-board-content .notice-error' );
+				if ( error ) {
+					document.querySelector( '#taxonomy-tidy-board-content .notice-error' )?.remove();
+					document.querySelector( '#taxonomy-tidy-board-content h2' )?.after( document.importNode( error, true ) );
+					if ( modal && ! modal.hidden ) {
+						modal.querySelector( '.taxonomy-tidy-modal__body' )?.prepend( document.importNode( error, true ) );
+					}
+					break;
+				}
+				const nextModal = replaceBoard( page, trigger );
+				if ( nextModal?.dataset.running === '1' ) {
+					command = 'continue_all';
+					continue;
+				}
+				break;
+			} while ( true );
 		} catch {
 			globalThis.location.reload();
 		} finally {
@@ -173,4 +203,6 @@
 	if ( modal?.dataset.autoOpen === '1' ) {
 		openModal( form.querySelector( '[value="preview_all"]' ) );
 	}
+
+	globalThis.addEventListener( 'pagehide', () => closeModal( true, false ), { once: true } );
 }() );

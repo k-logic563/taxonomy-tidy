@@ -28,10 +28,11 @@ final class StatusTransitionsTest extends WP_UnitTestCase {
 			array( Status::RUNNING, Status::COMPLETED ),
 			array( Status::RUNNING, Status::PARTIAL_FAILED ),
 			array( Status::RUNNING, Status::FAILED ),
-			array( Status::COMPLETED, Status::UNDO_PREVIEWED ),
+			array( Status::DRAFT, Status::UNDO_PREVIEWED ),
 			array( Status::UNDO_PREVIEWED, Status::UNDOING ),
 			array( Status::UNDOING, Status::UNDONE ),
 			array( Status::UNDOING, Status::UNDO_PARTIAL_FAILED ),
+			array( Status::UNDOING, Status::FAILED ),
 		);
 
 		foreach ( $transitions as list( $from, $to ) ) {

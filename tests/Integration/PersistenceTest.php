@@ -61,9 +61,6 @@ final class PersistenceTest extends WP_UnitTestCase {
 		$repository->transition( $operation_id, Status::PREVIEWED );
 		$repository->transition( $operation_id, Status::RUNNING );
 		$repository->transition( $operation_id, Status::COMPLETED );
-		$repository->transition( $operation_id, Status::UNDO_PREVIEWED );
-		$repository->transition( $operation_id, Status::UNDOING );
-		$repository->transition( $operation_id, Status::UNDONE );
 		$repository->save_result(
 			$operation_id,
 			array( 'changed' => 3 ),
@@ -74,7 +71,7 @@ final class PersistenceTest extends WP_UnitTestCase {
 		$operation = $repository->find( $operation_id );
 
 		$this->assertIsArray( $operation );
-		$this->assertSame( Status::UNDONE->value, $operation['status'] );
+		$this->assertSame( Status::COMPLETED->value, $operation['status'] );
 		$this->assertSame( array( 'label' => 'normalized' ), $operation['requested_data'] );
 		$this->assertSame( str_repeat( 'a', 64 ), $operation['plan_hash'] );
 		$this->assertSame( array( 'changed' => 3 ), $operation['result_data'] );
@@ -83,10 +80,14 @@ final class PersistenceTest extends WP_UnitTestCase {
 		$this->assertNotNull( $operation['completed_at'] );
 
 		$undo_id = $repository->create( 7, Taxonomy::CATEGORY, array(), $operation_id );
-		$undo    = $repository->find( $undo_id );
+		$repository->transition( $undo_id, Status::UNDO_PREVIEWED );
+		$repository->transition( $undo_id, Status::UNDOING );
+		$repository->transition( $undo_id, Status::UNDONE );
+		$undo = $repository->find( $undo_id );
 
 		$this->assertIsArray( $undo );
 		$this->assertSame( $operation_id, $undo['parent_operation_id'] );
+		$this->assertSame( Status::UNDONE->value, $undo['status'] );
 	}
 
 	/**

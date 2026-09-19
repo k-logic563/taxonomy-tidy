@@ -121,6 +121,85 @@ final class OperationRepository {
 	}
 
 	/**
+	 * Returns one operation only when it belongs to the current administrator.
+	 *
+	 * @param int $operation_id Operation ID.
+	 * @param int $user_id      Administrator ID.
+	 * @return array<string, mixed>|null
+	 */
+	public function find_owned( int $operation_id, int $user_id ): ?array {
+		$operation = $this->find( $operation_id );
+		return null !== $operation && $user_id === (int) $operation['user_id'] ? $operation : null;
+	}
+
+	/**
+	 * Returns started operations newest first for the owner-facing history.
+	 *
+	 * @param int $user_id Administrator ID.
+	 * @param int $page    One-based page.
+	 * @param int $per_page Page size.
+	 * @return array{items: list<array<string, mixed>>, total: int, page: int, per_page: int, total_pages: int}
+	 */
+	public function history( int $user_id, int $page, int $per_page ): array {
+		$per_page = max( 1, min( 100, $per_page ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom audit table has no core API or object cache.
+		$total       = (int) $this->database->get_var(
+			$this->database->prepare( 'SELECT COUNT(*) FROM %i WHERE user_id = %d AND started_at IS NOT NULL', $this->table, $user_id )
+		);
+		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+		$page        = max( 1, min( $page, $total_pages ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom audit table has no core API or object cache.
+		$ids        = $this->database->get_col(
+			$this->database->prepare(
+				'SELECT id FROM %i WHERE user_id = %d AND started_at IS NOT NULL ORDER BY started_at DESC, id DESC LIMIT %d OFFSET %d',
+				$this->table,
+				$user_id,
+				$per_page,
+				( $page - 1 ) * $per_page
+			)
+		);
+		$operations = array();
+		foreach ( is_array( $ids ) ? $ids : array() as $id ) {
+			$operation = $this->find( (int) $id );
+			if ( null !== $operation ) {
+				$operations[] = $operation;
+			}
+		}
+		return array(
+			'items'       => $operations,
+			'total'       => $total,
+			'page'        => $page,
+			'per_page'    => $per_page,
+			'total_pages' => $total_pages,
+		);
+	}
+
+	/**
+	 * Returns started Undo records for an original operation.
+	 *
+	 * @param int $parent_operation_id Original operation ID.
+	 * @return list<array<string, mixed>>
+	 */
+	public function started_undos( int $parent_operation_id ): array {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom audit table has no core API or object cache.
+		$ids        = $this->database->get_col(
+			$this->database->prepare(
+				'SELECT id FROM %i WHERE parent_operation_id = %d AND started_at IS NOT NULL ORDER BY id DESC',
+				$this->table,
+				$parent_operation_id
+			)
+		);
+		$operations = array();
+		foreach ( is_array( $ids ) ? $ids : array() as $id ) {
+			$operation = $this->find( (int) $id );
+			if ( null !== $operation ) {
+				$operations[] = $operation;
+			}
+		}
+		return $operations;
+	}
+
+	/**
 	 * Returns the latest editable draft or preview for one user and taxonomy.
 	 *
 	 * @param int      $user_id  Administrator user ID.
@@ -372,7 +451,7 @@ final class OperationRepository {
 			'updated_at' => $now,
 		);
 
-		if ( Status::RUNNING === $to ) {
+		if ( in_array( $to, array( Status::RUNNING, Status::UNDOING ), true ) ) {
 			$data['started_at'] = $now;
 		}
 

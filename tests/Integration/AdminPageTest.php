@@ -226,7 +226,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		ob_start();
 		$this->page->render();
 		$history = (string) ob_get_clean();
-		$this->assertStringContainsString( '操作履歴は今後のフェーズで表示します。', $history );
+		$this->assertStringContainsString( '実行済みの操作はありません。', $history );
 		$this->assertStringNotContainsString( 'Tab category renamed', $history );
 	}
 
@@ -318,7 +318,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$output = (string) ob_get_clean();
 		$this->assertSame( 1, substr_count( $output, 'role="dialog"' ) );
 		$this->assertStringContainsString( 'aria-modal="true"', $output );
-		$this->assertStringContainsString( 'data-auto-open="1" hidden', $output );
+		$this->assertStringContainsString( 'data-auto-open="1" data-running="0" hidden', $output );
 		$this->assertStringContainsString( 'Modal renamed', $output );
 		$this->assertStringContainsString( '対象投稿を確認', $output );
 		$this->assertStringNotContainsString( 'Lazy title fixture', $output );
@@ -435,6 +435,24 @@ final class AdminPageTest extends WP_UnitTestCase {
 		);
 		$term    = get_term( $term_id, 'post_tag' );
 		$this->assertInstanceOf( \WP_Term::class, $term );
+		$second_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Inline error source',
+				'slug'     => 'inline-error-source-2',
+			)
+		);
+		$third_id  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Inline error source',
+				'slug'     => 'inline-error-source-3',
+			)
+		);
+		$second    = get_term( $second_id, 'post_tag' );
+		$third     = get_term( $third_id, 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $second );
+		$this->assertInstanceOf( \WP_Term::class, $third );
 		$_GET                      = array( 'taxonomy' => 'post_tag' );
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_POST                     = array(
@@ -452,9 +470,24 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$merge_output = (string) ob_get_clean();
 		$this->assertStringContainsString( 'id="taxonomy-tidy-destination-error-0"', $merge_output );
 		$this->assertStringContainsString( 'The merge destination cannot be the same as its source.', $merge_output );
-		$this->assertStringContainsString( 'aria-describedby="taxonomy-tidy-destination-help taxonomy-tidy-destination-error-0"', $merge_output );
+		$this->assertStringContainsString( 'aria-describedby="taxonomy-tidy-destination-help taxonomy-tidy-destination-selection-notice taxonomy-tidy-destination-error-0"', $merge_output );
 		$this->assertMatchesRegularExpression( '/id="taxonomy-tidy-destination"[^>]+data-error-focus="true"/', $merge_output );
 		$this->assertLessThan( strpos( $merge_output, 'taxonomy-tidy-destination-error-0' ), strpos( $merge_output, 'taxonomy-tidy-merge-destination-group' ) );
+		$this->assertMatchesRegularExpression( '/id="taxonomy-tidy-destination"[^>]+value=""/', $merge_output );
+		$this->assertStringContainsString( '選択していた統合先が統合元に含まれたため、選択を解除しました。', $merge_output );
+		$this->assertSame( 1, preg_match( '/<datalist id="taxonomy-tidy-destinations">(.*?)<\/datalist>/s', $merge_output, $destination_list ) );
+		$this->assertStringNotContainsString( 'data-term-key="' . $term_id . '"', $destination_list[1] );
+		$this->assertStringContainsString( 'data-term-key="' . $second_id . '"', $destination_list[1] );
+
+		$_POST['selected_terms']                  = array( (string) $term_id, (string) $second_id );
+		$_POST['term_taxonomy_ids'][ $second_id ] = (string) $second->term_taxonomy_id;
+		ob_start();
+		$this->page->render();
+		$multiple_source_output = (string) ob_get_clean();
+		$this->assertSame( 1, preg_match( '/<datalist id="taxonomy-tidy-destinations">(.*?)<\/datalist>/s', $multiple_source_output, $multiple_destination_list ) );
+		$this->assertStringNotContainsString( 'data-term-key="' . $term_id . '"', $multiple_destination_list[1] );
+		$this->assertStringNotContainsString( 'data-term-key="' . $second_id . '"', $multiple_destination_list[1] );
+		$this->assertStringContainsString( 'data-term-key="' . $third_id . '"', $multiple_destination_list[1] );
 
 		unset( $_POST['selected_terms'], $_POST['term_taxonomy_ids'] );
 		ob_start();

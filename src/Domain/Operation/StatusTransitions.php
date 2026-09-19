@@ -19,18 +19,18 @@ final class StatusTransitions {
 	 * @var array<string, list<Status>>
 	 */
 	private const ALLOWED = array(
-		'draft'          => array( Status::PREVIEWED ),
+		'draft'          => array( Status::PREVIEWED, Status::UNDO_PREVIEWED ),
 		'previewed'      => array( Status::RUNNING ),
 		'running'        => array(
 			Status::COMPLETED,
 			Status::PARTIAL_FAILED,
 			Status::FAILED,
 		),
-		'completed'      => array( Status::UNDO_PREVIEWED ),
 		'undo_previewed' => array( Status::UNDOING ),
 		'undoing'        => array(
 			Status::UNDONE,
 			Status::UNDO_PARTIAL_FAILED,
+			Status::FAILED,
 		),
 	);
 

@@ -96,6 +96,17 @@ final class OperationLock {
 	}
 
 	/**
+	 * Checks that a supplied reservation is still owned and extends its lease.
+	 *
+	 * @param int    $operation_id Operation that owns the reservation.
+	 * @param string $token        Reservation token.
+	 * @param int    $ttl_seconds  New lease lifetime in seconds.
+	 */
+	public function owns( int $operation_id, string $token, int $ttl_seconds = 60 ): bool {
+		return $this->renew( $operation_id, $token, $ttl_seconds );
+	}
+
+	/**
 	 * Extends a lease held by the supplied token.
 	 *
 	 * @param int    $operation_id Operation that owns the lease.
