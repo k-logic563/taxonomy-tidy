@@ -11,6 +11,10 @@ namespace TaxonomyTidy\Tests\Integration;
 
 use TaxonomyTidy\Admin\Page;
 use TaxonomyTidy\Admin\HistoryPage;
+use TaxonomyTidy\Application\Undo\UndoException;
+use TaxonomyTidy\Application\Undo\UndoItemExecutor;
+use TaxonomyTidy\Application\Undo\UndoPlanner;
+use TaxonomyTidy\Application\Undo\UndoWorkflow;
 use TaxonomyTidy\Domain\Operation\Action;
 use TaxonomyTidy\Domain\Operation\Status;
 use TaxonomyTidy\Domain\Operation\Taxonomy;
@@ -19,6 +23,8 @@ use TaxonomyTidy\Infrastructure\Database\Tables;
 use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
 use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
 use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
+use TaxonomyTidy\Infrastructure\Persistence\DatabaseTransaction;
+use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
 use WP_UnitTestCase;
 
 /** Verifies history filtering, localization, ownership, and read security. */
@@ -132,6 +138,19 @@ final class HistoryPageTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '操作 #' . $other . ' の詳細', $output );
 	}
 
+	/** The lazy log service rejects an operation ID owned by another administrator. */
+	public function test_history_logs_reject_another_owner(): void {
+		$user_id    = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$other_id   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$repository = new OperationRepository( $GLOBALS['wpdb'] );
+		$operation  = $repository->create( $other_id, Taxonomy::CATEGORY, $this->plan( 'rename' ) );
+		$repository->transition( $operation, Status::PREVIEWED );
+		$repository->transition( $operation, Status::RUNNING );
+
+		$this->expectException( UndoException::class );
+		$this->history_page()->history_logs( $operation, $user_id, 1 );
+	}
+
 	/** An Undo preview POST without a valid nonce creates no child operation. */
 	public function test_undo_preview_requires_nonce(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -202,6 +221,37 @@ final class HistoryPageTest extends WP_UnitTestCase {
 		$this->assertSame( array(), $repository->started_undos( $original ) );
 	}
 
+	/** Detail HTML contains only five prioritized log rows and a lazy expansion control. */
+	public function test_history_detail_limits_initial_logs_to_five(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+		$operations = new OperationRepository( $GLOBALS['wpdb'] );
+		$items      = new OperationItemRepository( $GLOBALS['wpdb'] );
+		$journal    = new ChangeJournalRepository( $GLOBALS['wpdb'] );
+		$operation  = $operations->create( $user_id, Taxonomy::POST_TAG, $this->plan( 'rename' ) );
+		$operations->transition( $operation, Status::PREVIEWED );
+		$operations->transition( $operation, Status::RUNNING );
+		$operations->transition( $operation, Status::COMPLETED );
+		$types = array( 'name_changed', 'slug_changed', 'destination_added', 'source_removed', 'source_retained', 'item_failed' );
+		foreach ( $types as $index => $type ) {
+			$item_id = $items->add( $operation, 'log:' . $index, Action::RENAME, array( 'before' => array( 'name' => 'History target ' . $index ) ) );
+			$items->mark_completed( $item_id );
+			$journal->record_once( $operation, $item_id, 'log:' . $index, $type, array( 'name' => 'Before ' . $index ), array( 'name' => 'After ' . $index ) );
+		}
+		$_GET['history_id'] = (string) $operation;
+
+		ob_start();
+		( new Page() )->render();
+		$output = (string) ob_get_clean();
+
+		$this->assertSame( 5, substr_count( $output, '<li class="taxonomy-tidy-log ' ) );
+		$this->assertStringContainsString( '全体：6件、成功：4件、警告：1件、エラー：1件', $output );
+		$this->assertStringContainsString( 'aria-expanded="false"', $output );
+		$this->assertStringContainsString( '>詳しく見る</button>', $output );
+		$this->assertStringNotContainsString( 'term_taxonomy_id', $output );
+		$this->assertStringNotContainsString( 'item_failed', $output );
+	}
+
 	/**
 	 * Returns a minimal stored request used only for history labels.
 	 *
@@ -216,6 +266,16 @@ final class HistoryPageTest extends WP_UnitTestCase {
 				),
 			),
 		);
+	}
+
+	/** Returns the fully wired history service used by its authenticated endpoints. */
+	private function history_page(): HistoryPage {
+		$operations = new OperationRepository( $GLOBALS['wpdb'] );
+		$items      = new OperationItemRepository( $GLOBALS['wpdb'] );
+		$journal    = new ChangeJournalRepository( $GLOBALS['wpdb'] );
+		$planner    = new UndoPlanner( $operations, $items, $journal );
+		$workflow   = new UndoWorkflow( $operations, $items, new OperationLock( $GLOBALS['wpdb'] ), $planner, new UndoItemExecutor( $journal ), new DatabaseTransaction( $GLOBALS['wpdb'] ) );
+		return new HistoryPage( $operations, $items, $journal, $planner, $workflow );
 	}
 
 	/** Clears isolated custom persistence tables. */

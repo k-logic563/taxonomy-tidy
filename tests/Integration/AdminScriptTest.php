@@ -31,10 +31,47 @@ final class AdminScriptTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'taxonomy_tidy_search_destinations', $script );
 	}
 
+	/** Asynchronous actions expose a non-color loading state to assistive technology. */
+	public function test_async_actions_publish_loading_state(): void {
+		$script = $this->script();
+		$this->assertStringContainsString( "submitter.classList.add( 'is-loading' )", $script );
+		$this->assertStringContainsString( "submitter.setAttribute( 'aria-busy', 'true' )", $script );
+		$this->assertStringContainsString( "submitter.removeAttribute( 'aria-busy' )", $script );
+	}
+
+	/** Undo batches continue automatically with bounded network retry and terminal guards. */
+	public function test_history_script_automates_undo_batches_safely(): void {
+		$script = $this->history_script();
+		$this->assertStringContainsString( 'const maxAttempts = 3', $script );
+		$this->assertStringContainsString( "progress.has_more && progress.status === 'undoing'", $script );
+		$this->assertStringContainsString( "[ 'undone', 'undo_partial_failed', 'failed' ].includes", $script );
+		$this->assertStringContainsString( "data.set( 'action', 'taxonomy_tidy_undo_batch' )", $script );
+		$this->assertStringContainsString( 'setModalLocked( true )', $script );
+		$this->assertStringContainsString( "button.setAttribute( 'aria-busy', 'true' )", $script );
+		$this->assertStringContainsString( 'progress.processed <= previousProcessed', $script );
+	}
+
+	/** History logs are fetched only after expansion and use accessible state. */
+	public function test_history_script_lazily_expands_logs(): void {
+		$script = $this->history_script();
+		$this->assertStringContainsString( "data.set( 'action', 'taxonomy_tidy_history_logs' )", $script );
+		$this->assertStringContainsString( "button.setAttribute( 'aria-expanded', 'true' )", $script );
+		$this->assertStringContainsString( "button.textContent = strings.collapse || '閉じる'", $script );
+		$this->assertStringContainsString( 'page <= totalPages', $script );
+	}
+
 	/** Returns the administration script source. */
 	private function script(): string {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local version-controlled test subject.
 		$script = file_get_contents( dirname( __DIR__, 2 ) . '/assets/js/admin.js' );
+		$this->assertIsString( $script );
+		return $script;
+	}
+
+	/** Returns the history script source. */
+	private function history_script(): string {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local version-controlled test subject.
+		$script = file_get_contents( dirname( __DIR__, 2 ) . '/assets/js/history.js' );
 		$this->assertIsString( $script );
 		return $script;
 	}

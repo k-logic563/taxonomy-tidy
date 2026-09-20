@@ -111,6 +111,129 @@ final class ChangeJournalRepository {
 	}
 
 	/**
+	 * Returns a bounded page of journal rows with their item context.
+	 *
+	 * @param int $operation_id Operation ID whose changes are requested.
+	 * @param int $page         One-based page number.
+	 * @param int $per_page     Page size, capped to protect the response.
+	 * @return array{items: list<array<string, mixed>>, total: int, page: int, per_page: int, total_pages: int}
+	 */
+	public function history_page( int $operation_id, int $page, int $per_page ): array {
+		$per_page    = max( 1, min( 100, $per_page ) );
+		$total       = $this->count_for_operation( $operation_id );
+		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+		$page        = max( 1, min( $page, $total_pages ) );
+		$rows        = $this->database->get_results(
+			$this->database->prepare(
+				'SELECT changes.*, items.payload AS item_payload
+				FROM %i AS changes
+				INNER JOIN %i AS items ON items.id = changes.item_id AND items.operation_id = changes.operation_id
+				WHERE changes.operation_id = %d
+				ORDER BY changes.id ASC LIMIT %d OFFSET %d',
+				$this->table,
+				Tables::items( $this->database ),
+				$operation_id,
+				$per_page,
+				( $page - 1 ) * $per_page
+			),
+			ARRAY_A
+		);
+
+		return array(
+			'items'       => array_map( array( $this, 'normalize_history_row' ), is_array( $rows ) ? $rows : array() ),
+			'total'       => $total,
+			'page'        => $page,
+			'per_page'    => $per_page,
+			'total_pages' => $total_pages,
+		);
+	}
+
+	/**
+	 * Returns at most five representative rows, prioritizing failures and warnings.
+	 *
+	 * @param int $operation_id Operation ID whose summary is requested.
+	 * @param int $limit        Maximum preview rows.
+	 * @return list<array<string, mixed>>
+	 */
+	public function history_preview( int $operation_id, int $limit = 5 ): array {
+		$limit = max( 1, min( 5, $limit ) );
+		$rows  = $this->database->get_results(
+			$this->database->prepare(
+				'SELECT changes.*, items.payload AS item_payload
+				FROM %i AS changes
+				INNER JOIN %i AS items ON items.id = changes.item_id AND items.operation_id = changes.operation_id
+				WHERE changes.operation_id = %d
+				ORDER BY CASE
+					WHEN changes.change_type IN (\'item_failed\', \'undo_item_failed\') THEN 0
+					WHEN changes.change_type = \'source_retained\' THEN 1
+					ELSE 2 END ASC, changes.id DESC
+				LIMIT %d',
+				$this->table,
+				Tables::items( $this->database ),
+				$operation_id,
+				$limit
+			),
+			ARRAY_A
+		);
+
+		return array_map( array( $this, 'normalize_history_row' ), is_array( $rows ) ? $rows : array() );
+	}
+
+	/**
+	 * Returns journal totals grouped into user-facing severities.
+	 *
+	 * @param int $operation_id Operation ID whose summary is requested.
+	 * @return array{total: int, success: int, warning: int, error: int}
+	 */
+	public function history_counts( int $operation_id ): array {
+		$row     = $this->database->get_row(
+			$this->database->prepare(
+				'SELECT COUNT(*) AS total,
+				SUM(change_type IN (\'item_failed\', \'undo_item_failed\')) AS error_count,
+				SUM(change_type = \'source_retained\') AS warning_count
+				FROM %i WHERE operation_id = %d',
+				$this->table,
+				$operation_id
+			),
+			ARRAY_A
+		);
+		$total   = (int) ( $row['total'] ?? 0 );
+		$error   = (int) ( $row['error_count'] ?? 0 );
+		$warning = (int) ( $row['warning_count'] ?? 0 );
+
+		return array(
+			'total'   => $total,
+			'success' => max( 0, $total - $error - $warning ),
+			'warning' => $warning,
+			'error'   => $error,
+		);
+	}
+
+	/**
+	 * Counts journal rows without loading snapshots.
+	 *
+	 * @param int $operation_id Operation ID.
+	 */
+	private function count_for_operation( int $operation_id ): int {
+		return (int) $this->database->get_var(
+			$this->database->prepare( 'SELECT COUNT(*) FROM %i WHERE operation_id = %d', $this->table, $operation_id )
+		);
+	}
+
+	/**
+	 * Normalizes a journal row and its bounded item context.
+	 *
+	 * @param array<string, mixed> $row Database row.
+	 * @return array<string, mixed>
+	 */
+	private function normalize_history_row( array $row ): array {
+		$payload             = Json::decode( (string) $row['item_payload'] );
+		$row                 = $this->normalize_row( $row );
+		$row['item_payload'] = $payload;
+		return $row;
+	}
+
+	/**
 	 * Marks a journal entry as undone without changing its recorded snapshots.
 	 *
 	 * @param int $change_id Change journal row ID.

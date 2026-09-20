@@ -127,7 +127,9 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'id="taxonomy-tidy-merge-destination-group" class="taxonomy-tidy-field-group"', $output );
 		$this->assertStringContainsString( '<label class="taxonomy-tidy-field-label" for="taxonomy-tidy-destination">Merge destination</label>', $output );
 		$this->assertStringContainsString( 'id="taxonomy-tidy-destination-help" class="description taxonomy-tidy-field-help"', $output );
-		$this->assertStringContainsString( '<select class="taxonomy-tidy-field-control" id="taxonomy-tidy-destination" name="destination"', $output );
+		$this->assertStringContainsString( '<select class="taxonomy-tidy-field-control tt-control" id="taxonomy-tidy-destination" name="destination"', $output );
+		$this->assertStringContainsString( 'class="wrap taxonomy-tidy taxonomy-tidy-screen"', $output );
+		$this->assertStringContainsString( 'class="button button-primary tt-button tt-button--primary"', $output );
 		$this->assertStringContainsString( '<option value="">Select a merge destination.</option>', $output );
 		$this->assertStringNotContainsString( '<datalist', $output );
 		$this->assertStringNotContainsString( 'taxonomy-tidy-destination-results', $output );
@@ -490,7 +492,8 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '変更後のslug', $output );
 		$this->assertStringNotContainsString( 'Preview created:', $output );
 		$this->assertStringNotContainsString( 'Warnings: 0', $output );
-		$this->assertStringContainsString( 'class="button taxonomy-tidy-modal__cancel"', $output );
+		$this->assertStringContainsString( 'class="button tt-button tt-button--secondary taxonomy-tidy-modal__cancel"', $output );
+		$this->assertStringContainsString( 'class="taxonomy-tidy taxonomy-tidy-modal taxonomy-tidy-board-modal"', $output );
 		$this->assertStringContainsString( 'name="plan_command" value="run_all"', $output );
 		$this->assertStringNotContainsString( 'value="discard"', $output );
 		$this->assertStringNotContainsString( 'value="revise"', $output );
@@ -721,7 +724,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Globally unused', $output );
 		$this->assertStringContainsString( 'Published posts · Descending', $output );
 
-		$matched = preg_match( '/<a class="button button-secondary" href="([^"]+)">/', $output, $matches );
+		$matched = preg_match( '/<a class="button button-secondary tt-button tt-button--secondary" href="([^"]+)">/', $output, $matches );
 		$this->assertSame( 1, $matched );
 		$reset_url = html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' );
 		$this->assertStringContainsString( 'page=taxonomy-tidy', $reset_url );

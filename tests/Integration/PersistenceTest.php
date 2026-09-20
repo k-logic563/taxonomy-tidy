@@ -264,6 +264,40 @@ final class PersistenceTest extends WP_UnitTestCase {
 		$this->assertFalse( $journal->mark_undone( $first_id ) );
 	}
 
+	/** History preview is capped and prioritizes errors, warnings, then recent results. */
+	public function test_change_journal_history_summary_is_bounded_and_prioritized(): void {
+		global $wpdb;
+		$operations   = new OperationRepository( $wpdb );
+		$items        = new OperationItemRepository( $wpdb );
+		$journal      = new ChangeJournalRepository( $wpdb );
+		$operation_id = $operations->create( 7, Taxonomy::POST_TAG );
+		$types        = array( 'name_changed', 'slug_changed', 'destination_added', 'source_removed', 'source_retained', 'item_failed' );
+		foreach ( $types as $index => $type ) {
+			$item_id = $items->add( $operation_id, 'history:' . $index, Action::RENAME, array( 'before' => array( 'name' => 'Log ' . $index ) ) );
+			$journal->record_once( $operation_id, $item_id, 'history:' . $index, $type, array( 'name' => 'Before ' . $index ), array( 'name' => 'After ' . $index ) );
+		}
+
+		$preview = $journal->history_preview( $operation_id );
+		$counts  = $journal->history_counts( $operation_id );
+		$page    = $journal->history_page( $operation_id, 1, 3 );
+
+		$this->assertCount( 5, $preview );
+		$this->assertSame( 'item_failed', $preview[0]['change_type'] );
+		$this->assertSame( 'source_retained', $preview[1]['change_type'] );
+		$this->assertSame( array( 'before' => array( 'name' => 'Log 5' ) ), $preview[0]['item_payload'] );
+		$this->assertSame(
+			array(
+				'total'   => 6,
+				'success' => 4,
+				'warning' => 1,
+				'error'   => 1,
+			),
+			$counts
+		);
+		$this->assertSame( 2, $page['total_pages'] );
+		$this->assertCount( 3, $page['items'] );
+	}
+
 	/**
 	 * Deletes all custom rows from the isolated WordPress test database.
 	 */

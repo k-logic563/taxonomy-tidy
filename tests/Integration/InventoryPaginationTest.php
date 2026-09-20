@@ -147,7 +147,7 @@ final class InventoryPaginationTest extends WP_UnitTestCase {
 			}
 		}
 		$this->assertFalse( $open );
-		preg_match_all( '/<a class="button taxonomy-tidy-page-link" href="([^"]+)" aria-label="([^"]+)">/', $output, $links, PREG_SET_ORDER );
+		preg_match_all( '/<a class="button tt-button tt-button--pagination taxonomy-tidy-page-link" href="([^"]+)" aria-label="([^"]+)">/', $output, $links, PREG_SET_ORDER );
 		$labels = array();
 		foreach ( $links as $link ) {
 			$url = html_entity_decode( $link[1], ENT_QUOTES, 'UTF-8' );
@@ -215,7 +215,7 @@ final class InventoryPaginationTest extends WP_UnitTestCase {
 		}
 		$this->assertStringNotContainsString( 'aria-label="23ページへ"', $middle );
 		$this->assertStringContainsString( 'aria-current="page"', $middle );
-		$this->assertSame( 1, preg_match( '/<span class="button taxonomy-tidy-page-link taxonomy-tidy-page-current"[^>]*>25<\/span>/', $middle ) );
+		$this->assertSame( 1, preg_match( '/<span class="button tt-button tt-button--pagination taxonomy-tidy-page-link taxonomy-tidy-page-current"[^>]*>25<\/span>/', $middle ) );
 		$first = $this->render_navigation( 1, 50, 1000 );
 		$this->assertSame( 2, substr_count( $first, 'taxonomy-tidy-page-disabled' ) );
 		$this->assertSame( 2, substr_count( $first, 'aria-disabled="true"' ) );

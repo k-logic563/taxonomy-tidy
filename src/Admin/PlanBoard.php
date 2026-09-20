@@ -487,9 +487,9 @@ final class PlanBoard {
 					foreach ( $operations as $taxonomy => $operation ) :
 						?>
 						<input type="hidden" name="operation_ids[<?php echo esc_attr( $taxonomy ); ?>]" value="<?php echo esc_attr( (string) $operation['id'] ); ?>"><?php endforeach; ?>
-					<button type="submit" class="button button-primary" name="plan_command" value="continue_all"><?php echo esc_html__( '処理を再開', 'taxonomy-tidy' ); ?></button>
+					<button type="submit" class="button button-primary tt-button tt-button--primary" name="plan_command" value="continue_all"><?php echo esc_html__( '処理を再開', 'taxonomy-tidy' ); ?></button>
 				<?php else : ?>
-					<button type="submit" class="button button-primary" name="plan_command" value="preview_all"><?php echo esc_html__( '変更内容を確認', 'taxonomy-tidy' ); ?></button>
+					<button type="submit" class="button button-primary tt-button tt-button--primary" name="plan_command" value="preview_all"><?php echo esc_html__( '変更内容を確認', 'taxonomy-tidy' ); ?></button>
 				<?php endif; ?></div>
 			</form>
 		<?php endif; ?>
@@ -509,7 +509,7 @@ final class PlanBoard {
 		$results = (array) $state['results'];
 		$active  = array() !== $results;
 		?>
-		<div class="taxonomy-tidy-modal taxonomy-tidy-board-modal" data-auto-open="1" data-running="<?php echo $this->has_running( $results ) ? '1' : '0'; ?>" hidden>
+		<div class="taxonomy-tidy taxonomy-tidy-modal taxonomy-tidy-board-modal" data-auto-open="1" data-running="<?php echo $this->has_running( $results ) ? '1' : '0'; ?>" hidden>
 			<div class="taxonomy-tidy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="taxonomy-tidy-preview-heading" tabindex="-1">
 				<header class="taxonomy-tidy-modal__header"><h2 id="taxonomy-tidy-preview-heading"><?php echo esc_html( $active ? __( '実行結果', 'taxonomy-tidy' ) : __( '変更内容のプレビュー', 'taxonomy-tidy' ) ); ?></h2><button type="button" class="taxonomy-tidy-modal__close" aria-label="<?php echo esc_attr__( '閉じる', 'taxonomy-tidy' ); ?>" <?php disabled( $this->has_running( $results ) ); ?>>&times;</button></header>
 				<div class="taxonomy-tidy-modal__body" aria-live="polite">
@@ -519,14 +519,14 @@ final class PlanBoard {
 						<?php $this->render_previews( (array) $state['operations'] ); ?>
 					<?php endif; ?>
 				</div>
-				<footer class="taxonomy-tidy-modal__footer"><button type="button" class="button taxonomy-tidy-modal__cancel" <?php disabled( $this->has_running( $results ) ); ?>><?php echo esc_html__( 'キャンセル', 'taxonomy-tidy' ); ?></button>
+				<footer class="taxonomy-tidy-modal__footer"><button type="button" class="button tt-button tt-button--secondary taxonomy-tidy-modal__cancel" <?php disabled( $this->has_running( $results ) ); ?>><?php echo esc_html__( 'キャンセル', 'taxonomy-tidy' ); ?></button>
 				<?php if ( $active ) : ?>
 					<?php
 					foreach ( $results as $taxonomy => $operation ) :
 						?>
 						<input type="hidden" form="taxonomy-tidy-board-form" name="operation_ids[<?php echo esc_attr( $taxonomy ); ?>]" value="<?php echo esc_attr( (string) $operation['id'] ); ?>"><?php endforeach; ?>
 				<?php else : ?>
-					<button type="submit" form="taxonomy-tidy-board-form" class="button button-primary" name="plan_command" value="run_all" <?php disabled( array() !== $state['errors'] || $this->has_draft( (array) $state['operations'] ) || $this->has_running( (array) $state['operations'] ) || $this->has_stale_preview( (array) $state['operations'] ) ); ?>><?php echo esc_html__( '実行', 'taxonomy-tidy' ); ?></button>
+					<button type="submit" form="taxonomy-tidy-board-form" class="button button-primary tt-button tt-button--primary" name="plan_command" value="run_all" <?php disabled( array() !== $state['errors'] || $this->has_draft( (array) $state['operations'] ) || $this->has_running( (array) $state['operations'] ) || $this->has_stale_preview( (array) $state['operations'] ) ); ?>><?php echo esc_html__( '実行', 'taxonomy-tidy' ); ?></button>
 				<?php endif; ?>
 				</footer>
 			</div>

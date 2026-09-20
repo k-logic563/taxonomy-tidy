@@ -22,8 +22,9 @@ use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
 
 /** Handles the owner-scoped audit list, detail, and Undo commands. */
 final class HistoryPage {
-	public const NONCE_ACTION = 'taxonomy_tidy_undo';
-	public const NONCE_FIELD  = 'taxonomy_tidy_undo_nonce';
+	public const NONCE_ACTION  = 'taxonomy_tidy_undo';
+	public const NONCE_FIELD   = 'taxonomy_tidy_undo_nonce';
+	public const LOG_PAGE_SIZE = 100;
 
 	/**
 	 * Creates the owner-scoped history screen.
@@ -115,6 +116,76 @@ final class HistoryPage {
 	}
 
 	/**
+	 * Runs one authenticated bounded batch and returns only client-safe progress.
+	 *
+	 * Terminal operations are returned unchanged so a response retry cannot turn a
+	 * completed Undo into a misleading error.
+	 *
+	 * @param int      $undo_id Undo operation ID.
+	 * @param int      $user_id Current administrator ID.
+	 * @param Taxonomy $taxonomy Posted taxonomy allow-list value.
+	 * @return array<string, int|string|bool>
+	 * @throws UndoException When identity, state, or locking prevents continuation.
+	 */
+	public function continue_undo( int $undo_id, int $user_id, Taxonomy $taxonomy ): array {
+		$undo   = $this->operations->find_owned( $undo_id, $user_id );
+		$parent = null === $undo ? null : $this->operations->find_owned( (int) $undo['parent_operation_id'], $user_id );
+		if ( null === $undo || null === $undo['parent_operation_id'] || null === $parent || 'undo' !== ( $undo['requested_data']['kind'] ?? '' ) || $taxonomy->value !== $undo['taxonomy'] || $parent['taxonomy'] !== $undo['taxonomy'] ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Stable internal code only.
+			throw new UndoException( UndoErrorCode::INVALID_OPERATION );
+		}
+		if ( in_array( $undo['status'], array( Status::UNDONE->value, Status::UNDO_PARTIAL_FAILED->value, Status::FAILED->value ), true ) ) {
+			$undo['progress'] = $this->items->progress( $undo_id );
+		} else {
+			$undo = $this->workflow->run_batch( $undo_id, $user_id );
+		}
+		$progress  = is_array( $undo['progress'] ?? null ) ? $undo['progress'] : array();
+		$processed = (int) ( $progress['completed'] ?? 0 ) + (int) ( $progress['failed'] ?? 0 ) + (int) ( $progress['skipped'] ?? 0 );
+		$remaining = (int) ( $progress['pending'] ?? 0 );
+		$status    = (string) $undo['status'];
+
+		return array(
+			'processed'    => $processed,
+			'succeeded'    => (int) ( $progress['completed'] ?? 0 ),
+			'failed'       => (int) ( $progress['failed'] ?? 0 ),
+			'remaining'    => $remaining,
+			'total'        => (int) ( $progress['total'] ?? 0 ),
+			'skipped'      => (int) ( $progress['skipped'] ?? 0 ),
+			'status'       => $status,
+			'status_label' => $this->status_label( $status ),
+			'has_more'     => Status::UNDOING->value === $status && 0 < $remaining,
+		);
+	}
+
+	/**
+	 * Returns one owner-scoped, bounded page of safe history log labels.
+	 *
+	 * @param int $operation_id Operation ID.
+	 * @param int $user_id      Current administrator ID.
+	 * @param int $page         One-based page.
+	 * @return array<string, mixed>
+	 * @throws UndoException When the operation is missing, unstarted, or belongs to another user.
+	 */
+	public function history_logs( int $operation_id, int $user_id, int $page ): array {
+		$operation = $this->operations->find_owned( $operation_id, $user_id );
+		$parent    = null === $operation || null === $operation['parent_operation_id'] ? null : $this->operations->find_owned( (int) $operation['parent_operation_id'], $user_id );
+		if ( null === $operation || null === $operation['started_at'] || ( null !== $operation['parent_operation_id'] && ( null === $parent || $parent['taxonomy'] !== $operation['taxonomy'] ) ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Stable internal code only.
+			throw new UndoException( UndoErrorCode::INVALID_OPERATION );
+		}
+		$result          = $this->journal->history_page( $operation_id, $page, self::LOG_PAGE_SIZE );
+		$result['items'] = array_map(
+			fn( array $change ): array => array(
+				'severity' => $this->change_severity( (string) $change['change_type'] ),
+				'label'    => $this->change_label( $change ),
+				'date'     => $this->date_label( (string) $change['created_at'] ),
+			),
+			$result['items']
+		);
+		return $result;
+	}
+
+	/**
 	 * Requires an owned operation in the posted taxonomy.
 	 *
 	 * @param int                  $operation_id Operation ID.
@@ -167,7 +238,8 @@ final class HistoryPage {
 	 * @param int                  $user_id   Current administrator ID.
 	 */
 	private function render_detail( array $operation, int $user_id ): void {
-		$changes    = $this->journal->find_for_operation( (int) $operation['id'] );
+		$changes    = $this->journal->history_preview( (int) $operation['id'] );
+		$log_counts = $this->journal->history_counts( (int) $operation['id'] );
 		$assessment = null === $operation['parent_operation_id'] ? $this->planner->assess( (int) $operation['id'], $user_id ) : null;
 		$result     = is_array( $operation['result_data'] ) ? $operation['result_data'] : array();
 		?>
@@ -182,8 +254,8 @@ final class HistoryPage {
 			<dt><?php echo esc_html__( '結果', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( $this->status_label( (string) $operation['status'] ) ); ?></dd>
 			<dt><?php echo esc_html__( '成功件数', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( (string) (int) ( $result['completed'] ?? 0 ) ); ?></dd>
 			<dt><?php echo esc_html__( '失敗件数', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( (string) (int) ( $result['failed'] ?? 0 ) ); ?></dd>
-			<dt><?php echo esc_html__( '対象となった公開済み投稿数', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( (string) $this->affected_post_count( $changes ) ); ?></dd>
-			<dt><?php echo esc_html__( '保持された分類', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( (string) $this->retained_count( $changes ) ); ?></dd>
+			<dt><?php echo esc_html__( '処理済み件数', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( (string) ( (int) ( $result['total'] ?? 0 ) - (int) ( $result['pending'] ?? 0 ) ) ); ?></dd>
+			<dt><?php echo esc_html__( '警告件数', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( (string) $log_counts['warning'] ); ?></dd>
 			<dt><?php echo esc_html__( '警告', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( $this->message_summary( $operation['warnings'], true ) ); ?></dd>
 			<dt><?php echo esc_html__( 'エラー', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( $this->message_summary( $operation['errors'], false ) ); ?></dd>
 			<dt><?php echo esc_html__( '取り消し状態', 'taxonomy-tidy' ); ?></dt><dd><?php echo esc_html( $this->undo_state_label( $operation ) ); ?></dd>
@@ -196,7 +268,7 @@ final class HistoryPage {
 				?>
 				<dt><?php echo esc_html__( '取り消し対象', 'taxonomy-tidy' ); ?></dt><dd><a href="<?php echo esc_url( $this->history_url( array( 'history_id' => (int) $operation['parent_operation_id'] ) ) ); ?>"><?php echo esc_html__( '元の操作を表示', 'taxonomy-tidy' ); ?></a></dd><?php endif; ?>
 		</dl>
-		<?php $this->render_change_summary( $changes ); ?>
+		<?php $this->render_change_summary( $operation, $changes, $log_counts ); ?>
 		<?php if ( null !== $assessment ) : ?>
 			<h3><?php echo esc_html__( '取り消し可否', 'taxonomy-tidy' ); ?></h3>
 			<p><strong><?php echo esc_html( $this->availability_label( (string) $assessment['availability'] ) ); ?></strong><br><?php echo esc_html( $this->reason_label( (string) $assessment['reason'] ) ); ?></p>
@@ -204,29 +276,42 @@ final class HistoryPage {
 			<form method="post"><input type="hidden" name="view" value="history"><input type="hidden" name="<?php echo esc_attr( self::NONCE_FIELD ); ?>" value="<?php echo esc_attr( wp_create_nonce( self::NONCE_ACTION ) ); ?>"><input type="hidden" name="original_operation_id" value="<?php echo esc_attr( (string) $operation['id'] ); ?>"><input type="hidden" name="taxonomy" value="<?php echo esc_attr( (string) $operation['taxonomy'] ); ?>"><button type="submit" class="button button-secondary taxonomy-tidy-undo-preview" name="undo_command" value="preview_undo"><?php echo esc_html__( '変更を元に戻す', 'taxonomy-tidy' ); ?></button></form>
 			<?php endif; ?>
 		<?php endif; ?>
+		<?php if ( null !== $operation['parent_operation_id'] && Status::UNDOING->value === $operation['status'] ) : ?>
+			<form method="post" class="taxonomy-tidy-undo-resume"><input type="hidden" name="view" value="history"><input type="hidden" name="<?php echo esc_attr( self::NONCE_FIELD ); ?>" value="<?php echo esc_attr( wp_create_nonce( self::NONCE_ACTION ) ); ?>"><input type="hidden" name="undo_operation_id" value="<?php echo esc_attr( (string) $operation['id'] ); ?>"><input type="hidden" name="taxonomy" value="<?php echo esc_attr( (string) $operation['taxonomy'] ); ?>"><button type="submit" class="button button-primary" name="undo_command" value="continue_undo"><?php echo esc_html__( '取り消しを再開', 'taxonomy-tidy' ); ?></button></form>
+		<?php endif; ?>
 		<?php
 	}
 
 	/**
 	 * Renders only human-readable actual changes.
 	 *
-	 * @param list<array<string, mixed>> $changes Journal entries.
+	 * @param array<string, mixed>       $operation Operation row.
+	 * @param list<array<string, mixed>> $changes  Preview journal entries.
+	 * @param array<string, int>         $counts   Journal severity totals.
 	 */
-	private function render_change_summary( array $changes ): void {
-		$visible = array_filter( $changes, fn( array $change ): bool => $this->is_actual_change( (string) $change['change_type'] ) );
-		if ( array() === $visible ) {
+	private function render_change_summary( array $operation, array $changes, array $counts ): void {
+		if ( 0 === $counts['total'] ) {
 			return;
 		}
+		$region_id = 'taxonomy-tidy-history-logs-' . (int) $operation['id'];
 		?>
-		<h3><?php echo esc_html__( '変更前と変更後', 'taxonomy-tidy' ); ?></h3><ul class="taxonomy-tidy-change-summary">
+		<section class="taxonomy-tidy-history-logs" data-operation="<?php echo esc_attr( (string) $operation['id'] ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( self::NONCE_ACTION ) ); ?>" data-error="<?php echo esc_attr__( 'ログを取得できませんでした。もう一度お試しください。', 'taxonomy-tidy' ); ?>">
+		<h3><?php echo esc_html__( '最近のログ', 'taxonomy-tidy' ); ?></h3>
+		<p class="taxonomy-tidy-log-counts"><?php echo esc_html( sprintf( /* translators: 1: total logs, 2: successful logs, 3: warnings, 4: errors. */ __( '全体：%1$d件、成功：%2$d件、警告：%3$d件、エラー：%4$d件', 'taxonomy-tidy' ), $counts['total'], $counts['success'], $counts['warning'], $counts['error'] ) ); ?></p>
+		<ul id="<?php echo esc_attr( $region_id ); ?>" class="taxonomy-tidy-change-summary" aria-live="polite">
 		<?php
-		foreach ( $visible as $change ) {
+		foreach ( $changes as $change ) {
 			?>
-			<li><?php echo esc_html( $this->change_label( $change ) ); ?></li>
+			<li class="taxonomy-tidy-log taxonomy-tidy-log--<?php echo esc_attr( $this->change_severity( (string) $change['change_type'] ) ); ?>"><strong><?php echo esc_html( $this->severity_label( (string) $change['change_type'] ) ); ?></strong> <?php echo esc_html( $this->change_label( $change ) ); ?></li>
 			<?php
 		}
 		?>
 		</ul>
+		<?php
+		if ( 5 < $counts['total'] ) :
+			?>
+			<button type="button" class="button-link tt-link-button taxonomy-tidy-log-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $region_id ); ?>"><?php echo esc_html__( '詳しく見る', 'taxonomy-tidy' ); ?></button><?php endif; ?>
+		</section>
 		<?php
 	}
 
@@ -240,9 +325,9 @@ final class HistoryPage {
 		$running    = Status::UNDOING->value === $undo['status'];
 		$previewing = Status::UNDO_PREVIEWED->value === $undo['status'];
 		?>
-		<div class="taxonomy-tidy-modal taxonomy-tidy-history-modal" data-auto-open="1" hidden><div class="taxonomy-tidy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="taxonomy-tidy-undo-heading" tabindex="-1">
+		<div class="taxonomy-tidy taxonomy-tidy-modal taxonomy-tidy-history-modal" data-auto-open="1" data-auto-continue="<?php echo $running ? '1' : '0'; ?>" data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" hidden><div class="taxonomy-tidy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="taxonomy-tidy-undo-heading" tabindex="-1">
 		<header class="taxonomy-tidy-modal__header"><h2 id="taxonomy-tidy-undo-heading"><?php echo esc_html( $previewing ? __( '取り消し内容のプレビュー', 'taxonomy-tidy' ) : __( '取り消し結果', 'taxonomy-tidy' ) ); ?></h2><button type="button" class="taxonomy-tidy-modal__close" aria-label="<?php echo esc_attr__( '閉じる', 'taxonomy-tidy' ); ?>" <?php disabled( $running ); ?>>&times;</button></header>
-		<div class="taxonomy-tidy-modal__body" aria-live="polite">
+		<div class="taxonomy-tidy-modal__body" aria-live="polite" aria-atomic="true">
 		<?php if ( $previewing ) : ?>
 			<p><?php echo esc_html( sprintf( /* translators: %s: target term names. */ __( '元に戻す対象：%s', 'taxonomy-tidy' ), $this->undo_target_label( $undo ) ) ); ?></p>
 			<p><?php echo esc_html( sprintf( /* translators: %s: taxonomy label. */ __( '対象：%s', 'taxonomy-tidy' ), $this->taxonomy_label( (string) $undo['taxonomy'] ) ) ); ?></p>
@@ -261,19 +346,18 @@ final class HistoryPage {
 		<?php else : ?>
 			<p><strong><?php echo esc_html( $this->status_label( (string) $undo['status'] ) ); ?></strong></p>
 			<?php $progress = is_array( $undo['progress'] ?? null ) ? $undo['progress'] : (array) $undo['result_data']; ?>
-			<p><?php echo esc_html( sprintf( /* translators: 1: completed count, 2: total count, 3: failed count. */ __( '完了 %1$d / 全体 %2$d、失敗 %3$d', 'taxonomy-tidy' ), (int) ( $progress['completed'] ?? 0 ), (int) ( $progress['total'] ?? 0 ), (int) ( $progress['failed'] ?? 0 ) ) ); ?></p>
+			<p class="taxonomy-tidy-undo-progress"><?php echo esc_html( sprintf( /* translators: 1: completed count, 2: total count, 3: failed count, 4: remaining count. */ __( '進捗：%1$d / %2$d、成功：%1$d件、失敗：%3$d件、残り：%4$d件', 'taxonomy-tidy' ), (int) ( $progress['completed'] ?? 0 ), (int) ( $progress['total'] ?? 0 ), (int) ( $progress['failed'] ?? 0 ), (int) ( $progress['pending'] ?? 0 ) ) ); ?></p>
 		<?php endif; ?>
 		</div>
-		<footer class="taxonomy-tidy-modal__footer"><button type="button" class="button taxonomy-tidy-modal__cancel" <?php disabled( $running ); ?>><?php echo esc_html__( 'キャンセル', 'taxonomy-tidy' ); ?></button>
+		<footer class="taxonomy-tidy-modal__footer"><button type="button" class="button tt-button tt-button--secondary taxonomy-tidy-modal__cancel" <?php disabled( $running ); ?>><?php echo esc_html__( 'キャンセル', 'taxonomy-tidy' ); ?></button>
 		<form method="post"><input type="hidden" name="view" value="history"><input type="hidden" name="<?php echo esc_attr( self::NONCE_FIELD ); ?>" value="<?php echo esc_attr( wp_create_nonce( self::NONCE_ACTION ) ); ?>"><input type="hidden" name="undo_operation_id" value="<?php echo esc_attr( (string) $undo['id'] ); ?>"><input type="hidden" name="taxonomy" value="<?php echo esc_attr( (string) $undo['taxonomy'] ); ?>">
 		<?php
 		if ( $previewing ) :
 			?>
-			<button type="submit" class="button button-primary" name="undo_command" value="run_undo"><?php echo esc_html__( '元に戻す', 'taxonomy-tidy' ); ?></button>
+			<button type="submit" class="button button-primary tt-button tt-button--primary" name="undo_command" value="run_undo"><?php echo esc_html__( '元に戻す', 'taxonomy-tidy' ); ?></button>
 			<?php
-			elseif ( $running ) :
-				?>
-			<button type="submit" class="button button-primary" name="undo_command" value="continue_undo"><?php echo esc_html__( '次の処理を続ける', 'taxonomy-tidy' ); ?></button><?php endif; ?>
+			endif;
+		?>
 		</form></footer></div></div>
 		<?php
 	}
@@ -425,6 +509,31 @@ final class HistoryPage {
 	 */
 	private function is_actual_change( string $type ): bool {
 		return ! in_array( $type, array( 'destination_existing', 'source_retained', 'item_failed', 'undo_item_failed' ), true );
+	}
+
+	/**
+	 * Returns the user-facing severity for one journal event.
+	 *
+	 * @param string $type Journal change type.
+	 */
+	private function change_severity( string $type ): string {
+		if ( in_array( $type, array( 'item_failed', 'undo_item_failed' ), true ) ) {
+			return 'error';
+		}
+		return 'source_retained' === $type ? 'warning' : 'success';
+	}
+
+	/**
+	 * Returns a localized severity label without relying on color.
+	 *
+	 * @param string $type Journal change type.
+	 */
+	private function severity_label( string $type ): string {
+		return match ( $this->change_severity( $type ) ) {
+			'error' => __( '失敗：', 'taxonomy-tidy' ),
+			'warning' => __( '警告：', 'taxonomy-tidy' ),
+			default => __( '成功：', 'taxonomy-tidy' ),
+		};
 	}
 
 	/**
@@ -631,18 +740,26 @@ final class HistoryPage {
 	 * @param array<string, mixed> $change Journal entry.
 	 */
 	private function change_label( array $change ): string {
-		$type = (string) $change['change_type'];
+		$type    = (string) $change['change_type'];
+		$payload = is_array( $change['item_payload'] ?? null ) ? $change['item_payload'] : array();
+		$source  = (array) ( $payload['source_snapshot'] ?? $payload['snapshot'] ?? $payload['before'] ?? array() );
+		$target  = (string) ( $source['name'] ?? '' );
+		$name    = '' === $target ? __( '対象の分類', 'taxonomy-tidy' ) : sprintf( /* translators: %s: term name. */ __( '分類「%s」', 'taxonomy-tidy' ), $target );
 		return match ( $type ) {
-			'name_changed' => sprintf( /* translators: 1: old name, 2: new name. */ __( '名前：%1$s → %2$s', 'taxonomy-tidy' ), (string) ( $change['before_data']['name'] ?? '' ), (string) ( $change['after_data']['name'] ?? '' ) ),
-			'slug_changed' => sprintf( /* translators: 1: old slug, 2: new slug. */ __( 'スラッグ：%1$s → %2$s', 'taxonomy-tidy' ), (string) ( $change['before_data']['slug'] ?? '' ), (string) ( $change['after_data']['slug'] ?? '' ) ),
-			'destination_added' => __( '統合先の投稿割り当てを追加', 'taxonomy-tidy' ),
-			'source_removed' => __( '統合元の投稿割り当てを削除', 'taxonomy-tidy' ),
+			'name_changed' => sprintf( /* translators: 1: old name, 2: new name. */ __( '名前を「%1$s」から「%2$s」へ変更しました。', 'taxonomy-tidy' ), (string) ( $change['before_data']['name'] ?? '' ), (string) ( $change['after_data']['name'] ?? '' ) ),
+			'slug_changed' => sprintf( /* translators: 1: term label, 2: old slug, 3: new slug. */ __( '%1$sのスラッグを「%2$s」から「%3$s」へ変更しました。', 'taxonomy-tidy' ), $name, (string) ( $change['before_data']['slug'] ?? '' ), (string) ( $change['after_data']['slug'] ?? '' ) ),
+			'destination_added' => sprintf( /* translators: %s: source term label. */ __( '%sを統合し、統合先の投稿割り当てを追加しました。', 'taxonomy-tidy' ), $name ),
+			'destination_existing' => sprintf( /* translators: %s: source term label. */ __( '%sの統合先はすでに投稿へ割り当てられていました。', 'taxonomy-tidy' ), $name ),
+			'source_removed' => sprintf( /* translators: %s: source term label. */ __( '%sの投稿割り当てを統合元から削除しました。', 'taxonomy-tidy' ), $name ),
 			'source_deleted', 'term_deleted' => sprintf( /* translators: %s: deleted term name. */ __( '分類「%s」を削除', 'taxonomy-tidy' ), (string) ( $change['before_data']['name'] ?? '' ) ),
 			'term_restored' => sprintf( /* translators: %s: restored term name. */ __( '分類「%s」を復元', 'taxonomy-tidy' ), (string) ( $change['after_data']['name'] ?? '' ) ),
-			'source_restored' => __( '統合元の投稿割り当てを復元', 'taxonomy-tidy' ),
-			'destination_removed' => __( '元操作が追加した統合先の割り当てを削除', 'taxonomy-tidy' ),
-			'name_restored' => __( '名前を復元', 'taxonomy-tidy' ),
-			default => __( 'スラッグを復元', 'taxonomy-tidy' ),
+			'source_restored' => sprintf( /* translators: %s: source term label. */ __( '%sの投稿割り当てを復元しました。', 'taxonomy-tidy' ), $name ),
+			'destination_removed' => sprintf( /* translators: %s: source term label. */ __( '%sの元操作が追加した統合先の割り当てを削除しました。', 'taxonomy-tidy' ), $name ),
+			'name_restored' => sprintf( /* translators: %s: restored name. */ __( '名前を「%s」へ復元しました。', 'taxonomy-tidy' ), (string) ( $change['after_data']['name'] ?? '' ) ),
+			'slug_restored' => sprintf( /* translators: 1: term label, 2: restored slug. */ __( '%1$sのスラッグを「%2$s」へ復元しました。', 'taxonomy-tidy' ), $name, (string) ( $change['after_data']['slug'] ?? '' ) ),
+			'source_retained' => sprintf( /* translators: %s: retained term label. */ __( '%sは安全条件を満たさないため保持しました。', 'taxonomy-tidy' ), $name ),
+			'item_failed', 'undo_item_failed' => sprintf( /* translators: %s: failed term label. */ __( '%sは競合または状態変更のため処理できませんでした。', 'taxonomy-tidy' ), $name ),
+			default => __( '処理結果を記録しました。', 'taxonomy-tidy' ),
 		};
 	}
 

@@ -194,11 +194,11 @@ final class PlanningPanel {
 					<div class="taxonomy-tidy-action-fields" data-action-fields="rename" <?php echo Action::RENAME->value !== $action ? 'hidden' : ''; ?>>
 						<div class="taxonomy-tidy-related-fields">
 							<div class="taxonomy-tidy-field-group taxonomy-tidy-readonly-field"><span class="taxonomy-tidy-field-label"><?php echo esc_html__( 'Current name', 'taxonomy-tidy' ); ?></span><span class="taxonomy-tidy-field-display taxonomy-tidy-current-name" data-fallback="<?php echo esc_attr__( 'Select one term.', 'taxonomy-tidy' ); ?>"><?php echo esc_html( $this->single_selected_value( $items, 'name' ) ); ?></span></div>
-							<div class="taxonomy-tidy-field-group"><label class="taxonomy-tidy-field-label" for="taxonomy-tidy-new-name"><?php echo esc_html__( 'New name', 'taxonomy-tidy' ); ?></label><input class="taxonomy-tidy-field-control" id="taxonomy-tidy-new-name" type="text" name="new_name" value="<?php echo esc_attr( (string) ( $input['new_name'] ?? '' ) ); ?>" <?php echo isset( $field_errors['new_name'] ) ? 'aria-invalid="true" aria-describedby="' . esc_attr( $this->field_error_ids( $field_errors, 'new_name', 'taxonomy-tidy-new-name-error' ) ) . '"' : ''; ?> <?php echo 'new_name' === $focus ? 'data-error-focus="true"' : ''; ?>><?php $this->render_field_errors( $field_errors, 'new_name', 'taxonomy-tidy-new-name-error' ); ?></div>
+							<div class="taxonomy-tidy-field-group"><label class="taxonomy-tidy-field-label" for="taxonomy-tidy-new-name"><?php echo esc_html__( 'New name', 'taxonomy-tidy' ); ?></label><input class="taxonomy-tidy-field-control tt-control" id="taxonomy-tidy-new-name" type="text" name="new_name" value="<?php echo esc_attr( (string) ( $input['new_name'] ?? '' ) ); ?>" <?php echo isset( $field_errors['new_name'] ) ? 'aria-invalid="true" aria-describedby="' . esc_attr( $this->field_error_ids( $field_errors, 'new_name', 'taxonomy-tidy-new-name-error' ) ) . '"' : ''; ?> <?php echo 'new_name' === $focus ? 'data-error-focus="true"' : ''; ?>><?php $this->render_field_errors( $field_errors, 'new_name', 'taxonomy-tidy-new-name-error' ); ?></div>
 						</div>
 						<div class="taxonomy-tidy-related-fields">
 							<div class="taxonomy-tidy-field-group taxonomy-tidy-readonly-field"><span class="taxonomy-tidy-field-label"><?php echo esc_html__( 'Current slug', 'taxonomy-tidy' ); ?></span><span class="taxonomy-tidy-field-display taxonomy-tidy-current-slug" data-fallback="<?php echo esc_attr__( 'Select one term.', 'taxonomy-tidy' ); ?>"><?php echo esc_html( $this->single_selected_value( $items, 'slug' ) ); ?></span></div>
-							<div class="taxonomy-tidy-field-group"><label class="taxonomy-tidy-field-label" for="taxonomy-tidy-new-slug"><?php echo esc_html__( 'New slug (optional)', 'taxonomy-tidy' ); ?></label><input class="taxonomy-tidy-field-control" id="taxonomy-tidy-new-slug" type="text" name="new_slug" value="<?php echo esc_attr( (string) ( $input['new_slug'] ?? '' ) ); ?>" aria-describedby="taxonomy-tidy-new-slug-help<?php echo isset( $field_errors['new_slug'] ) ? ' ' . esc_attr( $this->field_error_ids( $field_errors, 'new_slug', 'taxonomy-tidy-new-slug-error' ) ) : ''; ?>" <?php echo isset( $field_errors['new_slug'] ) ? 'aria-invalid="true"' : ''; ?> <?php echo 'new_slug' === $focus ? 'data-error-focus="true"' : ''; ?>><p id="taxonomy-tidy-new-slug-help" class="description taxonomy-tidy-field-help"><?php echo esc_html__( 'Leave blank to keep the current slug.', 'taxonomy-tidy' ); ?></p><?php $this->render_field_errors( $field_errors, 'new_slug', 'taxonomy-tidy-new-slug-error' ); ?></div>
+							<div class="taxonomy-tidy-field-group"><label class="taxonomy-tidy-field-label" for="taxonomy-tidy-new-slug"><?php echo esc_html__( 'New slug (optional)', 'taxonomy-tidy' ); ?></label><input class="taxonomy-tidy-field-control tt-control" id="taxonomy-tidy-new-slug" type="text" name="new_slug" value="<?php echo esc_attr( (string) ( $input['new_slug'] ?? '' ) ); ?>" aria-describedby="taxonomy-tidy-new-slug-help<?php echo isset( $field_errors['new_slug'] ) ? ' ' . esc_attr( $this->field_error_ids( $field_errors, 'new_slug', 'taxonomy-tidy-new-slug-error' ) ) : ''; ?>" <?php echo isset( $field_errors['new_slug'] ) ? 'aria-invalid="true"' : ''; ?> <?php echo 'new_slug' === $focus ? 'data-error-focus="true"' : ''; ?>><p id="taxonomy-tidy-new-slug-help" class="description taxonomy-tidy-field-help"><?php echo esc_html__( 'Leave blank to keep the current slug.', 'taxonomy-tidy' ); ?></p><?php $this->render_field_errors( $field_errors, 'new_slug', 'taxonomy-tidy-new-slug-error' ); ?></div>
 						</div>
 					</div>
 
@@ -213,7 +213,7 @@ final class PlanningPanel {
 						</div>
 						<div id="taxonomy-tidy-merge-destination-group" class="taxonomy-tidy-field-group" data-cleared="<?php echo esc_attr__( '選択していた統合先が統合元に含まれたため、選択を解除しました。', 'taxonomy-tidy' ); ?>">
 							<label class="taxonomy-tidy-field-label" for="taxonomy-tidy-destination"><?php echo esc_html__( 'Merge destination', 'taxonomy-tidy' ); ?></label>
-							<select class="taxonomy-tidy-field-control" id="taxonomy-tidy-destination" name="destination" aria-describedby="taxonomy-tidy-destination-help taxonomy-tidy-destination-selection-notice<?php echo isset( $field_errors['destination'] ) ? ' ' . esc_attr( $this->field_error_ids( $field_errors, 'destination', 'taxonomy-tidy-destination-error' ) ) : ''; ?>" <?php echo isset( $field_errors['destination'] ) ? 'aria-invalid="true"' : ''; ?> <?php echo 'destination' === $focus ? 'data-error-focus="true"' : ''; ?>>
+							<select class="taxonomy-tidy-field-control tt-control" id="taxonomy-tidy-destination" name="destination" aria-describedby="taxonomy-tidy-destination-help taxonomy-tidy-destination-selection-notice<?php echo isset( $field_errors['destination'] ) ? ' ' . esc_attr( $this->field_error_ids( $field_errors, 'destination', 'taxonomy-tidy-destination-error' ) ) : ''; ?>" <?php echo isset( $field_errors['destination'] ) ? 'aria-invalid="true"' : ''; ?> <?php echo 'destination' === $focus ? 'data-error-focus="true"' : ''; ?>>
 								<option value=""><?php echo esc_html__( 'Select a merge destination.', 'taxonomy-tidy' ); ?></option>
 								<?php $this->render_destinations( $taxonomy, $selected, (string) ( $input['destination'] ?? '' ) ); ?>
 							</select>
@@ -244,7 +244,7 @@ final class PlanningPanel {
 				</section>
 
 				<div class="taxonomy-tidy-process-actions">
-					<button type="submit" class="button button-primary" name="plan_command" value="add"><?php echo esc_html__( '計画に追加', 'taxonomy-tidy' ); ?></button>
+					<button type="submit" class="button button-primary tt-button tt-button--primary" name="plan_command" value="add"><?php echo esc_html__( '計画に追加', 'taxonomy-tidy' ); ?></button>
 				</div>
 			</div>
 		</details>
@@ -353,7 +353,7 @@ final class PlanningPanel {
 			return;
 		}
 		?>
-		<div class="taxonomy-tidy-modal" data-auto-open="<?php echo $auto_open ? '1' : '0'; ?>" hidden>
+		<div class="taxonomy-tidy taxonomy-tidy-modal" data-auto-open="<?php echo $auto_open ? '1' : '0'; ?>" hidden>
 			<div class="taxonomy-tidy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="taxonomy-tidy-preview-heading" tabindex="-1">
 			<header class="taxonomy-tidy-modal__header"><h2 id="taxonomy-tidy-preview-heading"><?php echo esc_html__( 'Change preview', 'taxonomy-tidy' ); ?></h2><button type="button" class="taxonomy-tidy-modal__close" aria-label="<?php echo esc_attr__( '閉じる', 'taxonomy-tidy' ); ?>">&times;</button></header>
 			<div class="taxonomy-tidy-modal__body">
@@ -389,7 +389,7 @@ final class PlanningPanel {
 				</article>
 			<?php endforeach; ?>
 			</div>
-			<footer class="taxonomy-tidy-modal__footer"><button type="button" class="button taxonomy-tidy-modal__cancel"><?php echo esc_html__( 'キャンセル', 'taxonomy-tidy' ); ?></button><button type="submit" form="taxonomy-tidy-planning-form" class="button button-primary taxonomy-tidy-modal__run" name="plan_command" value="run" <?php disabled( false === ( $operation['preview_current'] ?? true ) ); ?>><?php echo esc_html__( 'Execute', 'taxonomy-tidy' ); ?></button><input type="hidden" name="operation_id" form="taxonomy-tidy-planning-form" value="<?php echo esc_attr( (string) $operation['id'] ); ?>"></footer>
+			<footer class="taxonomy-tidy-modal__footer"><button type="button" class="button tt-button tt-button--secondary taxonomy-tidy-modal__cancel"><?php echo esc_html__( 'キャンセル', 'taxonomy-tidy' ); ?></button><button type="submit" form="taxonomy-tidy-planning-form" class="button button-primary tt-button tt-button--primary taxonomy-tidy-modal__run" name="plan_command" value="run" <?php disabled( false === ( $operation['preview_current'] ?? true ) ); ?>><?php echo esc_html__( 'Execute', 'taxonomy-tidy' ); ?></button><input type="hidden" name="operation_id" form="taxonomy-tidy-planning-form" value="<?php echo esc_attr( (string) $operation['id'] ); ?>"></footer>
 			</div>
 		</div>
 		<?php

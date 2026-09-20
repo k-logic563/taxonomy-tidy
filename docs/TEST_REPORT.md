@@ -42,7 +42,7 @@ WordPress 7.1.1は実行日のWordPress.org現行安定版として確認した�
 
 | コマンド | 結果 |
 |---|---|
-| `make check` | 成功。PHPCS 60/60、JavaScript lint、99 tests / 1,313 assertions |
+| `make check` | 成功。PHPCS 60/60、JavaScript lint、104 tests / 1,343 assertions |
 | PHP 8.3 `docker compose ... test` | 成功。99 tests / 1,313 assertions |
 | PHP 8.4 `docker compose ... test` | 成功。99 tests / 1,313 assertions |
 | `composer validate --strict --no-check-publish` | 成功 |
@@ -59,7 +59,7 @@ YAMLはComposeの設定解決で検証した。PHP 8.4でWordPress 6.6.2のテ�
 
 ## MVP要件との照合
 
-Phase 1〜6の骨格、永続化、正確な一覧、計画・プレビュー、バッチ実行、履歴・Undoはコードと99件の統合テストで確認した。Phase 7の4タブ、アコーディオン、ページネーション、モーダル、ARIA、日本語カタログ、入力不要の統合先選択も実装・自動テストが存在する。ただしPhase 7文書のとおり実ブラウザ確認が未完了で、状態は`In progress`のままである。
+Phase 1〜6の骨格、永続化、正確な一覧、計画・プレビュー、バッチ実行、履歴・Undoはコードと104件の統合テストで確認した。Phase 7の4タブ、アコーディオン、ページネーション、モーダル、ARIA、日本語カタログ、入力不要の統合先選択も実装・自動テストが存在する。ただしPhase 7文書のとおり実ブラウザ確認が未完了で、状態は`In progress`のままである。
 
 確認できた主な自動シナリオ:
 
@@ -173,3 +173,11 @@ Operation、Operation Item、Change Journalを専用環境へ作成後、`Schema
 ## Go / No-Go
 
 **No-Go**。全件候補表示は操作性を優先した既知の制限として許容するが、現行選択UIを含む主要UIの実ブラウザ試験が未完了である。Phase 7は`In progress`、Phase 8は`Blocked`のままとし、外部公開も行っていない。
+
+## 2026-09-19 Undo自動継続・履歴ログ改善の追補
+
+Undoの利用者操作を1回にしながら、`UndoWorkflow::BATCH_SIZE = 10`、pending Item、60秒のtaxonomyロック、項目単位の状態、サーバー進捗、Change Journalの一意キーを維持した。各Ajax応答は処理済み、成功、失敗、残り、全体、状態、次バッチ要否を返し、ブラウザは`undoing`かつ残件ありの場合だけ次を要求する。通信層の失敗は最大3回、権限・nonce・競合・ロック・継続不能応答は再試行せず、進捗が前進しない応答にも停止ガードを設けた。中断状態は操作履歴の`取り消しを再開`から1回で残りを自動継続する。
+
+操作詳細はJournal全件を初期HTMLへ出さず、件数要約と、エラー、警告、新しい結果の優先順による最大5件だけを描画する。6件以上の`詳しく見る`は、権限、nonce、Operation所有者、開始済み状態、Undo親子関係を検証し、最大100件ずつ取得して全件を表示する。表示ラベルは内部ID、JSON、例外、クラス名を含めず、CSSで長い名前・URL相当の連続文字列を親幅内へ折り返す。
+
+追加・更新した自動検証は、30件を10件ずつ3リクエストで完了、初期ログ5件上限、エラー・警告優先、ログ件数集計とページング、自動継続条件、終端停止、進捗停滞ガード、最大3回再試行、遅延展開のARIA状態である。実ブラウザによる30件Undo、通信断、再開、ログ開閉、狭幅、キーボード、支援技術の確認は未実施である。このためPhase 7は`In progress`、Phase 8は`Blocked`、判定は`No-Go`のままとする。

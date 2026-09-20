@@ -33,7 +33,11 @@ Term recreation items are ordered before relationship items. Every inverse mutat
 
 Undo reuses the taxonomy-scoped 60-second lease and handles at most 10 fixed items per authenticated request. Pending items remain discoverable after interruption, while terminal items are never selected again. Stable item and journal keys prevent duplicate application on request replay.
 
-All items succeeding produces `undone`. Any preview conflict or runtime item failure alongside successes produces `undo_partial_failed`. An attempt with no completed inverse item produces `failed`. No partial result is reported as complete. A partial or failed Undo detail shows the remaining count and that automatic retry is not available in Phase 6; Redo and an advanced retry UI remain outside the MVP.
+The administrator presses `元に戻す` once. While the server reports `undoing` with pending items, the browser automatically sends the next authenticated bounded request and renders only persisted server progress. Network failures are retried at most three times; authorization, nonce, conflict, lock, non-progress, and terminal responses stop the loop. After a browser close or exhausted network retry, the started child operation remains in history and `取り消しを再開` continues all remaining batches from one explicit click.
+
+All items succeeding produces `undone`. Any preview conflict or runtime item failure alongside successes produces `undo_partial_failed`. An attempt with no completed inverse item produces `failed`. No partial result is reported as complete. A partial or failed Undo detail shows the remaining count; terminal conflicts are not automatically retried. Redo and an advanced retry UI remain outside the MVP.
+
+History detail renders result counts and at most five initial journal labels, prioritizing errors, warnings, and then recent results. Additional logs are fetched only after `詳しく見る`, in owner-scoped pages of at most 100 rows. The normal UI does not expose internal IDs, raw snapshots, JSON, lock tokens, hashes, SQL, exceptions, or stack traces.
 
 ## Verification
 

@@ -318,6 +318,8 @@
 		}
 		busy = true;
 		submitter.disabled = true;
+		submitter.classList.add( 'is-loading' );
+		submitter.setAttribute( 'aria-busy', 'true' );
 		if ( submitter.value === 'run' ) {
 			modal.querySelector( '.taxonomy-tidy-modal__cancel' ).disabled = true;
 			modal.querySelector( '.taxonomy-tidy-modal__close' ).disabled = true;
@@ -369,6 +371,8 @@
 			if ( ! navigating ) {
 				busy = false;
 				submitter.disabled = false;
+				submitter.classList.remove( 'is-loading' );
+				submitter.removeAttribute( 'aria-busy' );
 			}
 		}
 	} );

@@ -14,6 +14,7 @@ use TaxonomyTidy\Application\Planning\PlanWorkflow;
 use TaxonomyTidy\Application\Execution\ExecutionWorkflow;
 use TaxonomyTidy\Application\Execution\ItemExecutor;
 use TaxonomyTidy\Application\Undo\UndoItemExecutor;
+use TaxonomyTidy\Application\Undo\UndoErrorCode;
 use TaxonomyTidy\Application\Undo\UndoPlanner;
 use TaxonomyTidy\Application\Undo\UndoWorkflow;
 use TaxonomyTidy\Domain\Operation\Taxonomy;
@@ -89,6 +90,22 @@ final class Page {
 			TAXONOMY_TIDY_VERSION,
 			true
 		);
+		wp_localize_script(
+			'taxonomy-tidy-history',
+			'taxonomyTidyHistory',
+			array(
+				'interrupted'     => __( '取り消し処理を中断しました。操作履歴から再開できます。', 'taxonomy-tidy' ),
+				'cannotContinue'  => __( '取り消し処理を続行できませんでした。', 'taxonomy-tidy' ),
+				'progressStopped' => __( 'サーバー側の進捗を確認できないため、取り消し処理を中断しました。操作履歴から再開できます。', 'taxonomy-tidy' ),
+				'showDetails'     => __( '詳しく見る', 'taxonomy-tidy' ),
+				'collapse'        => __( '閉じる', 'taxonomy-tidy' ),
+				'success'         => __( '成功：', 'taxonomy-tidy' ),
+				'warning'         => __( '警告：', 'taxonomy-tidy' ),
+				'failure'         => __( '失敗：', 'taxonomy-tidy' ),
+				// translators: 1: processed count, 2: total count, 3: succeeded count, 4: failed count, 5: remaining count.
+				'progress'        => __( '進捗：%1$d / %2$d、成功：%3$d件、失敗：%4$d件、残り：%5$d件', 'taxonomy-tidy' ),
+			)
+		);
 	}
 
 	/**
@@ -116,6 +133,111 @@ final class Page {
 			wp_send_json_error( array( 'message' => __( '対象投稿を確認できません。', 'taxonomy-tidy' ) ), 400 );
 		}
 		wp_send_json_success( array( 'titles' => array_values( array_map( static fn( array $post ): string => (string) $post['title'], $posts ) ) ) );
+	}
+
+	/** Processes exactly one bounded Undo batch for the browser-side continuation loop. */
+	public function undo_batch(): void {
+		if ( ! Access::current_user_can_access() ) {
+			wp_send_json_error(
+				array(
+					'message'   => __( 'アクセスできません。', 'taxonomy-tidy' ),
+					'retryable' => false,
+				),
+				403
+			);
+		}
+		check_ajax_referer( HistoryPage::NONCE_ACTION, HistoryPage::NONCE_FIELD );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified above.
+		$request  = wp_unslash( $_POST );
+		$undo_id  = absint( $request['undo_operation_id'] ?? 0 );
+		$taxonomy = Taxonomy::tryFrom( sanitize_key( (string) ( $request['taxonomy'] ?? '' ) ) );
+		if ( 0 === $undo_id || null === $taxonomy ) {
+			wp_send_json_error(
+				array(
+					'message'   => __( '取り消し処理を確認できませんでした。', 'taxonomy-tidy' ),
+					'retryable' => false,
+				),
+				400
+			);
+		}
+		try {
+			wp_send_json_success( $this->history_service()->continue_undo( $undo_id, get_current_user_id(), $taxonomy ) );
+		} catch ( \TaxonomyTidy\Application\Undo\UndoException $exception ) {
+			$status = UndoErrorCode::LOCKED === $exception->error_code() ? 409 : 400;
+			wp_send_json_error(
+				array(
+					'message'   => $this->undo_error_message( $exception->error_code() ),
+					'retryable' => false,
+				),
+				$status
+			);
+		} catch ( \Throwable $exception ) {
+			$this->log_ajax_error( $exception );
+			wp_send_json_error(
+				array(
+					'message'   => __( '取り消し処理を中断しました。操作履歴から再開できます。', 'taxonomy-tidy' ),
+					'retryable' => false,
+				),
+				500
+			);
+		}
+	}
+
+	/** Returns one bounded, owner-scoped page of human-readable journal logs. */
+	public function history_logs(): void {
+		if ( ! Access::current_user_can_access() ) {
+			wp_send_json_error( array( 'message' => __( 'アクセスできません。', 'taxonomy-tidy' ) ), 403 );
+		}
+		check_ajax_referer( HistoryPage::NONCE_ACTION, HistoryPage::NONCE_FIELD );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified above.
+		$request      = wp_unslash( $_POST );
+		$operation_id = absint( $request['operation_id'] ?? 0 );
+		$page_value   = is_scalar( $request['log_page'] ?? null ) ? sanitize_text_field( (string) $request['log_page'] ) : '';
+		$page         = ctype_digit( $page_value ) && 0 < (int) $page_value ? (int) $page_value : 1;
+		try {
+			wp_send_json_success( $this->history_service()->history_logs( $operation_id, get_current_user_id(), $page ) );
+		} catch ( \TaxonomyTidy\Application\Undo\UndoException $exception ) {
+			wp_send_json_error( array( 'message' => __( 'ログを確認できませんでした。', 'taxonomy-tidy' ) ), 403 );
+		} catch ( \Throwable $exception ) {
+			$this->log_ajax_error( $exception );
+			wp_send_json_error( array( 'message' => __( 'ログを取得できませんでした。もう一度お試しください。', 'taxonomy-tidy' ) ), 500 );
+		}
+	}
+
+	/** Creates the history service with the existing repositories and safe workflow. */
+	private function history_service(): HistoryPage {
+		global $wpdb;
+		$operations = new OperationRepository( $wpdb );
+		$items      = new OperationItemRepository( $wpdb );
+		$journal    = new ChangeJournalRepository( $wpdb );
+		$planner    = new UndoPlanner( $operations, $items, $journal );
+		$workflow   = new UndoWorkflow( $operations, $items, new OperationLock( $wpdb ), $planner, new UndoItemExecutor( $journal ), new DatabaseTransaction( $wpdb ) );
+		return new HistoryPage( $operations, $items, $journal, $planner, $workflow );
+	}
+
+	/**
+	 * Maps server stop conditions to safe Japanese messages.
+	 *
+	 * @param string $code Stable Undo error code.
+	 */
+	private function undo_error_message( string $code ): string {
+		return match ( $code ) {
+			UndoErrorCode::LOCKED => __( '別の処理が実行中です。操作履歴から状態を確認してください。', 'taxonomy-tidy' ),
+			UndoErrorCode::STALE_PREVIEW => __( '確認後に状態が変わったため、取り消しを開始しませんでした。', 'taxonomy-tidy' ),
+			default => __( '取り消し処理を続行できませんでした。操作履歴から状態を確認してください。', 'taxonomy-tidy' ),
+		};
+	}
+
+	/**
+	 * Writes internal Ajax failures only to the configured debug log.
+	 *
+	 * @param \Throwable $exception Internal failure.
+	 */
+	private function log_ajax_error( \Throwable $exception ): void {
+		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Internal details are not returned to the browser.
+			error_log( sprintf( 'Taxonomy Tidy Ajax error: %s: %s', $exception::class, $exception->getMessage() ) );
+		}
 	}
 
 	/**
@@ -149,7 +271,7 @@ final class Page {
 		if ( 'plan' === $view || 'history' === $view ) {
 			$board_state = 'plan' === $view ? $board->handle() : null;
 			?>
-			<div class="wrap taxonomy-tidy-screen">
+			<div class="wrap taxonomy-tidy taxonomy-tidy-screen">
 				<h1><?php echo esc_html__( 'Taxonomy Tidy', 'taxonomy-tidy' ); ?></h1>
 				<nav class="nav-tab-wrapper" aria-label="<?php echo esc_attr__( '表示タブ', 'taxonomy-tidy' ); ?>">
 					<?php $this->render_tab( Taxonomy::CATEGORY, null, __( 'カテゴリー', 'taxonomy-tidy' ) ); ?>
@@ -198,7 +320,7 @@ final class Page {
 		$conditions     = $this->active_conditions( $search, $orderby, $order, $unused );
 		$plan_state     = ( new PlanController( $workflow, $execution ) )->handle( $taxonomy );
 		?>
-		<div class="wrap taxonomy-tidy-screen">
+		<div class="wrap taxonomy-tidy taxonomy-tidy-screen">
 			<h1><?php echo esc_html__( 'Taxonomy Tidy', 'taxonomy-tidy' ); ?></h1>
 			<nav class="nav-tab-wrapper" aria-label="<?php echo esc_attr__( 'Taxonomy views', 'taxonomy-tidy' ); ?>">
 				<?php $this->render_tab( Taxonomy::CATEGORY, $taxonomy, __( 'カテゴリー', 'taxonomy-tidy' ) ); ?>
@@ -238,7 +360,7 @@ final class Page {
 						<section class="taxonomy-tidy-filter-group taxonomy-tidy-filter-group--keyword" aria-labelledby="taxonomy-tidy-keyword-heading">
 							<h3 id="taxonomy-tidy-keyword-heading"><?php echo esc_html__( 'Find by keyword', 'taxonomy-tidy' ); ?></h3>
 							<label for="taxonomy-tidy-search"><?php echo esc_html__( 'Keyword', 'taxonomy-tidy' ); ?></label>
-							<input id="taxonomy-tidy-search" type="search" name="s" value="<?php echo esc_attr( $search ); ?>" aria-describedby="taxonomy-tidy-search-description">
+							<input class="tt-control" id="taxonomy-tidy-search" type="search" name="s" value="<?php echo esc_attr( $search ); ?>" aria-describedby="taxonomy-tidy-search-description">
 							<p id="taxonomy-tidy-search-description" class="description">
 								<?php echo esc_html__( 'Search by name or slug.', 'taxonomy-tidy' ); ?>
 							</p>
@@ -257,14 +379,14 @@ final class Page {
 							<div class="taxonomy-tidy-sort-fields">
 								<div class="taxonomy-tidy-field">
 									<label for="taxonomy-tidy-orderby"><?php echo esc_html__( 'Sort by', 'taxonomy-tidy' ); ?></label>
-									<select id="taxonomy-tidy-orderby" name="orderby">
+									<select class="tt-control" id="taxonomy-tidy-orderby" name="orderby">
 										<option value="name" <?php selected( $orderby, 'name' ); ?>><?php echo esc_html__( 'Name', 'taxonomy-tidy' ); ?></option>
 										<option value="published_count" <?php selected( $orderby, 'published_count' ); ?>><?php echo esc_html__( 'Published posts', 'taxonomy-tidy' ); ?></option>
 									</select>
 								</div>
 								<div class="taxonomy-tidy-field">
 									<label for="taxonomy-tidy-order"><?php echo esc_html__( 'Direction', 'taxonomy-tidy' ); ?></label>
-									<select id="taxonomy-tidy-order" name="order">
+									<select class="tt-control" id="taxonomy-tidy-order" name="order">
 										<option value="asc" <?php selected( $order, 'asc' ); ?>><?php echo esc_html__( 'Ascending', 'taxonomy-tidy' ); ?></option>
 										<option value="desc" <?php selected( $order, 'desc' ); ?>><?php echo esc_html__( 'Descending', 'taxonomy-tidy' ); ?></option>
 									</select>
@@ -274,10 +396,10 @@ final class Page {
 					</div>
 
 					<div class="taxonomy-tidy-filter-actions">
-						<button type="submit" class="button button-primary">
+						<button type="submit" class="button button-primary tt-button tt-button--primary">
 							<?php echo esc_html__( 'Apply conditions', 'taxonomy-tidy' ); ?>
 						</button>
-						<a class="button button-secondary" href="<?php echo esc_url( $this->reset_url( $taxonomy, $per_page ) ); ?>">
+						<a class="button button-secondary tt-button tt-button--secondary" href="<?php echo esc_url( $this->reset_url( $taxonomy, $per_page ) ); ?>">
 							<?php echo esc_html__( 'Reset conditions', 'taxonomy-tidy' ); ?>
 						</a>
 					</div>
@@ -545,11 +667,11 @@ final class Page {
 		$end       = min( $total, $page * $per_page );
 		?>
 		<div class="tablenav taxonomy-tidy-table-nav taxonomy-tidy-table-nav--<?php echo esc_attr( $position ); ?>">
-			<div class="taxonomy-tidy-page-size"><label for="<?php echo esc_attr( $select_id ); ?>"><?php echo esc_html__( '表示件数', 'taxonomy-tidy' ); ?></label><select id="<?php echo esc_attr( $select_id ); ?>" name="per_page" form="<?php echo esc_attr( $form_id ); ?>">
+			<div class="taxonomy-tidy-page-size"><label for="<?php echo esc_attr( $select_id ); ?>"><?php echo esc_html__( '表示件数', 'taxonomy-tidy' ); ?></label><select class="tt-control" id="<?php echo esc_attr( $select_id ); ?>" name="per_page" form="<?php echo esc_attr( $form_id ); ?>">
 				<?php foreach ( array( 20, 50, 100 ) as $option ) : ?>
 					<option value="<?php echo esc_attr( (string) $option ); ?>" <?php selected( $per_page, $option ); ?>><?php /* translators: %d: number of terms per page. */ echo esc_html( sprintf( __( '%d件', 'taxonomy-tidy' ), $option ) ); ?></option>
 				<?php endforeach; ?>
-			</select><button type="submit" form="<?php echo esc_attr( $form_id ); ?>" class="button"><?php echo esc_html__( '適用', 'taxonomy-tidy' ); ?></button></div>
+			</select><button type="submit" form="<?php echo esc_attr( $form_id ); ?>" class="button tt-button tt-button--secondary"><?php echo esc_html__( '適用', 'taxonomy-tidy' ); ?></button></div>
 			<span class="taxonomy-tidy-page-range">
 			<?php
 			if ( 0 === $total ) {
@@ -574,7 +696,7 @@ final class Page {
 						}
 						if ( $number === $page ) {
 							?>
-							<span class="button taxonomy-tidy-page-link taxonomy-tidy-page-current" aria-current="page" aria-label="<?php /* translators: %d: current page number. */ echo esc_attr( sprintf( __( '%dページ目', 'taxonomy-tidy' ), $number ) ); ?>"><?php echo esc_html( (string) $number ); ?></span>
+							<span class="button tt-button tt-button--pagination taxonomy-tidy-page-link taxonomy-tidy-page-current" aria-current="page" aria-label="<?php /* translators: %d: current page number. */ echo esc_attr( sprintf( __( '%dページ目', 'taxonomy-tidy' ), $number ) ); ?>"><?php echo esc_html( (string) $number ); ?></span>
 							<?php
 						} else {
 							/* translators: %d: target page number. */
@@ -631,7 +753,7 @@ final class Page {
 	private function render_page_button( string $text, int $target, string $label, bool $disabled, Taxonomy $taxonomy, string $search, string $orderby, string $order, bool $unused, int $per_page ): void {
 		if ( $disabled ) {
 			?>
-			<span class="button taxonomy-tidy-page-link taxonomy-tidy-page-disabled" aria-disabled="true" aria-label="<?php echo esc_attr( $label ); ?>"><?php echo esc_html( $text ); ?></span>
+			<span class="button tt-button tt-button--pagination taxonomy-tidy-page-link taxonomy-tidy-page-disabled" aria-disabled="true" aria-label="<?php echo esc_attr( $label ); ?>"><?php echo esc_html( $text ); ?></span>
 			<?php
 			return;
 		}
@@ -655,7 +777,7 @@ final class Page {
 		}
 		$url = add_query_arg( $args, admin_url( 'tools.php' ) );
 		?>
-		<a class="button taxonomy-tidy-page-link" href="<?php echo esc_url( $url ); ?>" aria-label="<?php echo esc_attr( $label ); ?>"><?php echo esc_html( $text ); ?></a>
+		<a class="button tt-button tt-button--pagination taxonomy-tidy-page-link" href="<?php echo esc_url( $url ); ?>" aria-label="<?php echo esc_attr( $label ); ?>"><?php echo esc_html( $text ); ?></a>
 		<?php
 	}
 

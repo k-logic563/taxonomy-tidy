@@ -102,6 +102,8 @@
 		}
 		busy = true;
 		submitter.disabled = true;
+		submitter.classList.add( 'is-loading' );
+		submitter.setAttribute( 'aria-busy', 'true' );
 		const trigger = submitter.value === 'preview_all' ? submitter : ( opener || submitter );
 		try {
 			let command = submitter.value;
@@ -136,6 +138,8 @@
 			busy = false;
 			if ( submitter.isConnected ) {
 				submitter.disabled = false;
+				submitter.classList.remove( 'is-loading' );
+				submitter.removeAttribute( 'aria-busy' );
 			}
 		}
 	} );

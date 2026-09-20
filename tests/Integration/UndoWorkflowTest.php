@@ -265,11 +265,11 @@ final class UndoWorkflowTest extends WP_UnitTestCase {
 		$this->assertSame( array(), $this->items()->find_for_operation( (int) $undo['id'] ) );
 	}
 
-	/** More than one request is required and interrupted work resumes from pending items. */
+	/** Thirty inverse items remain bounded to ten and finish in three requests. */
 	public function test_undo_is_bounded_and_resumable(): void {
 		$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$original = $this->completed_operation( $user_id, Taxonomy::POST_TAG );
-		for ( $index = 0; $index < 12; ++$index ) {
+		for ( $index = 0; $index < 30; ++$index ) {
 			$term_id = self::factory()->term->create(
 				array(
 					'taxonomy' => 'post_tag',
@@ -285,11 +285,17 @@ final class UndoWorkflowTest extends WP_UnitTestCase {
 		$first = $this->workflow()->run_batch( (int) $undo['id'], $user_id );
 		$this->assertSame( Status::UNDOING->value, $first['status'] );
 		$this->assertSame( 10, $first['progress']['completed'] );
-		$this->assertSame( 2, $first['progress']['pending'] );
+		$this->assertSame( 20, $first['progress']['pending'] );
+
+		$second = $this->workflow()->run_batch( (int) $undo['id'], $user_id );
+		$this->assertSame( Status::UNDOING->value, $second['status'] );
+		$this->assertSame( 20, $second['progress']['completed'] );
+		$this->assertSame( 10, $second['progress']['pending'] );
 
 		$final = $this->workflow()->run_batch( (int) $undo['id'], $user_id );
 		$this->assertSame( Status::UNDONE->value, $final['status'] );
-		$this->assertSame( 12, $final['progress']['completed'] );
+		$this->assertSame( 30, $final['progress']['completed'] );
+		$this->assertSame( 0, $final['progress']['pending'] );
 	}
 
 	/** A conflict introduced between batches is journaled with planned and current state. */
