@@ -13,12 +13,15 @@ use TaxonomyTidy\Domain\Operation\Status;
 use TaxonomyTidy\Domain\Operation\Taxonomy;
 use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
 use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
+use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
 use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
 use WP_Post;
 use WP_Term;
 
 /** Builds an inverse plan only from actual, still-current journaled changes. */
 final class UndoPlanner {
+	private const LOCK_TTL = 60;
+
 	/** Journal types that represent reversible mutations. */
 	private const REVERSIBLE = array(
 		'name_changed',
@@ -35,11 +38,13 @@ final class UndoPlanner {
 	 * @param OperationRepository     $operations Operation storage.
 	 * @param OperationItemRepository $items      Original fixed items.
 	 * @param ChangeJournalRepository $journal    Actual changes.
+	 * @param OperationLock           $lock       Original-operation preview lease.
 	 */
 	public function __construct(
 		private readonly OperationRepository $operations,
 		private readonly OperationItemRepository $items,
-		private readonly ChangeJournalRepository $journal
+		private readonly ChangeJournalRepository $journal,
+		private readonly OperationLock $lock
 	) {
 	}
 
@@ -53,31 +58,108 @@ final class UndoPlanner {
 	public function preview( int $original_id, int $user_id ): array {
 		$assessment = $this->assess( $original_id, $user_id );
 		if ( 'none' === $assessment['availability'] ) {
-			$this->failure( UndoErrorCode::NOT_AVAILABLE );
+			$this->failure_for_existing_or( $original_id, $user_id, UndoErrorCode::NOT_AVAILABLE );
 		}
-		$taxonomy = Taxonomy::from( (string) $assessment['taxonomy'] );
-		$undo_id  = $this->operations->create(
-			$user_id,
-			$taxonomy,
-			array(
-				'kind'                  => 'undo',
-				'original_operation_id' => $original_id,
-				'preview'               => $assessment,
-			),
-			$original_id
-		);
-		$this->operations->save_preview_context(
-			$undo_id,
-			$this->plan_hash( (array) $assessment['items'] ),
-			(string) $assessment['fingerprint'],
-			array(
-				'kind'                  => 'undo',
-				'original_operation_id' => $original_id,
-				'preview'               => $assessment,
-			)
-		);
-		$this->operations->transition( $undo_id, Status::UNDO_PREVIEWED );
-		return $this->operations->find( $undo_id ) ?? array();
+		$token = $this->lock->acquire_undo_parent( $original_id, self::LOCK_TTL );
+		if ( null === $token ) {
+			$this->failure( UndoErrorCode::LOCKED );
+		}
+		try {
+			// The pre-lock assessment is only an early validation. This second
+			// assessment and child lookup are the authoritative atomic section.
+			$assessment = $this->assess( $original_id, $user_id );
+			if ( 'none' === $assessment['availability'] ) {
+				$this->failure_for_existing_or( $original_id, $user_id, UndoErrorCode::NOT_AVAILABLE );
+			}
+			$existing = $this->operations->undos( $original_id );
+			if ( array() !== $existing ) {
+				return $this->reuse_preview_or_fail( $existing, $assessment, $user_id );
+			}
+			$taxonomy = Taxonomy::from( (string) $assessment['taxonomy'] );
+			$undo_id  = $this->operations->create(
+				$user_id,
+				$taxonomy,
+				array(
+					'kind'                  => 'undo',
+					'original_operation_id' => $original_id,
+					'preview'               => $assessment,
+				),
+				$original_id
+			);
+			$this->operations->save_preview_context(
+				$undo_id,
+				$this->plan_hash( (array) $assessment['items'] ),
+				(string) $assessment['fingerprint'],
+				array(
+					'kind'                  => 'undo',
+					'original_operation_id' => $original_id,
+					'preview'               => $assessment,
+				)
+			);
+			$this->operations->transition( $undo_id, Status::UNDO_PREVIEWED );
+			return $this->operations->find( $undo_id ) ?? array();
+		} finally {
+			$this->lock->release( $original_id, $token );
+		}
+	}
+
+	/**
+	 * Reuses one matching preview or rejects an existing/legacy Undo safely.
+	 *
+	 * @param list<array<string, mixed>> $existing   Existing child operations.
+	 * @param array<string, mixed>       $assessment Fresh current-state assessment.
+	 * @param int                        $user_id     Current administrator ID.
+	 * @return array<string, mixed>
+	 */
+	private function reuse_preview_or_fail( array $existing, array $assessment, int $user_id ): array {
+		if ( 1 !== count( $existing ) ) {
+			$this->failure( UndoErrorCode::DUPLICATE );
+		}
+		$undo = $existing[0];
+		if ( $user_id !== (int) $undo['user_id'] || 'undo' !== ( $undo['requested_data']['kind'] ?? '' ) || (string) $assessment['taxonomy'] !== $undo['taxonomy'] ) {
+			$this->failure( UndoErrorCode::DUPLICATE );
+		}
+		$status = Status::tryFrom( (string) $undo['status'] );
+		if ( Status::UNDO_PREVIEWED === $status ) {
+			$stored = is_array( $undo['requested_data']['preview'] ?? null ) ? $undo['requested_data']['preview'] : array();
+			if ( ! is_string( $undo['plan_hash'] ) || ! hash_equals( $undo['plan_hash'], $this->plan_hash( (array) $assessment['items'] ) ) || ! is_string( $undo['state_fingerprint'] ) || ! hash_equals( $undo['state_fingerprint'], (string) $assessment['fingerprint'] ) || (string) ( $stored['fingerprint'] ?? '' ) !== (string) $assessment['fingerprint'] ) {
+				$this->failure( UndoErrorCode::STALE_PREVIEW );
+			}
+			return $undo;
+		}
+		$this->failure_for_status( $status );
+	}
+
+	/**
+	 * Preserves a specific existing-Undo reason without exposing another owner.
+	 *
+	 * @param int    $original_id Original operation ID.
+	 * @param int    $user_id     Current administrator ID.
+	 * @param string $fallback    Error used when no child explains the failure.
+	 * @return never
+	 */
+	private function failure_for_existing_or( int $original_id, int $user_id, string $fallback ): never {
+		$existing = $this->operations->undos( $original_id );
+		if ( 1 !== count( $existing ) || (int) ( $existing[0]['user_id'] ?? 0 ) !== $user_id || 'undo' !== ( $existing[0]['requested_data']['kind'] ?? '' ) ) {
+			$this->failure( array() === $existing ? $fallback : UndoErrorCode::DUPLICATE );
+		}
+		$this->failure_for_status( Status::tryFrom( (string) $existing[0]['status'] ) );
+	}
+
+	/**
+	 * Throws the safe user-facing reason for an existing child status.
+	 *
+	 * @param Status|null $status Existing child status, or null when invalid.
+	 */
+	private function failure_for_status( ?Status $status ): never {
+		$code = match ( $status ) {
+			Status::UNDOING => UndoErrorCode::IN_PROGRESS,
+			Status::UNDONE => UndoErrorCode::ALREADY_UNDONE,
+			Status::UNDO_PARTIAL_FAILED, Status::FAILED => UndoErrorCode::NOT_RESUMABLE,
+			Status::UNDO_PREVIEWED => UndoErrorCode::STALE_PREVIEW,
+			default => UndoErrorCode::DUPLICATE,
+		};
+		$this->failure( $code );
 	}
 
 	/**

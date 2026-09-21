@@ -97,11 +97,15 @@ final class HistoryPage {
 				$error = UndoErrorCode::INVALID_OPERATION;
 			}
 		}
+		if ( null !== $error ) {
+			$status = in_array( $error, array( UndoErrorCode::LOCKED, UndoErrorCode::IN_PROGRESS, UndoErrorCode::ALREADY_UNDONE, UndoErrorCode::NOT_RESUMABLE, UndoErrorCode::DUPLICATE ), true ) ? 409 : 400;
+			status_header( $status );
+		}
 		?>
 		<div id="taxonomy-tidy-history-content">
 		<h2><?php echo esc_html__( '操作履歴', 'taxonomy-tidy' ); ?></h2>
 		<?php if ( null !== $error ) : ?>
-			<div class="notice notice-error inline" role="alert"><p><?php echo esc_html( $this->error_label( $error ) ); ?></p></div>
+			<div class="notice notice-error inline taxonomy-tidy-history-error" role="alert" tabindex="-1"><p><?php echo esc_html( $this->error_label( $error ) ); ?></p></div>
 		<?php endif; ?>
 		<?php if ( null !== $detail ) : ?>
 			<?php $this->render_detail( $detail, $user_id ); ?>
@@ -774,6 +778,10 @@ final class HistoryPage {
 			UndoErrorCode::NOT_AVAILABLE => __( 'この操作は安全に元へ戻せません。', 'taxonomy-tidy' ),
 			UndoErrorCode::STALE_PREVIEW => __( '確認後に状態が変わったため、取り消しを開始しませんでした。もう一度確認してください。', 'taxonomy-tidy' ),
 			UndoErrorCode::LOCKED => __( '別の処理が実行中です。しばらくしてから再試行してください。', 'taxonomy-tidy' ),
+			UndoErrorCode::IN_PROGRESS => __( 'すでに取り消し処理を実行中です。操作履歴から現在の状態を確認してください。', 'taxonomy-tidy' ),
+			UndoErrorCode::ALREADY_UNDONE => __( 'この操作はすでに取り消されています。', 'taxonomy-tidy' ),
+			UndoErrorCode::NOT_RESUMABLE => __( 'この取り消し処理は完了状態のため、もう一度開始できません。操作履歴で結果を確認してください。', 'taxonomy-tidy' ),
+			UndoErrorCode::DUPLICATE => __( 'この操作には複数の取り消し記録があるため、安全を確認できません。新しい取り消しは開始しませんでした。', 'taxonomy-tidy' ),
 			default => __( '操作履歴または取り消し処理を確認できませんでした。', 'taxonomy-tidy' ),
 		};
 	}

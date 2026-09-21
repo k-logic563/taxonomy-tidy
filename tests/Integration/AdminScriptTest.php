@@ -49,6 +49,24 @@ final class AdminScriptTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'setModalLocked( true )', $script );
 		$this->assertStringContainsString( "button.setAttribute( 'aria-busy', 'true' )", $script );
 		$this->assertStringContainsString( 'progress.processed <= previousProcessed', $script );
+		$this->assertStringContainsString( 'showResult( progress )', $script );
+		$this->assertStringContainsString( 'footer.replaceChildren( close )', $script );
+		$this->assertStringContainsString( "heading.textContent = strings.resultTitle || '取り消し結果'", $script );
+		$this->assertStringContainsString( "[ 'undone', 'undo_partial_failed', 'failed' ].includes( progress.status )", $script );
+		$this->assertStringContainsString( "document.querySelectorAll( '.taxonomy-tidy-undo-preview' )", $script );
+		$this->assertStringContainsString( "button.dataset.submitting === '1'", $script );
+		$this->assertStringContainsString( 'globalThis.setTimeout', $script );
+		$this->assertStringContainsString( "document.querySelector( '.taxonomy-tidy-history-error' )", $script );
+	}
+
+	/** Plan-modal focus resolves the current trigger after Ajax replaces the board. */
+	public function test_plan_modal_restores_focus_to_the_current_dom(): void {
+		$script = $this->plan_board_script();
+		$this->assertStringContainsString( 'openerSelector = selectorForOpener( trigger )', $script );
+		$this->assertStringContainsString( 'document.querySelector( openerSelector )', $script );
+		$this->assertStringContainsString( 'opener?.isConnected ? opener : null', $script );
+		$this->assertStringContainsString( '#taxonomy-tidy-board-content h2, .nav-tab[href*="view=plan"]', $script );
+		$this->assertStringContainsString( 'restoreOpenerFocus()', $script );
 	}
 
 	/** History logs are fetched only after expansion and use accessible state. */
@@ -72,6 +90,14 @@ final class AdminScriptTest extends WP_UnitTestCase {
 	private function history_script(): string {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local version-controlled test subject.
 		$script = file_get_contents( dirname( __DIR__, 2 ) . '/assets/js/history.js' );
+		$this->assertIsString( $script );
+		return $script;
+	}
+
+	/** Returns the operation-plan board script source. */
+	private function plan_board_script(): string {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local version-controlled test subject.
+		$script = file_get_contents( dirname( __DIR__, 2 ) . '/assets/js/plan-board.js' );
 		$this->assertIsString( $script );
 		return $script;
 	}

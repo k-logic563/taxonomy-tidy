@@ -60,6 +60,41 @@ final class OperationLock {
 			return null;
 		}
 
+		return $this->acquire_named( $operation_id, $taxonomy, $ttl_seconds );
+	}
+
+	/**
+	 * Acquires the short critical-section lease shared by preview and Undo start.
+	 *
+	 * The original operation ID scopes this lease, so previews for unrelated
+	 * originals do not block one another. The existing unique lock_name column
+	 * supplies the atomic database guarantee without a schema change.
+	 *
+	 * @param int $original_operation_id Original operation that is being undone.
+	 * @param int $ttl_seconds            Lease lifetime in seconds.
+	 * @throws \InvalidArgumentException When the lease lifetime is not positive.
+	 */
+	public function acquire_undo_parent( int $original_operation_id, int $ttl_seconds = 60 ): ?string {
+		return $this->acquire_named( $original_operation_id, 'undo:' . $original_operation_id, $ttl_seconds );
+	}
+
+	/**
+	 * Acquires one atomic named lease on an existing operation row.
+	 *
+	 * @param int    $operation_id Row that owns the lease.
+	 * @param string $lock_name    Unique logical resource name.
+	 * @param int    $ttl_seconds  Lease lifetime in seconds.
+	 * @throws \InvalidArgumentException When the lease lifetime is not positive.
+	 */
+	private function acquire_named( int $operation_id, string $lock_name, int $ttl_seconds ): ?string {
+		if ( $ttl_seconds < 1 ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception; not HTML output.
+			throw new InvalidArgumentException( 'The lock lifetime must be positive.' );
+		}
+		if ( null === $this->operation_taxonomy( $operation_id ) ) {
+			return null;
+		}
+
 		$now = current_time( 'mysql', true );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Atomic custom-table lock cannot use a core cache API.
@@ -67,10 +102,11 @@ final class OperationLock {
 			$this->database->prepare(
 				'UPDATE %i
 				SET lock_name = NULL, lock_token = NULL, lock_expires_at = NULL, updated_at = %s
-				WHERE lock_name = %s AND lock_expires_at <= %s',
+				WHERE (id = %d OR lock_name = %s) AND lock_expires_at <= %s',
 				$this->table,
 				$now,
-				$taxonomy,
+				$operation_id,
+				$lock_name,
 				$now
 			)
 		);
@@ -84,7 +120,7 @@ final class OperationLock {
 				SET lock_name = %s, lock_token = %s, lock_expires_at = %s, updated_at = %s
 				WHERE id = %d AND lock_name IS NULL',
 				$this->table,
-				$taxonomy,
+				$lock_name,
 				$token,
 				$expires_at,
 				$now,

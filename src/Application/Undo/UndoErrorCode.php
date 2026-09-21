@@ -18,4 +18,8 @@ final class UndoErrorCode {
 	public const CONFLICT          = 'undo_conflict';
 	public const UPDATE_FAILED     = 'undo_update_failed';
 	public const JOURNAL_FAILED    = 'undo_journal_failed';
+	public const IN_PROGRESS       = 'undo_in_progress';
+	public const ALREADY_UNDONE    = 'undo_already_undone';
+	public const NOT_RESUMABLE     = 'undo_not_resumable';
+	public const DUPLICATE         = 'undo_duplicate_detected';
 }

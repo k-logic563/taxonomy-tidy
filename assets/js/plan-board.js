@@ -8,9 +8,34 @@
 
 	let modal = document.querySelector( '.taxonomy-tidy-board-modal' );
 	let opener = null;
+	let openerSelector = '';
 	let busy = false;
 	let modalOpen = false;
 	let originalOverflow = '';
+
+	function selectorForOpener( trigger ) {
+		if ( ! trigger ) {
+			return '';
+		}
+		if ( trigger.id ) {
+			return `#${ globalThis.CSS.escape( trigger.id ) }`;
+		}
+		if ( trigger.name && trigger.value ) {
+			return `[name="${ globalThis.CSS.escape( trigger.name ) }"][value="${ globalThis.CSS.escape( trigger.value ) }"]`;
+		}
+		return '';
+	}
+
+	function restoreOpenerFocus() {
+		const currentOpener = openerSelector ? document.querySelector( openerSelector ) : null;
+		const target = currentOpener || ( opener?.isConnected ? opener : null ) || document.querySelector( '#taxonomy-tidy-board-content h2, .nav-tab[href*="view=plan"]' );
+		if ( target ) {
+			if ( ! target.matches( 'button, a, input, select, textarea, [tabindex]' ) ) {
+				target.setAttribute( 'tabindex', '-1' );
+			}
+			globalThis.requestAnimationFrame( () => target.focus() );
+		}
+	}
 
 	function closeModal( force = false, restoreFocus = true ) {
 		if ( ! modal || ( ! force && ( busy || modal.querySelector( '.taxonomy-tidy-modal__close' )?.disabled ) ) ) {
@@ -20,10 +45,11 @@
 		modal.dataset.autoOpen = '0';
 		document.body.style.overflow = originalOverflow;
 		modalOpen = false;
-		if ( restoreFocus && opener?.isConnected ) {
-			opener.focus();
+		if ( restoreFocus ) {
+			restoreOpenerFocus();
 		}
 		opener = null;
+		openerSelector = '';
 	}
 
 	function openModal( trigger ) {
@@ -31,6 +57,7 @@
 			return;
 		}
 		opener = trigger;
+		openerSelector = selectorForOpener( trigger );
 		if ( ! modalOpen ) {
 			originalOverflow = document.body.style.overflow;
 		}

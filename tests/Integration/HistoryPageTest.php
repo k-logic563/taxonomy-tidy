@@ -273,7 +273,7 @@ final class HistoryPageTest extends WP_UnitTestCase {
 		$operations = new OperationRepository( $GLOBALS['wpdb'] );
 		$items      = new OperationItemRepository( $GLOBALS['wpdb'] );
 		$journal    = new ChangeJournalRepository( $GLOBALS['wpdb'] );
-		$planner    = new UndoPlanner( $operations, $items, $journal );
+		$planner    = new UndoPlanner( $operations, $items, $journal, new OperationLock( $GLOBALS['wpdb'] ) );
 		$workflow   = new UndoWorkflow( $operations, $items, new OperationLock( $GLOBALS['wpdb'] ), $planner, new UndoItemExecutor( $journal ), new DatabaseTransaction( $GLOBALS['wpdb'] ) );
 		return new HistoryPage( $operations, $items, $journal, $planner, $workflow );
 	}

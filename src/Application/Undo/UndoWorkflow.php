@@ -57,47 +57,76 @@ final class UndoWorkflow {
 			$this->failure( UndoErrorCode::INVALID_OPERATION );
 		}
 		$status = Status::tryFrom( (string) $undo['status'] );
+		if ( in_array( $status, array( Status::UNDONE, Status::UNDO_PARTIAL_FAILED, Status::FAILED ), true ) ) {
+			return $this->result( $undo_id );
+		}
 		if ( ! in_array( $status, array( Status::UNDO_PREVIEWED, Status::UNDOING ), true ) ) {
 			$this->failure( UndoErrorCode::INVALID_OPERATION );
 		}
-		$taxonomy = Taxonomy::from( (string) $undo['taxonomy'] );
-		$token    = $this->lock->acquire( $undo_id, self::LOCK_TTL );
-		if ( null === $token ) {
+		$original_id  = (int) $undo['parent_operation_id'];
+		$parent_token = $this->lock->acquire_undo_parent( $original_id, self::LOCK_TTL );
+		if ( null === $parent_token ) {
 			$this->failure( UndoErrorCode::LOCKED );
 		}
 		try {
-			if ( Status::UNDO_PREVIEWED === $status ) {
-				$this->start( $undo, $user_id );
+			// Preview creation and start share the same original-scoped lease. Read
+			// both the child set and current child status again only after acquiring it.
+			$children = $this->operations->undos( $original_id );
+			if ( 1 !== count( $children ) || $undo_id !== (int) $children[0]['id'] ) {
+				$this->failure( UndoErrorCode::DUPLICATE );
 			}
-			foreach ( $this->items->find_pending( $undo_id, self::BATCH_SIZE ) as $item ) {
-				if ( ! $this->lock->renew( $undo_id, $token, self::LOCK_TTL ) || ! $this->items->record_attempt( (int) $item['id'] ) ) {
-					$this->failure( UndoErrorCode::LOCKED );
-				}
-				try {
-					if ( ! $this->transaction->begin() ) {
-						$this->failure( UndoErrorCode::UPDATE_FAILED );
-					}
-					$this->executor->execute( $item, $taxonomy );
-					if ( ! $this->items->mark_completed( (int) $item['id'] ) || ! $this->transaction->commit() ) {
-						$this->failure( UndoErrorCode::JOURNAL_FAILED );
-					}
-				} catch ( UndoException $exception ) {
-					$this->transaction->rollback();
-					$this->executor->record_failure( $item, $exception->error_code(), $taxonomy );
-					if ( ! $this->items->mark_failed( (int) $item['id'], $exception->error_code() ) ) {
-						throw $exception;
-					}
-				} catch ( \Throwable $exception ) {
-					$this->transaction->rollback();
-					if ( ! $this->items->mark_failed( (int) $item['id'], UndoErrorCode::JOURNAL_FAILED ) ) {
-						throw $exception;
-					}
-				}
+			$undo = $this->operations->find_owned( $undo_id, $user_id );
+			if ( null === $undo || $original_id !== (int) $undo['parent_operation_id'] || 'undo' !== ( $undo['requested_data']['kind'] ?? '' ) ) {
+				$this->failure( UndoErrorCode::INVALID_OPERATION );
 			}
-			$this->finish_if_ready( $undo_id );
-			return $this->result( $undo_id );
+			$status = Status::tryFrom( (string) $undo['status'] );
+			if ( in_array( $status, array( Status::UNDONE, Status::UNDO_PARTIAL_FAILED, Status::FAILED ), true ) ) {
+				return $this->result( $undo_id );
+			}
+			if ( ! in_array( $status, array( Status::UNDO_PREVIEWED, Status::UNDOING ), true ) ) {
+				$this->failure( UndoErrorCode::INVALID_OPERATION );
+			}
+			$taxonomy = Taxonomy::from( (string) $undo['taxonomy'] );
+			$token    = $this->lock->acquire( $undo_id, self::LOCK_TTL );
+			if ( null === $token ) {
+				$this->failure( UndoErrorCode::LOCKED );
+			}
+			try {
+				if ( Status::UNDO_PREVIEWED === $status ) {
+					$this->start( $undo, $user_id );
+				}
+				foreach ( $this->items->find_pending( $undo_id, self::BATCH_SIZE ) as $item ) {
+					if ( ! $this->lock->renew( $original_id, $parent_token, self::LOCK_TTL ) || ! $this->lock->renew( $undo_id, $token, self::LOCK_TTL ) || ! $this->items->record_attempt( (int) $item['id'] ) ) {
+						$this->failure( UndoErrorCode::LOCKED );
+					}
+					try {
+						if ( ! $this->transaction->begin() ) {
+							$this->failure( UndoErrorCode::UPDATE_FAILED );
+						}
+						$this->executor->execute( $item, $taxonomy );
+						if ( ! $this->items->mark_completed( (int) $item['id'] ) || ! $this->transaction->commit() ) {
+							$this->failure( UndoErrorCode::JOURNAL_FAILED );
+						}
+					} catch ( UndoException $exception ) {
+						$this->transaction->rollback();
+						$this->executor->record_failure( $item, $exception->error_code(), $taxonomy );
+						if ( ! $this->items->mark_failed( (int) $item['id'], $exception->error_code() ) ) {
+							throw $exception;
+						}
+					} catch ( \Throwable $exception ) {
+						$this->transaction->rollback();
+						if ( ! $this->items->mark_failed( (int) $item['id'], UndoErrorCode::JOURNAL_FAILED ) ) {
+							throw $exception;
+						}
+					}
+				}
+				$this->finish_if_ready( $undo_id );
+				return $this->result( $undo_id );
+			} finally {
+				$this->lock->release( $undo_id, $token );
+			}
 		} finally {
-			$this->lock->release( $undo_id, $token );
+			$this->lock->release( $original_id, $parent_token );
 		}
 	}
 

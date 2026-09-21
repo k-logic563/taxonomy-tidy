@@ -79,6 +79,120 @@ final class UndoWorkflowTest extends WP_UnitTestCase {
 		$this->assertGreaterThan( 0, $change_id );
 	}
 
+	/** Repeated preview requests reuse one child and never seed items or journals. */
+	public function test_repeated_preview_reuses_the_only_child_operation(): void {
+		$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$term_id  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'After preview',
+				'slug'     => 'one-preview',
+			)
+		);
+		$original = $this->completed_operation( $user_id, Taxonomy::POST_TAG );
+		$item_id  = $this->items()->add( $original, 'rename:' . $term_id, Action::RENAME, array() );
+		$this->items()->mark_completed( $item_id );
+		$this->journal()->record_once( $original, $item_id, 'rename:name', 'name_changed', array( 'name' => 'Before preview' ), array( 'name' => 'After preview' ), $term_id );
+
+		$first  = $this->planner()->preview( $original, $user_id );
+		$second = $this->planner()->preview( $original, $user_id );
+
+		$this->assertSame( $first['id'], $second['id'] );
+		$this->assertCount( 1, $this->operations()->undos( $original ) );
+		$this->assertSame( array(), $this->items()->find_for_operation( (int) $first['id'] ) );
+		$this->assertSame( array(), $this->journal()->find_for_operation( (int) $first['id'] ) );
+	}
+
+	/** The original-scoped preview lease rejects overlap and is released on failure. */
+	public function test_preview_lock_is_original_scoped_and_failure_releases_it(): void {
+		global $wpdb;
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$first   = $this->completed_operation( $user_id, Taxonomy::POST_TAG );
+		$second  = $this->completed_operation( $user_id, Taxonomy::POST_TAG );
+		foreach ( array( $first, $second ) as $index => $original ) {
+			$term_id = self::factory()->term->create(
+				array(
+					'taxonomy' => 'post_tag',
+					'name'     => 'Lock after ' . $index,
+					'slug'     => 'lock-preview-' . $index,
+				)
+			);
+			$item_id = $this->items()->add( $original, 'rename:' . $term_id, Action::RENAME, array() );
+			$this->items()->mark_completed( $item_id );
+			$this->journal()->record_once( $original, $item_id, 'rename:name', 'name_changed', array( 'name' => 'Lock before ' . $index ), array( 'name' => 'Lock after ' . $index ), $term_id );
+		}
+		$lock  = new OperationLock( $wpdb );
+		$token = $lock->acquire_undo_parent( $first );
+		$this->assertIsString( $token );
+		$this->assertNotSame( null, $this->planner()->preview( $second, $user_id ) );
+		try {
+			$this->planner()->preview( $first, $user_id );
+			$this->fail( 'The same original must not enter preview concurrently.' );
+		} catch ( \TaxonomyTidy\Application\Undo\UndoException $exception ) {
+			$this->assertSame( \TaxonomyTidy\Application\Undo\UndoErrorCode::LOCKED, $exception->error_code() );
+		}
+		$this->assertTrue( $lock->release( $first, $token ) );
+		$this->assertNotSame( null, $this->planner()->preview( $first, $user_id ) );
+	}
+
+	/** A failure after acquiring the original-scoped lease always releases it. */
+	public function test_preview_releases_lock_when_legacy_duplicate_is_detected(): void {
+		global $wpdb;
+		$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$term_id  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Duplicate after',
+				'slug'     => 'duplicate-preview',
+			)
+		);
+		$original = $this->completed_operation( $user_id, Taxonomy::POST_TAG );
+		$item_id  = $this->items()->add( $original, 'rename:' . $term_id, Action::RENAME, array() );
+		$this->items()->mark_completed( $item_id );
+		$this->journal()->record_once( $original, $item_id, 'rename:name', 'name_changed', array( 'name' => 'Duplicate before' ), array( 'name' => 'Duplicate after' ), $term_id );
+		$this->operations()->create( $user_id, Taxonomy::POST_TAG, array( 'kind' => 'undo' ), $original );
+		$this->operations()->create( $user_id, Taxonomy::POST_TAG, array( 'kind' => 'undo' ), $original );
+
+		try {
+			$this->planner()->preview( $original, $user_id );
+			$this->fail( 'Legacy duplicate children must be rejected.' );
+		} catch ( \TaxonomyTidy\Application\Undo\UndoException $exception ) {
+			$this->assertSame( \TaxonomyTidy\Application\Undo\UndoErrorCode::DUPLICATE, $exception->error_code() );
+		}
+
+		$lock  = new OperationLock( $wpdb );
+		$token = $lock->acquire_undo_parent( $original );
+		$this->assertIsString( $token );
+		$this->assertTrue( $lock->release( $original, $token ) );
+		$this->assertCount( 2, $this->operations()->undos( $original ) );
+	}
+
+	/** Started and completed Undo children prevent a second child from being created. */
+	public function test_started_and_completed_undo_reject_new_preview(): void {
+		$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$term_id  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Terminal after',
+				'slug'     => 'terminal-undo',
+			)
+		);
+		$original = $this->completed_operation( $user_id, Taxonomy::POST_TAG );
+		$item_id  = $this->items()->add( $original, 'rename:' . $term_id, Action::RENAME, array() );
+		$this->items()->mark_completed( $item_id );
+		$this->journal()->record_once( $original, $item_id, 'rename:name', 'name_changed', array( 'name' => 'Terminal before' ), array( 'name' => 'Terminal after' ), $term_id );
+		$undo = $this->planner()->preview( $original, $user_id );
+		$this->workflow()->run_batch( (int) $undo['id'], $user_id );
+
+		try {
+			$this->planner()->preview( $original, $user_id );
+			$this->fail( 'A completed Undo must prevent re-Undo.' );
+		} catch ( \TaxonomyTidy\Application\Undo\UndoException $exception ) {
+			$this->assertSame( \TaxonomyTidy\Application\Undo\UndoErrorCode::ALREADY_UNDONE, $exception->error_code() );
+		}
+		$this->assertCount( 1, $this->operations()->undos( $original ) );
+	}
+
 	/** A later administrator rename is a conflict and is never overwritten. */
 	public function test_rename_conflict_is_not_guessed_or_overwritten(): void {
 		$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -419,14 +533,14 @@ final class UndoWorkflowTest extends WP_UnitTestCase {
 
 	/** Returns a current-state Undo planner. */
 	private function planner(): UndoPlanner {
-		return new UndoPlanner( $this->operations(), $this->items(), $this->journal() );
+		return new UndoPlanner( $this->operations(), $this->items(), $this->journal(), new OperationLock( $GLOBALS['wpdb'] ) );
 	}
 
 	/** Returns a fully wired bounded Undo workflow. */
 	private function workflow(): UndoWorkflow {
 		global $wpdb;
 		$journal = $this->journal();
-		return new UndoWorkflow( $this->operations(), $this->items(), new OperationLock( $wpdb ), new UndoPlanner( $this->operations(), $this->items(), $journal ), new UndoItemExecutor( $journal ), new DatabaseTransaction( $wpdb ) );
+		return new UndoWorkflow( $this->operations(), $this->items(), new OperationLock( $wpdb ), new UndoPlanner( $this->operations(), $this->items(), $journal, new OperationLock( $wpdb ) ), new UndoItemExecutor( $journal ), new DatabaseTransaction( $wpdb ) );
 	}
 
 	/** Clears only the isolated plugin persistence tables. */

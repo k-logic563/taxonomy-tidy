@@ -97,6 +97,9 @@ final class Page {
 				'interrupted'     => __( '取り消し処理を中断しました。操作履歴から再開できます。', 'taxonomy-tidy' ),
 				'cannotContinue'  => __( '取り消し処理を続行できませんでした。', 'taxonomy-tidy' ),
 				'progressStopped' => __( 'サーバー側の進捗を確認できないため、取り消し処理を中断しました。操作履歴から再開できます。', 'taxonomy-tidy' ),
+				'resultTitle'     => __( '取り消し結果', 'taxonomy-tidy' ),
+				'stoppedTitle'    => __( '取り消しを中断しました', 'taxonomy-tidy' ),
+				'closeResult'     => __( '閉じる', 'taxonomy-tidy' ),
 				'showDetails'     => __( '詳しく見る', 'taxonomy-tidy' ),
 				'collapse'        => __( '閉じる', 'taxonomy-tidy' ),
 				'success'         => __( '成功：', 'taxonomy-tidy' ),
@@ -163,7 +166,7 @@ final class Page {
 		try {
 			wp_send_json_success( $this->history_service()->continue_undo( $undo_id, get_current_user_id(), $taxonomy ) );
 		} catch ( \TaxonomyTidy\Application\Undo\UndoException $exception ) {
-			$status = UndoErrorCode::LOCKED === $exception->error_code() ? 409 : 400;
+			$status = in_array( $exception->error_code(), array( UndoErrorCode::LOCKED, UndoErrorCode::IN_PROGRESS, UndoErrorCode::ALREADY_UNDONE, UndoErrorCode::NOT_RESUMABLE, UndoErrorCode::DUPLICATE ), true ) ? 409 : 400;
 			wp_send_json_error(
 				array(
 					'message'   => $this->undo_error_message( $exception->error_code() ),
@@ -210,7 +213,7 @@ final class Page {
 		$operations = new OperationRepository( $wpdb );
 		$items      = new OperationItemRepository( $wpdb );
 		$journal    = new ChangeJournalRepository( $wpdb );
-		$planner    = new UndoPlanner( $operations, $items, $journal );
+		$planner    = new UndoPlanner( $operations, $items, $journal, new OperationLock( $wpdb ) );
 		$workflow   = new UndoWorkflow( $operations, $items, new OperationLock( $wpdb ), $planner, new UndoItemExecutor( $journal ), new DatabaseTransaction( $wpdb ) );
 		return new HistoryPage( $operations, $items, $journal, $planner, $workflow );
 	}
@@ -224,6 +227,10 @@ final class Page {
 		return match ( $code ) {
 			UndoErrorCode::LOCKED => __( '別の処理が実行中です。操作履歴から状態を確認してください。', 'taxonomy-tidy' ),
 			UndoErrorCode::STALE_PREVIEW => __( '確認後に状態が変わったため、取り消しを開始しませんでした。', 'taxonomy-tidy' ),
+			UndoErrorCode::IN_PROGRESS => __( 'すでに取り消し処理を実行中です。操作履歴から状態を確認してください。', 'taxonomy-tidy' ),
+			UndoErrorCode::ALREADY_UNDONE => __( 'この操作はすでに取り消されています。', 'taxonomy-tidy' ),
+			UndoErrorCode::NOT_RESUMABLE => __( 'この取り消し処理は完了状態のため再開できません。操作履歴で結果を確認してください。', 'taxonomy-tidy' ),
+			UndoErrorCode::DUPLICATE => __( '複数の取り消し記録を検出したため、安全のため処理を開始しませんでした。', 'taxonomy-tidy' ),
 			default => __( '取り消し処理を続行できませんでした。操作履歴から状態を確認してください。', 'taxonomy-tidy' ),
 		};
 	}
@@ -283,7 +290,7 @@ final class Page {
 					<?php $board->render( $board_state ); ?>
 				<?php else : ?>
 					<?php
-					$undo_planner = new UndoPlanner( $operations, $items, $journal );
+					$undo_planner = new UndoPlanner( $operations, $items, $journal, new OperationLock( $wpdb ) );
 					$undo         = new UndoWorkflow(
 						$operations,
 						$items,

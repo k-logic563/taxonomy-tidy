@@ -6,6 +6,40 @@
 	let busy = false;
 	let terminal = false;
 	const maxAttempts = 3;
+	const focusStorageKey = 'taxonomyTidyHistoryFocus';
+
+	document.querySelectorAll( '.taxonomy-tidy-undo-preview' ).forEach( ( button ) => {
+		button.form?.addEventListener( 'submit', ( event ) => {
+			if ( button.dataset.submitting === '1' ) {
+				event.preventDefault();
+				return;
+			}
+			button.dataset.submitting = '1';
+			button.classList.add( 'is-loading' );
+			button.setAttribute( 'aria-busy', 'true' );
+			// Keep the named submitter enabled through native form serialization;
+			// disabling it synchronously would omit undo_command from the POST body.
+			globalThis.setTimeout( () => {
+				button.disabled = true;
+			}, 0 );
+		} );
+	} );
+	const historyError = document.querySelector( '.taxonomy-tidy-history-error' );
+	if ( historyError ) {
+		globalThis.requestAnimationFrame( () => historyError.focus() );
+	}
+
+	function resultFooter() {
+		const footer = modal?.querySelector( '.taxonomy-tidy-modal__footer' );
+		if ( ! footer ) {
+			return;
+		}
+		const close = document.createElement( 'button' );
+		close.type = 'button';
+		close.className = 'button tt-button tt-button--secondary taxonomy-tidy-modal__cancel';
+		close.textContent = strings.closeResult || '閉じる';
+		footer.replaceChildren( close );
+	}
 
 	function setModalLocked( locked ) {
 		busy = locked;
@@ -27,10 +61,21 @@
 		modal.hidden = true;
 		document.body.style.overflow = '';
 		if ( terminal ) {
+			globalThis.sessionStorage?.setItem( focusStorageKey, '.nav-tab[href*="view=history"]' );
 			globalThis.location.href = globalThis.location.href;
 			return;
 		}
 		document.querySelector( '.taxonomy-tidy-undo-preview' )?.focus();
+	}
+
+	function showResult( progress ) {
+		terminal = true;
+		const heading = modal?.querySelector( '#taxonomy-tidy-undo-heading' );
+		if ( heading ) {
+			heading.textContent = strings.resultTitle || '取り消し結果';
+		}
+		showProgress( progress );
+		resultFooter();
 	}
 
 	function showProgress( progress ) {
@@ -60,6 +105,11 @@
 
 	function showStopped( message ) {
 		const body = modal?.querySelector( '.taxonomy-tidy-modal__body' );
+		const heading = modal?.querySelector( '#taxonomy-tidy-undo-heading' );
+		terminal = true;
+		if ( heading ) {
+			heading.textContent = strings.stoppedTitle || '取り消しを中断しました';
+		}
 		if ( body ) {
 			const notice = document.createElement( 'p' );
 			notice.className = 'notice notice-error inline taxonomy-tidy-undo-error';
@@ -67,6 +117,7 @@
 			notice.textContent = message;
 			body.append( notice );
 		}
+		resultFooter();
 		setModalLocked( false );
 	}
 
@@ -121,7 +172,11 @@
 				}
 				previousProcessed = progress.processed;
 			} while ( progress.has_more && progress.status === 'undoing' );
-			terminal = [ 'undone', 'undo_partial_failed', 'failed' ].includes( progress.status );
+			if ( [ 'undone', 'undo_partial_failed', 'failed' ].includes( progress.status ) ) {
+				showResult( progress );
+			} else {
+				showStopped( strings.interrupted || '取り消し処理を中断しました。操作履歴から再開できます。' );
+			}
 			setModalLocked( false );
 		} catch ( error ) {
 			showStopped( error?.name === 'DataError' ? error.message : ( strings.interrupted || '取り消し処理を中断しました。操作履歴から再開できます。' ) );
@@ -168,6 +223,12 @@
 		if ( modal.dataset.autoContinue === '1' ) {
 			runUndo( modal.querySelector( 'form' ) );
 		}
+	}
+
+	const focusSelector = globalThis.sessionStorage?.getItem( focusStorageKey );
+	if ( focusSelector && ! modal ) {
+		globalThis.sessionStorage.removeItem( focusStorageKey );
+		globalThis.requestAnimationFrame( () => document.querySelector( focusSelector )?.focus() );
 	}
 
 	document.querySelectorAll( '.taxonomy-tidy-history-logs' ).forEach( ( section ) => {

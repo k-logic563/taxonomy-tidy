@@ -181,10 +181,27 @@ final class OperationRepository {
 	 * @return list<array<string, mixed>>
 	 */
 	public function started_undos( int $parent_operation_id ): array {
+		return array_values(
+			array_filter(
+				$this->undos( $parent_operation_id ),
+				static fn( array $operation ): bool => null !== $operation['started_at']
+			)
+		);
+	}
+
+	/**
+	 * Returns every Undo child for an original operation, including previews.
+	 *
+	 * Existing duplicate rows are reported to callers and are never deleted.
+	 *
+	 * @param int $parent_operation_id Original operation ID.
+	 * @return list<array<string, mixed>>
+	 */
+	public function undos( int $parent_operation_id ): array {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom audit table has no core API or object cache.
 		$ids        = $this->database->get_col(
 			$this->database->prepare(
-				'SELECT id FROM %i WHERE parent_operation_id = %d AND started_at IS NOT NULL ORDER BY id DESC',
+				'SELECT id FROM %i WHERE parent_operation_id = %d ORDER BY id DESC',
 				$this->table,
 				$parent_operation_id
 			)
