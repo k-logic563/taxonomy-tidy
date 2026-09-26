@@ -8,6 +8,11 @@
 /coverage/
 /dist/
 /node_modules/
+/playwright-report/
+/test-results/
+/playwright/.auth/
+/.env.e2e
+/.e2e-tmp/
 /vendor/
 
 # composer.lock is intentionally tracked for reproducible development installs.

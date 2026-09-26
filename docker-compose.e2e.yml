@@ -1,0 +1,14 @@
+services:
+  database:
+    environment:
+      MYSQL_DATABASE: taxonomy_tidy_e2e
+  wordpress:
+    environment:
+      WORDPRESS_DB_NAME: taxonomy_tidy_e2e
+      WP_ENVIRONMENT_TYPE: local
+    ports: !override
+      - "${E2E_PORT:-8081}:80"
+  wp-cli:
+    environment:
+      WORDPRESS_DB_NAME: taxonomy_tidy_e2e
+      WP_ENVIRONMENT_TYPE: local

@@ -2,6 +2,9 @@
 /.codex
 /.env
 /.env.example
+/.env.e2e
+/.env.e2e.example
+/.e2e-tmp
 /.git
 /.github
 /.idea
@@ -26,6 +29,11 @@
 /package.json
 /package-lock.json
 /docker-compose.yml
+/docker-compose.e2e.yml
+/playwright.config.ts
+/playwright-report
+/test-results
+/playwright
 /Makefile
 /phpcs.xml.dist
 /phpunit.xml.dist

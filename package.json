@@ -1,10 +1,22 @@
 {
   "name": "taxonomy-tidy-development",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "lint:js": "eslint assets/js/**/*.js"
+    "lint:js": "eslint assets/js/**/*.js",
+    "e2e:install": "playwright install chromium",
+    "e2e:setup": "bin/e2e.sh setup",
+    "e2e:test": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:debug": "PWDEBUG=1 playwright test --headed --workers=1",
+    "e2e:report": "playwright show-report playwright-report",
+    "e2e:clean": "bin/e2e.sh clean",
+    "e2e": "npm run e2e:setup && npm run e2e:test"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "eslint": "10.10.0"
   }
 }
