@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace TaxonomyTidy\Admin;
 
 use TaxonomyTidy\Application\Execution\ExecutionException;
+use TaxonomyTidy\Application\Execution\ExecutionErrorCode;
 use TaxonomyTidy\Application\Execution\ExecutionWorkflow;
 use TaxonomyTidy\Application\Planning\PlanErrorCode;
 use TaxonomyTidy\Application\Planning\PlanService;
@@ -193,6 +194,7 @@ final class PlanBoard {
 	 * @param int $user_id Administrator ID.
 	 * @return array<string, array<string, mixed>>
 	 * @throws PlanValidationException When no preview exists.
+	 * @throws ExecutionException When a preview cannot be accepted for execution.
 	 */
 	private function run_all( int $user_id ): array {
 		$operations = $this->load_operations( $user_id );
@@ -202,7 +204,14 @@ final class PlanBoard {
 			if ( null === $operation ) {
 				continue;
 			}
-			$this->execution->validate_start( (int) $operation['id'], $user_id, $taxonomy );
+			try {
+				$this->execution->validate_start( (int) $operation['id'], $user_id, $taxonomy );
+			} catch ( ExecutionException $exception ) {
+				if ( ExecutionErrorCode::NO_STARTABLE_ITEMS === $exception->error_code() ) {
+					$this->execution->record_unstartable_failure( (int) $operation['id'], $user_id, $taxonomy, $exception );
+				}
+				throw $exception;
+			}
 			$start[ $taxonomy->value ] = (int) $operation['id'];
 		}
 		if ( array() === $start ) {
@@ -431,6 +440,11 @@ final class PlanBoard {
 		<?php elseif ( is_string( $state['notice'] ) ) : ?>
 			<div class="notice notice-<?php echo esc_attr( 'warning' === ( $state['notice_type'] ?? 'success' ) ? 'warning' : 'success' ); ?> inline" role="status"><p><?php echo esc_html( $state['notice'] ); ?></p></div>
 		<?php endif; ?>
+		<?php if ( array() !== (array) $state['results'] && ! $state['modal'] ) : ?>
+			<section class="taxonomy-tidy-execution-summary" aria-live="polite" aria-label="<?php echo esc_attr__( '最終的な実行件数', 'taxonomy-tidy' ); ?>">
+				<?php $this->render_progress( (array) $state['results'] ); ?>
+			</section>
+		<?php endif; ?>
 		<?php if ( 0 === $count ) : ?>
 			<p><?php echo esc_html__( '操作計画はまだありません。', 'taxonomy-tidy' ); ?><br><?php echo esc_html__( 'カテゴリーまたはタグを選択し、処理パネルから計画へ追加してください。', 'taxonomy-tidy' ); ?></p>
 			<?php if ( $state['modal'] ) : ?>
@@ -618,6 +632,17 @@ final class PlanBoard {
 			<p class="taxonomy-tidy-message taxonomy-tidy-message--warning"><?php echo esc_html( $succeeded ? __( '一部の処理に失敗しました。成功した処理の結果は保持されています。', 'taxonomy-tidy' ) : __( '処理を完了できませんでした。', 'taxonomy-tidy' ) ); ?></p>
 			<?php
 		}
+		$this->render_progress( $results );
+	}
+
+	/**
+	 * Renders persisted item-state counts for running and terminal results.
+	 *
+	 * The invariant is total = completed + pending + failed + skipped.
+	 *
+	 * @param array<string, array<string, mixed>> $results Individual operation results.
+	 */
+	private function render_progress( array $results ): void {
 		foreach ( self::TAXONOMIES as $taxonomy ) {
 			$result = $results[ $taxonomy->value ] ?? null;
 			if ( null === $result ) {
@@ -637,7 +662,7 @@ final class PlanBoard {
 				?>
 				— <?php echo esc_html( ErrorMessages::label( (string) $result['board_error'] ) ); ?><?php endif; ?></p>
 			<?php if ( is_array( $result['progress'] ?? null ) ) : ?>
-				<p><?php /* translators: 1: completed count, 2: total count, 3: failed count. */ echo esc_html( sprintf( __( '完了 %1$d / 全体 %2$d、失敗 %3$d', 'taxonomy-tidy' ), (int) $result['progress']['completed'], (int) $result['progress']['total'], (int) $result['progress']['failed'] ) ); ?></p>
+				<p><?php /* translators: 1: total, 2: completed, 3: pending, 4: failed, 5: skipped, 6: current status. */ echo esc_html( sprintf( __( '全体：%1$d件、完了：%2$d件、未処理：%3$d件、失敗：%4$d件、スキップ：%5$d件、現在の状態：%6$s', 'taxonomy-tidy' ), (int) $result['progress']['total'], (int) $result['progress']['completed'], (int) $result['progress']['pending'], (int) $result['progress']['failed'], (int) $result['progress']['skipped'], $label ) ); ?></p>
 			<?php endif; ?>
 			<?php
 		}
@@ -790,6 +815,9 @@ final class PlanBoard {
 			default => __( '現在の使用状況を確認できません。', 'taxonomy-tidy' ),
 		};
 		/* translators: 1: deletion target name, 2: reason deletion cannot start. */
-		return sprintf( __( '削除を開始できませんでした。「%1$s」は%2$s', 'taxonomy-tidy' ), $target, $reason );
+		$message = sprintf( __( '削除を開始できませんでした。「%1$s」は%2$s', 'taxonomy-tidy' ), $target, $reason );
+		return ExecutionErrorCode::NO_STARTABLE_ITEMS === $exception->error_code()
+			? $message . ' ' . __( 'すべての対象を処理できないため、この操作は失敗として終了しました。操作計画を作り直し、変更内容をもう一度確認してください。', 'taxonomy-tidy' )
+			: $message;
 	}
 }

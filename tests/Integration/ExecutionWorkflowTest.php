@@ -173,6 +173,28 @@ final class ExecutionWorkflowTest extends WP_UnitTestCase {
 		$this->assertSame( array(), ( new OperationItemRepository( $GLOBALS['wpdb'] ) )->find_for_operation( (int) $preview['id'] ) );
 	}
 
+	/** Every unsafe delete target is distinguished from an ordinary stale preview. */
+	public function test_delete_preflight_reports_when_no_item_can_start(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$first   = $this->term( 'post_tag', 'Unavailable first', 'unavailable-first' );
+		$second  = $this->term( 'post_tag', 'Unavailable second', 'unavailable-second' );
+		$preview = $this->preview( $user_id, Taxonomy::POST_TAG, array( $this->item( 'delete', array( $first, $second ) ) ) );
+		$draft   = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		wp_set_object_terms( $draft, array( $first, $second ), 'post_tag' );
+
+		try {
+			$this->execution()->validate_start( (int) $preview['id'], $user_id, Taxonomy::POST_TAG );
+			$this->fail( 'A start with no eligible items must be rejected distinctly.' );
+		} catch ( ExecutionException $exception ) {
+			$this->assertSame( ExecutionErrorCode::NO_STARTABLE_ITEMS, $exception->error_code() );
+			$this->assertSame( 'relationships_added', $exception->reason() );
+		}
+
+		$this->assertSame( Status::PREVIEWED->value, ( new OperationRepository( $GLOBALS['wpdb'] ) )->find( (int) $preview['id'] )['status'] );
+		$this->assertSame( array(), ( new OperationItemRepository( $GLOBALS['wpdb'] ) )->find_for_operation( (int) $preview['id'] ) );
+		$this->assertSame( array(), $this->journal()->find_for_operation( (int) $preview['id'] ) );
+	}
+
 	/** Multiple delete items stay bounded, resume pending work, and report a late conflict. */
 	public function test_multiple_deletes_are_batched_and_late_use_is_partial_failure(): void {
 		$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );

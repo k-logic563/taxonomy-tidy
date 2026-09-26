@@ -178,44 +178,101 @@ final class ExecutionWorkflow {
 	}
 
 	/**
+	 * Records an accepted execution request that has no startable items.
+	 *
+	 * Authorization, nonce, lock, and ordinary stale-preview failures never call
+	 * this method and therefore leave the preview available for a fresh review.
+	 *
+	 * @param int                $operation_id Previewed operation ID.
+	 * @param int                $user_id      Owning administrator ID.
+	 * @param Taxonomy           $taxonomy     Expected taxonomy.
+	 * @param ExecutionException $failure      Preflight failure for every item.
+	 * @return array<string, mixed>
+	 * @throws ExecutionException When the failure or operation is not eligible.
+	 */
+	public function record_unstartable_failure( int $operation_id, int $user_id, Taxonomy $taxonomy, ExecutionException $failure ): array {
+		if ( ExecutionErrorCode::NO_STARTABLE_ITEMS !== $failure->error_code() ) {
+			$this->failure( ExecutionErrorCode::INVALID_OPERATION );
+		}
+		$operation = $this->operations->find( $operation_id );
+		if ( null === $operation || $user_id !== (int) $operation['user_id'] || $taxonomy->value !== $operation['taxonomy'] || Status::PREVIEWED->value !== $operation['status'] ) {
+			$this->failure( ExecutionErrorCode::INVALID_OPERATION );
+		}
+
+		$progress = $this->items->progress( $operation_id );
+		$this->operations->transition( $operation_id, Status::RUNNING );
+		$this->operations->save_result(
+			$operation_id,
+			$progress,
+			array(
+				'start_failure' => array(
+					'code'   => $failure->error_code(),
+					'reason' => $failure->reason() ?? 'state_unavailable',
+				),
+			)
+		);
+		$this->operations->transition( $operation_id, Status::FAILED );
+		return $this->result( $operation_id );
+	}
+
+	/**
 	 * Rechecks every explicit deletion before any item is seeded or changed.
 	 *
 	 * @param Taxonomy                   $taxonomy Expected taxonomy.
 	 * @param list<array<string, mixed>> $plan     Normalized operation plan.
 	 * @param array<string, mixed>       $preview  Stored preview labels.
+	 * @throws ExecutionException When a deletion target cannot safely start.
 	 */
 	private function validate_delete_targets( Taxonomy $taxonomy, array $plan, array $preview ): void {
 		$seen          = array();
+		$failures      = array();
+		$target_count  = 0;
+		$non_delete    = false;
 		$preview_items = is_array( $preview['items'] ?? null ) ? array_values( $preview['items'] ) : array();
 		foreach ( $plan as $item_index => $item ) {
 			if ( Action::DELETE->value !== ( $item['action'] ?? '' ) ) {
+				$non_delete = true;
 				continue;
 			}
 			$preview_item = is_array( $preview_items[ $item_index ] ?? null ) ? $preview_items[ $item_index ] : array();
 			foreach ( (array) ( $item['sources'] ?? array() ) as $source_index => $source ) {
+				++$target_count;
 				$preview_source = is_array( $preview_item['sources'][ $source_index ] ?? null ) ? $preview_item['sources'][ $source_index ] : array();
 				$name           = (string) ( $preview_source['name'] ?? '' );
 				$term_id        = (int) ( $source['term_id'] ?? 0 );
 				if ( isset( $seen[ $term_id ] ) ) {
-					$this->delete_start_failure( $name, 'duplicate_target' );
+					$failures[] = array( $name, 'duplicate_target' );
+					continue;
 				}
 				$seen[ $term_id ] = true;
 				$term             = get_term( $term_id );
 				if ( ! $term instanceof WP_Term ) {
-					$this->delete_start_failure( $name, 'term_missing' );
+					$failures[] = array( $name, 'term_missing' );
+					continue;
 				}
 				if ( $taxonomy->value !== $term->taxonomy || (int) ( $source['term_taxonomy_id'] ?? 0 ) !== (int) $term->term_taxonomy_id ) {
-					$this->delete_start_failure( $name, 'taxonomy_changed' );
+					$failures[] = array( $name, 'taxonomy_changed' );
+					continue;
 				}
 				$relationships = get_objects_in_term( $term_id, $taxonomy->value );
 				if ( is_wp_error( $relationships ) ) {
-					$this->delete_start_failure( $name, 'state_unavailable' );
+					$failures[] = array( $name, 'state_unavailable' );
+					continue;
 				}
 				if ( array() !== $relationships ) {
-					$this->delete_start_failure( $name, 'relationships_added' );
+					$failures[] = array( $name, 'relationships_added' );
 				}
 			}
 		}
+		if ( array() === $failures ) {
+			return;
+		}
+		list( $target_name, $reason ) = $failures[0];
+		if ( ! $non_delete && 0 < $target_count && count( $failures ) === $target_count ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Safe context is escaped by the administration renderer.
+			throw new ExecutionException( ExecutionErrorCode::NO_STARTABLE_ITEMS, $target_name, $reason );
+		}
+		$this->delete_start_failure( $target_name, $reason );
 	}
 
 	/**

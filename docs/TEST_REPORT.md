@@ -1,5 +1,59 @@
 # Taxonomy Tidy 0.1.0 Phase 8 テストレポート
 
+## 2026-09-26 残存High 10件 実ブラウザ試験
+
+現行RC ZIPをソース非マウントの4つの独立Docker環境へ管理画面から導入し、保留だったHigh 10件をChrome for Testing / Chromium 153で実施した。結果は成功7件、失敗1件、保留2件。Criticalは成功44・失敗0・保留0、Highは成功25・失敗1・保留2、全72件は成功69・失敗1・保留2となった。
+
+- 成功: MT-011、015、025、028、031、035、045。
+- 失敗: MT-069。320 CSS pxの操作履歴一覧で、720 px最小幅の表が明示スクロール領域へ閉じず、document幅649 px、ページ全体の横移動329 pxを再現した。
+- 保留: MT-006。無効化、再有効化、同版上書き、アンインストール、再導入の実挙動は3テーブル、schema option、履歴を保持して成功したが、上位正本`REQUIREMENTS.md`に保持・履歴再利用・利用者告知方針がない。
+- 保留: MT-070。Safari 27.0／VoiceOverは存在するが、Safari WebDriverの有効化とApple Events／アクセシビリティ操作権限を得られず、実読み上げを確認できなかった。
+- ログ: 未処理JavaScript例外、request failure、予期しない5xx、PHP Fatal／Warning／Notice／Deprecatedは0件。4環境とも`WP_DEBUG_LOG`は有効だが`debug.log`は生成されなかった。
+- 自動検証: PHPCS 62/62、JavaScript lint、PHPUnit 119 tests / 1,466 assertions、Ajax PHPUnit 1 test / 6 assertionsを含む`make check`が成功。
+- RC: `dist/taxonomy-tidy-0.1.0.zip`、SHA-256 `528362390fa5183d53fd6e938786351ecc4ce5f71f51a10e637c89bbbacd1610`。`unzip -t`、checksum、展開物と現行ソースの照合に成功。
+
+製品コードは変更していない。MT-069の修正・回帰、MT-006の方針確定、MT-070の実機確認が必要なため、Phase 7は`In progress`、Phase 8は`Blocked`、判定は **No-Go** を維持する。詳細は`docs/MANUAL_TEST_HIGH_COMPLETION_REPORT.md`を参照。
+
+以下は今回のHigh完了試験より前の記録として保持する。
+
+## 2026-09-26 CC-001／CC-002 修正・回帰追補
+
+CC-001とCC-002を限定修正し、`make check`、新RC ZIPの完全性確認、ソース非マウント環境でのChromium実ブラウザ回帰を実施した。MT-036、052は成功、限定回帰のMT-034、045、050も成功した。Criticalは成功44・失敗0・保留0、Highは成功18・失敗0・保留10、全72件は成功62・失敗0・保留10。Phase 7は`In progress`、Phase 8は`Blocked`、判定は **No-Go** を維持する。
+
+- MT-036: 実行中と終端直後に全体・完了・未処理・失敗・スキップ・現在の状態を日本語表示。`aria-live`、自動batch、閉鎖・二重実行拒否も成功。
+- MT-052: 利用者が実行を受諾後、delete対象が全て開始前に処理不能となる場合だけを`failed`とし、履歴・理由・日本語案内を保存。Item／Journal 0、データ不変。一般のstaleやnonce／権限／ロック拒否は`previewed`を維持。
+- 自動検証: PHPCS 62/62、JavaScript lint、PHPUnit 119 tests / 1,466 assertions、Ajax PHPUnit 1 test / 6 assertionsを含む`make check`が成功。
+- RC: `dist/taxonomy-tidy-0.1.0.zip`、SHA-256 `528362390fa5183d53fd6e938786351ecc4ce5f71f51a10e637c89bbbacd1610`。`unzip -t`／checksum照合成功。
+- 証跡: `build/manual-test/critical-fix-retest/evidence/group-b/`、`group-c/`。両環境の`debug.log` 0 byte、製品起因PHPエラー、未処理JavaScriptエラー、予期しない4xx／5xx、重複処理は0件。
+
+以下は修正前またはそれ以前の記録として保持する。
+
+## 2026-09-26 残存Critical 11件 完了追補
+
+現行RC ZIPをソース非マウントの4つの独立Docker環境へ管理画面から導入し、保留だったCritical 11件をChromium実ブラウザで実施した。結果は成功9件、失敗2件、保留0件。Critical全体は成功42・失敗2・保留0、Highは成功18・失敗0・保留10、全72件は成功60・失敗2・保留10となった。
+
+- MT-036: 実行中モーダルのロック、自動batch、aria-liveは機能するが、必須進捗項目の「未処理」「スキップ」が表示されない。
+- MT-052: 全Item開始不能を無変更で安全拒否するが、Operationが期待する`failed`ではなく`previewed`に残る。
+- MT-027、034、038、039、044、049、050、051、068は期待結果まで成功した。
+- 4環境の`debug.log`は0 byte。未処理JavaScriptエラー、予期しない4xx/5xx、対象外変更、重複Item/Journalは0件だった。
+- 対象RC: `dist/taxonomy-tidy-0.1.0.zip`、SHA-256 `48025c0f330f5ed829e103448c92a5e25aea9cad08d72f40f030174887d798e2`。
+
+Critical失敗2件を公開阻害とし、Phase 7は`In progress`、Phase 8は`Blocked`、判定は **No-Go** を維持する。詳細と証跡は`docs/MANUAL_TEST_CRITICAL_COMPLETION_REPORT.md`を参照。
+
+## 2026-09-26 MT-061修正追補
+
+判定は引き続き **No-Go**。ただしMT-061の製品失敗は解消し、Criticalは成功33、失敗0、保留11、Highは成功18、失敗0、保留10となった。Phase 7は`In progress`、Phase 8は`Blocked`を維持する。
+
+- 不正nonceを明示JSON 403、非再試行、再読み込み／再ログイン案内へ修正した。
+- stale previewをAjax／通常POSTとも409へ統一し、開始前競合は子Item／Journalを作らず管理者変更を保持する。
+- 旧MT-061C-4は開始後・バッチ間のC-4bだったため、200で安全なItemを継続し競合Itemだけ失敗させる動作が仕様どおりと確定した。開始前C-4aは別ケースで409停止を確認した。
+- `make check`は通常PHPUnit 114 tests / 1,421 assertionsとAjax PHPUnit 1 test / 6 assertionsを含め成功した。
+- MT-061A/B/C全条件、MT-058～060、MT-062A/B、MT-063 ChromiumのRCブラウザ回帰が成功した。Firefox／WebKitのMT-063は変更影響外のため2026-09-25の成功証跡を再利用した。
+- ソース未マウントの新規WordPress環境で、名称変更、2-source統合、15タグ削除、12カテゴリー削除、30件超の複数Item Undoを確認した。予期しないConsole／Network／PHPエラーは0件、`debug.log`は0行だった。
+- RC: `dist/taxonomy-tidy-0.1.0.zip`、SHA-256: `48025c0f330f5ed829e103448c92a5e25aea9cad08d72f40f030174887d798e2`。`unzip -t`とchecksum照合に成功した。
+
+以下は初回Phase 8検証時点の記録として保持する。
+
 ## 結論
 
 判定は **No-Go**。統合先は、操作性を優先して入力なしで同一taxonomy全体の候補を確認できる選択欄とした。1,000タグ時はHTMLが増加する既知の制限を許容しつつ、一覧テーブルはサーバー側ページネーションを維持する。一方、現行UIを含む実ブラウザでの主要受け入れ試験は未完了である。

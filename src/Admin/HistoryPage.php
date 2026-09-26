@@ -98,7 +98,7 @@ final class HistoryPage {
 			}
 		}
 		if ( null !== $error ) {
-			$status = in_array( $error, array( UndoErrorCode::LOCKED, UndoErrorCode::IN_PROGRESS, UndoErrorCode::ALREADY_UNDONE, UndoErrorCode::NOT_RESUMABLE, UndoErrorCode::DUPLICATE ), true ) ? 409 : 400;
+			$status = in_array( $error, array( UndoErrorCode::STALE_PREVIEW, UndoErrorCode::LOCKED, UndoErrorCode::IN_PROGRESS, UndoErrorCode::ALREADY_UNDONE, UndoErrorCode::NOT_RESUMABLE, UndoErrorCode::DUPLICATE ), true ) ? 409 : 400;
 			status_header( $status );
 		}
 		?>
@@ -667,6 +667,8 @@ final class HistoryPage {
 				$parts[] = sprintf( /* translators: %d: conflict count. */ __( '競合：%d件', 'taxonomy-tidy' ), $count );
 			} elseif ( 'item_failures' === $key ) {
 				$parts[] = sprintf( /* translators: %d: failed item count. */ __( '処理失敗：%d件', 'taxonomy-tidy' ), $count );
+			} elseif ( 'start_failure' === $key ) {
+				$parts[] = __( 'すべての対象を処理できなかったため、操作を開始せず失敗として終了しました。操作計画を作り直し、変更内容をもう一度確認してください。', 'taxonomy-tidy' );
 			} else {
 				$parts[] = $warning
 					? sprintf( /* translators: %d: warning count. */ __( '警告：%d件', 'taxonomy-tidy' ), $count )

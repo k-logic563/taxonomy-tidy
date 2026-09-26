@@ -377,6 +377,7 @@ final class UndoWorkflowTest extends WP_UnitTestCase {
 		$this->assertSame( Status::UNDO_PREVIEWED->value, $this->operations()->find( (int) $undo['id'] )['status'] );
 		$this->assertSame( 'Changed after preview', get_term( $term_id, 'post_tag' )->name );
 		$this->assertSame( array(), $this->items()->find_for_operation( (int) $undo['id'] ) );
+		$this->assertSame( array(), $this->journal()->find_for_operation( (int) $undo['id'] ) );
 	}
 
 	/** Thirty inverse items remain bounded to ten and finish in three requests. */
@@ -417,15 +418,17 @@ final class UndoWorkflowTest extends WP_UnitTestCase {
 		$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$original = $this->completed_operation( $user_id, Taxonomy::POST_TAG );
 		$last_id  = 0;
+		$term_ids = array();
 		for ( $index = 0; $index < 11; ++$index ) {
-			$last_id = self::factory()->term->create(
+			$last_id    = self::factory()->term->create(
 				array(
 					'taxonomy' => 'post_tag',
 					'name'     => 'Runtime after ' . $index,
 					'slug'     => 'runtime-' . $index,
 				)
 			);
-			$item_id = $this->items()->add( $original, 'rename:' . $last_id, Action::RENAME, array() );
+			$term_ids[] = $last_id;
+			$item_id    = $this->items()->add( $original, 'rename:' . $last_id, Action::RENAME, array() );
 			$this->items()->mark_completed( $item_id );
 			$this->journal()->record_once( $original, $item_id, 'rename:' . $last_id, 'name_changed', array( 'name' => 'Runtime before ' . $index ), array( 'name' => 'Runtime after ' . $index ), $last_id );
 		}
@@ -438,10 +441,20 @@ final class UndoWorkflowTest extends WP_UnitTestCase {
 		$failures = array_values( array_filter( $this->journal()->find_for_operation( (int) $undo['id'] ), static fn( array $change ): bool => 'undo_item_failed' === $change['change_type'] ) );
 
 		$this->assertSame( Status::UNDO_PARTIAL_FAILED->value, $final['status'] );
+		$this->assertSame( 10, $final['progress']['completed'] );
+		$this->assertSame( 1, $final['progress']['failed'] );
+		$this->assertSame( 0, $final['progress']['pending'] );
+		$this->assertSame( 'Runtime before 0', get_term( $term_ids[0], 'post_tag' )->name );
+		$this->assertSame( 'Runtime administrator change', get_term( $last_id, 'post_tag' )->name );
 		$this->assertCount( 1, $failures );
 		$this->assertSame( 'Runtime before 10', $failures[0]['before_data']['planned']['name'] );
 		$this->assertSame( 'Runtime administrator change', $failures[0]['after_data']['current']['name'] );
 		$this->assertTrue( $failures[0]['after_data']['retryable'] );
+
+		$journal_count = count( $this->journal()->find_for_operation( (int) $undo['id'] ) );
+		$replayed      = $this->workflow()->run_batch( (int) $undo['id'], $user_id );
+		$this->assertSame( Status::UNDO_PARTIAL_FAILED->value, $replayed['status'] );
+		$this->assertSame( $journal_count, count( $this->journal()->find_for_operation( (int) $undo['id'] ) ) );
 	}
 
 	/**

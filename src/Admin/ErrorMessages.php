@@ -48,6 +48,7 @@ final class ErrorMessages {
 			PlanErrorCode::INVALID_NONCE => __( 'This action has expired. Reload the page and try again.', 'taxonomy-tidy' ),
 			ExecutionErrorCode::INVALID_OPERATION => __( 'This operation cannot be executed from its current state.', 'taxonomy-tidy' ),
 			ExecutionErrorCode::STALE_PREVIEW => __( 'The preview is out of date. Review the changes again before executing.', 'taxonomy-tidy' ),
+			ExecutionErrorCode::NO_STARTABLE_ITEMS => __( 'None of the planned items can be started. Create the plan again and review a new preview.', 'taxonomy-tidy' ),
 			ExecutionErrorCode::LOCKED => __( 'Another taxonomy operation is currently running. Try again after it finishes.', 'taxonomy-tidy' ),
 			ExecutionErrorCode::TARGET_CHANGED => __( 'A target changed after preview. The affected item was not changed.', 'taxonomy-tidy' ),
 			ExecutionErrorCode::UPDATE_FAILED => __( 'WordPress could not apply one of the planned changes.', 'taxonomy-tidy' ),

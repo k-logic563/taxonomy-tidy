@@ -9,17 +9,17 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-19T13:04:08+00:00\n"
+"POT-Creation-Date: 2026-09-26T02:54:35+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: taxonomy-tidy\n"
 
 #. Plugin Name of the plugin
 #: taxonomy-tidy.php
-#: src/Admin/Page.php:47
 #: src/Admin/Page.php:48
-#: src/Admin/Page.php:153
-#: src/Admin/Page.php:202
+#: src/Admin/Page.php:49
+#: src/Admin/Page.php:294
+#: src/Admin/Page.php:343
 msgid "Taxonomy Tidy"
 msgstr ""
 
@@ -135,942 +135,1099 @@ msgid "The preview is out of date. Review the changes again before executing."
 msgstr ""
 
 #: src/Admin/ErrorMessages.php:51
-msgid "Another taxonomy operation is currently running. Try again after it finishes."
+msgid "None of the planned items can be started. Create the plan again and review a new preview."
 msgstr ""
 
 #: src/Admin/ErrorMessages.php:52
-msgid "A target changed after preview. The affected item was not changed."
+msgid "Another taxonomy operation is currently running. Try again after it finishes."
 msgstr ""
 
 #: src/Admin/ErrorMessages.php:53
-msgid "WordPress could not apply one of the planned changes."
+msgid "A target changed after preview. The affected item was not changed."
 msgstr ""
 
 #: src/Admin/ErrorMessages.php:54
-msgid "The change result could not be recorded safely."
+msgid "WordPress could not apply one of the planned changes."
 msgstr ""
 
 #: src/Admin/ErrorMessages.php:55
+msgid "The change result could not be recorded safely."
+msgstr ""
+
+#: src/Admin/ErrorMessages.php:56
 msgid "The operation could not continue. Please try again."
 msgstr ""
 
-#: src/Admin/HistoryPage.php:101
-#: src/Admin/Page.php:158
-#: src/Admin/Page.php:207
+#: src/Admin/HistoryPage.php:106
+#: src/Admin/Page.php:299
+#: src/Admin/Page.php:348
 msgid "操作履歴"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:143
+#: src/Admin/HistoryPage.php:218
 msgid "実行済みの操作はありません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:148
+#: src/Admin/HistoryPage.php:223
 msgid "操作履歴一覧"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:150
-#: src/Admin/HistoryPage.php:177
+#: src/Admin/HistoryPage.php:225
+#: src/Admin/HistoryPage.php:253
 msgid "実行日時"
 msgstr ""
 
 #. translators: %s: taxonomy label.
-#: src/Admin/HistoryPage.php:150
-#: src/Admin/HistoryPage.php:179
-#: src/Admin/PlanBoard.php:462
+#: src/Admin/HistoryPage.php:225
+#: src/Admin/HistoryPage.php:255
+#: src/Admin/PlanBoard.php:476
 msgid "種別"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:150
+#: src/Admin/HistoryPage.php:225
 msgid "処理内容"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:150
+#: src/Admin/HistoryPage.php:225
 msgid "対象件数"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:150
+#: src/Admin/HistoryPage.php:225
 msgid "変更件数"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:150
-#: src/Admin/HistoryPage.php:182
+#: src/Admin/HistoryPage.php:225
+#: src/Admin/HistoryPage.php:258
 msgid "結果"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:150
-#: src/Admin/HistoryPage.php:345
+#: src/Admin/HistoryPage.php:225
+#: src/Admin/HistoryPage.php:433
 msgid "取り消し"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:150
-#: src/Admin/HistoryPage.php:154
+#: src/Admin/HistoryPage.php:225
+#: src/Admin/HistoryPage.php:229
 msgid "詳細"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:174
+#: src/Admin/HistoryPage.php:250
 msgid "操作履歴へ戻る"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:175
+#: src/Admin/HistoryPage.php:251
 msgid "操作の詳細"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:178
+#: src/Admin/HistoryPage.php:254
 msgid "完了日時"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:180
+#: src/Admin/HistoryPage.php:256
 msgid "実行した処理"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:181
+#: src/Admin/HistoryPage.php:257
 msgid "対象となった分類"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:183
+#: src/Admin/HistoryPage.php:259
 msgid "成功件数"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:184
+#: src/Admin/HistoryPage.php:260
 msgid "失敗件数"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:185
-msgid "対象となった公開済み投稿数"
+#: src/Admin/HistoryPage.php:261
+msgid "処理済み件数"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:186
-msgid "保持された分類"
+#: src/Admin/HistoryPage.php:262
+msgid "警告件数"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:187
+#: src/Admin/HistoryPage.php:263
 msgid "警告"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:188
+#: src/Admin/HistoryPage.php:264
 msgid "エラー"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:189
+#: src/Admin/HistoryPage.php:265
 msgid "取り消し状態"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:191
+#: src/Admin/HistoryPage.php:267
 msgid "残っている項目"
 msgstr ""
 
 #. translators: %d: remaining Undo item count.
 #. translators: %d: number of terms per page.
-#: src/Admin/HistoryPage.php:191
-#: src/Admin/Page.php:550
+#: src/Admin/HistoryPage.php:267
+#: src/Admin/Page.php:691
 msgid "%d件"
 msgstr ""
 
 #. translators: %d: remaining Undo item count.
-#: src/Admin/HistoryPage.php:192
+#: src/Admin/HistoryPage.php:268
 msgid "再試行"
 msgstr ""
 
 #. translators: %d: remaining Undo item count.
-#: src/Admin/HistoryPage.php:192
+#: src/Admin/HistoryPage.php:268
 msgid "自動再試行には対応していません。現在状態を確認してください。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:197
+#: src/Admin/HistoryPage.php:273
 msgid "取り消し対象"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:197
+#: src/Admin/HistoryPage.php:273
 msgid "元の操作を表示"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:201
+#: src/Admin/HistoryPage.php:277
 msgid "取り消し可否"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:204
+#: src/Admin/HistoryPage.php:280
 msgid "変更を元に戻す"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:221
-msgid "変更前と変更後"
+#: src/Admin/HistoryPage.php:284
+msgid "取り消しを再開"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:244
+#: src/Admin/HistoryPage.php:302
+#: src/Admin/Page.php:218
+msgid "ログを取得できませんでした。もう一度お試しください。"
+msgstr ""
+
+#: src/Admin/HistoryPage.php:303
+msgid "最近のログ"
+msgstr ""
+
+#. translators: 1: total logs, 2: successful logs, 3: warnings, 4: errors.
+#: src/Admin/HistoryPage.php:304
+msgid "全体：%1$d件、成功：%2$d件、警告：%3$d件、エラー：%4$d件"
+msgstr ""
+
+#: src/Admin/HistoryPage.php:317
+#: src/Admin/Page.php:103
+msgid "詳しく見る"
+msgstr ""
+
+#: src/Admin/HistoryPage.php:333
 msgid "取り消し内容のプレビュー"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:244
+#: src/Admin/HistoryPage.php:333
+#: src/Admin/Page.php:100
 msgid "取り消し結果"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:244
-#: src/Admin/PlanBoard.php:514
+#: src/Admin/HistoryPage.php:333
+#: src/Admin/Page.php:102
+#: src/Admin/Page.php:104
+#: src/Admin/PlanBoard.php:528
 #: src/Admin/PlanningPanel.php:358
 msgid "閉じる"
 msgstr ""
 
 #. translators: %s: target term names.
-#: src/Admin/HistoryPage.php:247
+#: src/Admin/HistoryPage.php:336
 msgid "元に戻す対象：%s"
 msgstr ""
 
 #. translators: %s: taxonomy label.
-#: src/Admin/HistoryPage.php:248
+#: src/Admin/HistoryPage.php:337
 msgid "対象：%s"
 msgstr ""
 
 #. translators: 1: restored terms, 2: restored assignments, 3: removed assignments.
-#: src/Admin/HistoryPage.php:250
+#: src/Admin/HistoryPage.php:339
 msgid "復元される分類 %1$d件、復元される投稿割り当て %2$d件、削除される割り当て %3$d件"
 msgstr ""
 
 #. translators: %d: conflict count.
-#: src/Admin/HistoryPage.php:254
+#: src/Admin/HistoryPage.php:343
 msgid "競合により元に戻せない項目が%d件あります。"
 msgstr ""
 
-#. translators: 1: completed count, 2: total count, 3: failed count.
-#: src/Admin/HistoryPage.php:264
-#: src/Admin/PlanBoard.php:640
-msgid "完了 %1$d / 全体 %2$d、失敗 %3$d"
+#. translators: 1: completed count, 2: total count, 3: failed count, 4: remaining count.
+#: src/Admin/HistoryPage.php:353
+msgid "進捗：%1$d / %2$d、成功：%1$d件、失敗：%3$d件、残り：%4$d件"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:267
-#: src/Admin/PlanBoard.php:522
+#: src/Admin/HistoryPage.php:356
+#: src/Admin/PlanBoard.php:536
 #: src/Admin/PlanningPanel.php:392
 msgid "キャンセル"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:272
+#: src/Admin/HistoryPage.php:361
 msgid "元に戻す"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:276
-msgid "次の処理を続ける"
-msgstr ""
-
-#: src/Admin/HistoryPage.php:297
+#: src/Admin/HistoryPage.php:385
 msgid "前へ"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:298
+#: src/Admin/HistoryPage.php:386
 msgid "次へ"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:303
+#: src/Admin/HistoryPage.php:391
 msgid "操作履歴のページ送り"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:350
-#: src/Admin/PlanBoard.php:704
+#: src/Admin/HistoryPage.php:438
+#: src/Admin/PlanBoard.php:729
 msgid "名称変更"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:351
-#: src/Admin/PlanBoard.php:705
+#: src/Admin/HistoryPage.php:439
+#: src/Admin/PlanBoard.php:730
 msgid "統合"
 msgstr ""
 
 #. translators: %s: taxonomy label.
 #. translators: 1: taxonomy, 2: target term names, 3: action name.
-#: src/Admin/HistoryPage.php:352
-#: src/Admin/PlanBoard.php:462
-#: src/Admin/PlanBoard.php:474
-#: src/Admin/PlanBoard.php:706
+#: src/Admin/HistoryPage.php:440
+#: src/Admin/PlanBoard.php:476
+#: src/Admin/PlanBoard.php:488
+#: src/Admin/PlanBoard.php:731
 msgid "削除"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:356
+#: src/Admin/HistoryPage.php:444
 msgid "実行済み操作"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:399
-#: src/Admin/HistoryPage.php:409
+#: src/Admin/HistoryPage.php:487
+#: src/Admin/HistoryPage.php:497
 msgid "記録なし"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:461
+#: src/Admin/HistoryPage.php:537
+#: src/Admin/Page.php:107
+msgid "失敗："
+msgstr ""
+
+#: src/Admin/HistoryPage.php:538
+#: src/Admin/Page.php:106
+msgid "警告："
+msgstr ""
+
+#: src/Admin/HistoryPage.php:539
+#: src/Admin/Page.php:105
+msgid "成功："
+msgstr ""
+
+#: src/Admin/HistoryPage.php:574
 msgid "実行中"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:462
-#: src/Admin/PlanBoard.php:628
+#: src/Admin/HistoryPage.php:575
+#: src/Admin/PlanBoard.php:653
 msgid "完了"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:463
-#: src/Admin/PlanBoard.php:630
+#: src/Admin/HistoryPage.php:576
+#: src/Admin/PlanBoard.php:655
 msgid "一部失敗"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:464
-#: src/Admin/PlanBoard.php:631
+#: src/Admin/HistoryPage.php:577
+#: src/Admin/PlanBoard.php:656
 msgid "失敗"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:465
+#: src/Admin/HistoryPage.php:578
 msgid "取り消し確認済み"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:466
-#: src/Admin/HistoryPage.php:495
+#: src/Admin/HistoryPage.php:579
+#: src/Admin/HistoryPage.php:608
 msgid "取り消し中"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:467
-#: src/Admin/HistoryPage.php:493
+#: src/Admin/HistoryPage.php:580
+#: src/Admin/HistoryPage.php:606
 msgid "取り消し済み"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:468
-#: src/Admin/HistoryPage.php:494
+#: src/Admin/HistoryPage.php:581
+#: src/Admin/HistoryPage.php:607
 msgid "一部のみ取り消し"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:469
-#: src/Admin/HistoryPage.php:576
+#: src/Admin/HistoryPage.php:582
+#: src/Admin/HistoryPage.php:691
 msgid "未実行"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:480
+#: src/Admin/HistoryPage.php:593
 msgid "完全に取り消せる"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:481
+#: src/Admin/HistoryPage.php:594
 msgid "一部のみ取り消せる"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:482
+#: src/Admin/HistoryPage.php:595
 msgid "取り消し不可"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:496
+#: src/Admin/HistoryPage.php:609
 msgid "取り消し失敗"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:507
+#: src/Admin/HistoryPage.php:620
 msgid "現在の状態が実行直後と一致しています。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:508
+#: src/Admin/HistoryPage.php:621
 msgid "現在の状態と一致しない項目は変更せず、安全な項目だけを元に戻せます。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:509
+#: src/Admin/HistoryPage.php:622
 msgid "復元に必要な変更履歴が保存されていません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:510
+#: src/Admin/HistoryPage.php:623
 msgid "この操作の取り消しはすでに開始されています。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:511
+#: src/Admin/HistoryPage.php:624
 msgid "現在の操作状態では取り消しを開始できません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:512
+#: src/Admin/HistoryPage.php:625
 msgid "現在の状態では安全に元へ戻せません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:522
-#: src/Admin/Page.php:155
-#: src/Admin/Page.php:204
-#: src/Admin/PlanBoard.php:694
+#: src/Admin/HistoryPage.php:635
+#: src/Admin/Page.php:296
+#: src/Admin/Page.php:345
+#: src/Admin/PlanBoard.php:719
 msgid "カテゴリー"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:522
-#: src/Admin/Page.php:156
-#: src/Admin/Page.php:205
-#: src/Admin/PlanBoard.php:694
+#: src/Admin/HistoryPage.php:635
+#: src/Admin/Page.php:297
+#: src/Admin/Page.php:346
+#: src/Admin/PlanBoard.php:719
 msgid "タグ"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:532
-#: src/Admin/HistoryPage.php:535
-#: src/Admin/Page.php:391
+#: src/Admin/HistoryPage.php:645
+#: src/Admin/HistoryPage.php:648
+#: src/Admin/Page.php:532
 msgid "—"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:546
+#: src/Admin/HistoryPage.php:659
 #: src/Admin/PlanningPanel.php:828
 msgid "なし"
 msgstr ""
 
 #. translators: %d: retained term count.
-#: src/Admin/HistoryPage.php:552
+#: src/Admin/HistoryPage.php:665
 msgid "安全のため分類を保持：%d件"
 msgstr ""
 
 #. translators: %d: conflict count.
-#: src/Admin/HistoryPage.php:554
+#: src/Admin/HistoryPage.php:667
 msgid "競合：%d件"
 msgstr ""
 
 #. translators: %d: failed item count.
-#: src/Admin/HistoryPage.php:556
+#: src/Admin/HistoryPage.php:669
 msgid "処理失敗：%d件"
 msgstr ""
 
+#: src/Admin/HistoryPage.php:671
+msgid "すべての対象を処理できなかったため、操作を開始せず失敗として終了しました。操作計画を作り直し、変更内容をもう一度確認してください。"
+msgstr ""
+
 #. translators: %d: warning count.
-#: src/Admin/HistoryPage.php:559
+#: src/Admin/HistoryPage.php:674
 msgid "警告：%d件"
 msgstr ""
 
 #. translators: %d: error count.
-#: src/Admin/HistoryPage.php:560
+#: src/Admin/HistoryPage.php:675
 msgid "エラー：%d件"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:595
+#: src/Admin/HistoryPage.php:710
 msgid "対象投稿の割り当て"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:595
-#: src/Admin/PlanBoard.php:784
+#: src/Admin/HistoryPage.php:710
+#: src/Admin/HistoryPage.php:753
+#: src/Admin/PlanBoard.php:809
 msgid "対象の分類"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:605
+#: src/Admin/HistoryPage.php:720
 msgid "予定していた復元：元の名前へ戻す"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:606
+#: src/Admin/HistoryPage.php:721
 msgid "予定していた復元：元のスラッグへ戻す"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:607
+#: src/Admin/HistoryPage.php:722
 msgid "予定していた復元：元の投稿割り当てへ戻す"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:608
+#: src/Admin/HistoryPage.php:723
 msgid "予定していた復元：削除された分類を再作成する"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:619
+#: src/Admin/HistoryPage.php:734
 msgid "現在状態：同じ名前またはスラッグが使用されています。変更しません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:620
+#: src/Admin/HistoryPage.php:735
 msgid "現在状態：元の親カテゴリーが存在しません。変更しません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:621
+#: src/Admin/HistoryPage.php:736
 msgid "現在状態：対象投稿が存在しないか公開済み標準投稿ではありません。変更しません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:622
+#: src/Admin/HistoryPage.php:737
 msgid "現在状態：投稿の割り当てが実行直後から変更されています。変更しません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:623
+#: src/Admin/HistoryPage.php:738
 msgid "現在状態：分類が実行直後から変更されています。変更しません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:624
+#: src/Admin/HistoryPage.php:739
 msgid "現在状態：安全な復元に必要な情報を確認できません。変更しません。"
 msgstr ""
 
+#. translators: %s: term name.
+#: src/Admin/HistoryPage.php:753
+msgid "分類「%s」"
+msgstr ""
+
 #. translators: 1: old name, 2: new name.
-#: src/Admin/HistoryPage.php:636
-msgid "名前：%1$s → %2$s"
+#: src/Admin/HistoryPage.php:755
+msgid "名前を「%1$s」から「%2$s」へ変更しました。"
 msgstr ""
 
-#. translators: 1: old slug, 2: new slug.
-#: src/Admin/HistoryPage.php:637
-msgid "スラッグ：%1$s → %2$s"
+#. translators: 1: term label, 2: old slug, 3: new slug.
+#: src/Admin/HistoryPage.php:756
+msgid "%1$sのスラッグを「%2$s」から「%3$s」へ変更しました。"
 msgstr ""
 
-#. translators: 1: old slug, 2: new slug.
-#: src/Admin/HistoryPage.php:638
-msgid "統合先の投稿割り当てを追加"
+#. translators: %s: source term label.
+#: src/Admin/HistoryPage.php:757
+msgid "%sを統合し、統合先の投稿割り当てを追加しました。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:639
-msgid "統合元の投稿割り当てを削除"
+#. translators: %s: source term label.
+#: src/Admin/HistoryPage.php:758
+msgid "%sの統合先はすでに投稿へ割り当てられていました。"
+msgstr ""
+
+#. translators: %s: source term label.
+#: src/Admin/HistoryPage.php:759
+msgid "%sの投稿割り当てを統合元から削除しました。"
 msgstr ""
 
 #. translators: %s: deleted term name.
-#: src/Admin/HistoryPage.php:640
+#: src/Admin/HistoryPage.php:760
 msgid "分類「%s」を削除"
 msgstr ""
 
 #. translators: %s: restored term name.
-#: src/Admin/HistoryPage.php:641
+#: src/Admin/HistoryPage.php:761
 msgid "分類「%s」を復元"
 msgstr ""
 
-#. translators: %s: restored term name.
-#: src/Admin/HistoryPage.php:642
-msgid "統合元の投稿割り当てを復元"
+#. translators: %s: source term label.
+#: src/Admin/HistoryPage.php:762
+msgid "%sの投稿割り当てを復元しました。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:643
-msgid "元操作が追加した統合先の割り当てを削除"
+#. translators: %s: source term label.
+#: src/Admin/HistoryPage.php:763
+msgid "%sの元操作が追加した統合先の割り当てを削除しました。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:644
-msgid "名前を復元"
+#. translators: %s: restored name.
+#: src/Admin/HistoryPage.php:764
+msgid "名前を「%s」へ復元しました。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:645
-msgid "スラッグを復元"
+#. translators: 1: term label, 2: restored slug.
+#: src/Admin/HistoryPage.php:765
+msgid "%1$sのスラッグを「%2$s」へ復元しました。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:656
-#: src/Admin/PlanBoard.php:771
+#. translators: %s: retained term label.
+#: src/Admin/HistoryPage.php:766
+msgid "%sは安全条件を満たさないため保持しました。"
+msgstr ""
+
+#. translators: %s: failed term label.
+#: src/Admin/HistoryPage.php:767
+msgid "%sは競合または状態変更のため処理できませんでした。"
+msgstr ""
+
+#. translators: %s: failed term label.
+#: src/Admin/HistoryPage.php:768
+msgid "処理結果を記録しました。"
+msgstr ""
+
+#: src/Admin/HistoryPage.php:779
+#: src/Admin/PlanBoard.php:796
 msgid "操作の有効期限が切れました。画面を更新して再試行してください。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:657
+#: src/Admin/HistoryPage.php:780
 msgid "この操作は安全に元へ戻せません。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:658
+#: src/Admin/HistoryPage.php:781
+#: src/Admin/Page.php:241
 msgid "確認後に状態が変わったため、取り消しを開始しませんでした。もう一度確認してください。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:659
+#: src/Admin/HistoryPage.php:782
 msgid "別の処理が実行中です。しばらくしてから再試行してください。"
 msgstr ""
 
-#: src/Admin/HistoryPage.php:660
+#: src/Admin/HistoryPage.php:783
+msgid "すでに取り消し処理を実行中です。操作履歴から現在の状態を確認してください。"
+msgstr ""
+
+#: src/Admin/HistoryPage.php:784
+#: src/Admin/Page.php:243
+msgid "この操作はすでに取り消されています。"
+msgstr ""
+
+#: src/Admin/HistoryPage.php:785
+msgid "この取り消し処理は完了状態のため、もう一度開始できません。操作履歴で結果を確認してください。"
+msgstr ""
+
+#: src/Admin/HistoryPage.php:786
+msgid "この操作には複数の取り消し記録があるため、安全を確認できません。新しい取り消しは開始しませんでした。"
+msgstr ""
+
+#: src/Admin/HistoryPage.php:787
 msgid "操作履歴または取り消し処理を確認できませんでした。"
 msgstr ""
 
+#: src/Admin/Page.php:97
+#: src/Admin/Page.php:193
+msgid "取り消し処理を中断しました。操作履歴から再開できます。"
+msgstr ""
+
+#: src/Admin/Page.php:98
+msgid "取り消し処理を続行できませんでした。"
+msgstr ""
+
 #: src/Admin/Page.php:99
+msgid "サーバー側の進捗を確認できないため、取り消し処理を中断しました。操作履歴から再開できます。"
+msgstr ""
+
+#: src/Admin/Page.php:101
+msgid "取り消しを中断しました"
+msgstr ""
+
+#. translators: 1: processed count, 2: total count, 3: succeeded count, 4: failed count, 5: remaining count.
+#: src/Admin/Page.php:109
+msgid "進捗：%1$d / %2$d、成功：%3$d件、失敗：%4$d件、残り：%5$d件"
+msgstr ""
+
+#: src/Admin/Page.php:119
+#: src/Admin/Page.php:146
+#: src/Admin/Page.php:204
 msgid "アクセスできません。"
 msgstr ""
 
-#: src/Admin/Page.php:108
-#: src/Admin/Page.php:112
+#: src/Admin/Page.php:128
+#: src/Admin/Page.php:132
 msgid "プレビューを確認できません。"
 msgstr ""
 
-#: src/Admin/Page.php:116
+#: src/Admin/Page.php:136
 msgid "対象投稿を確認できません。"
 msgstr ""
 
-#: src/Admin/Page.php:127
-msgid "You are not allowed to access Taxonomy Tidy."
+#: src/Admin/Page.php:159
+msgid "セッションまたは認証情報が無効になりました。ページを再読み込みし、必要に応じて再ログインしてから操作を再開してください。"
 msgstr ""
 
-#: src/Admin/Page.php:128
-msgid "Access denied"
+#: src/Admin/Page.php:172
+msgid "取り消し処理を確認できませんでした。"
 msgstr ""
 
-#: src/Admin/Page.php:154
-msgid "表示タブ"
-msgstr ""
-
-#: src/Admin/Page.php:157
-#: src/Admin/Page.php:206
-#: src/Admin/PlanBoard.php:428
-msgid "操作計画"
-msgstr ""
-
-#: src/Admin/Page.php:193
-msgid "Categories"
-msgstr ""
-
-#: src/Admin/Page.php:194
-msgid "Tags"
-msgstr ""
-
-#: src/Admin/Page.php:196
-msgid "Category"
-msgstr ""
-
-#: src/Admin/Page.php:197
-msgid "Tag"
-msgstr ""
-
-#: src/Admin/Page.php:203
-msgid "Taxonomy views"
-msgstr ""
-
-#: src/Admin/Page.php:216
-msgid "Search panel"
-msgstr ""
-
-#: src/Admin/Page.php:223
-msgid "Active conditions"
-msgstr ""
-
-#: src/Admin/Page.php:232
-msgid "Search and filter terms"
-msgstr ""
-
-#: src/Admin/Page.php:239
-msgid "Find by keyword"
+#: src/Admin/Page.php:215
+msgid "ログを確認できませんでした。"
 msgstr ""
 
 #: src/Admin/Page.php:240
+msgid "別の処理が実行中です。操作履歴から状態を確認してください。"
+msgstr ""
+
+#: src/Admin/Page.php:242
+msgid "すでに取り消し処理を実行中です。操作履歴から状態を確認してください。"
+msgstr ""
+
+#: src/Admin/Page.php:244
+msgid "この取り消し処理は完了状態のため再開できません。操作履歴で結果を確認してください。"
+msgstr ""
+
+#: src/Admin/Page.php:245
+msgid "複数の取り消し記録を検出したため、安全のため処理を開始しませんでした。"
+msgstr ""
+
+#: src/Admin/Page.php:246
+msgid "取り消し処理を続行できませんでした。操作履歴から状態を確認してください。"
+msgstr ""
+
+#: src/Admin/Page.php:268
+msgid "You are not allowed to access Taxonomy Tidy."
+msgstr ""
+
+#: src/Admin/Page.php:269
+msgid "Access denied"
+msgstr ""
+
+#: src/Admin/Page.php:295
+msgid "表示タブ"
+msgstr ""
+
+#: src/Admin/Page.php:298
+#: src/Admin/Page.php:347
+#: src/Admin/PlanBoard.php:437
+msgid "操作計画"
+msgstr ""
+
+#: src/Admin/Page.php:334
+msgid "Categories"
+msgstr ""
+
+#: src/Admin/Page.php:335
+msgid "Tags"
+msgstr ""
+
+#: src/Admin/Page.php:337
+msgid "Category"
+msgstr ""
+
+#: src/Admin/Page.php:338
+msgid "Tag"
+msgstr ""
+
+#: src/Admin/Page.php:344
+msgid "Taxonomy views"
+msgstr ""
+
+#: src/Admin/Page.php:357
+msgid "Search panel"
+msgstr ""
+
+#: src/Admin/Page.php:364
+msgid "Active conditions"
+msgstr ""
+
+#: src/Admin/Page.php:373
+msgid "Search and filter terms"
+msgstr ""
+
+#: src/Admin/Page.php:380
+msgid "Find by keyword"
+msgstr ""
+
+#: src/Admin/Page.php:381
 msgid "Keyword"
 msgstr ""
 
-#: src/Admin/Page.php:243
+#: src/Admin/Page.php:384
 msgid "Search by name or slug."
 msgstr ""
 
-#: src/Admin/Page.php:248
+#: src/Admin/Page.php:389
 msgid "Filter displayed terms"
 msgstr ""
 
-#: src/Admin/Page.php:251
+#: src/Admin/Page.php:392
 msgid "Globally unused only"
 msgstr ""
 
-#: src/Admin/Page.php:256
+#: src/Admin/Page.php:397
 msgid "Sort order"
 msgstr ""
 
-#: src/Admin/Page.php:259
+#: src/Admin/Page.php:400
 msgid "Sort by"
 msgstr ""
 
-#: src/Admin/Page.php:261
-#: src/Admin/Page.php:438
+#: src/Admin/Page.php:402
+#: src/Admin/Page.php:579
 #: src/Admin/PlanningPanel.php:88
 #: src/Admin/PlanningPanel.php:118
 msgid "Name"
 msgstr ""
 
-#: src/Admin/Page.php:262
-#: src/Admin/Page.php:437
+#: src/Admin/Page.php:403
+#: src/Admin/Page.php:578
 #: src/Admin/PlanningPanel.php:92
 #: src/Admin/PlanningPanel.php:122
 msgid "Published posts"
 msgstr ""
 
-#: src/Admin/Page.php:266
+#: src/Admin/Page.php:407
 msgid "Direction"
 msgstr ""
 
-#: src/Admin/Page.php:268
-#: src/Admin/Page.php:441
+#: src/Admin/Page.php:409
+#: src/Admin/Page.php:582
 msgid "Ascending"
 msgstr ""
 
-#: src/Admin/Page.php:269
-#: src/Admin/Page.php:440
+#: src/Admin/Page.php:410
+#: src/Admin/Page.php:581
 msgid "Descending"
 msgstr ""
 
-#: src/Admin/Page.php:278
+#: src/Admin/Page.php:419
 msgid "Apply conditions"
 msgstr ""
 
-#: src/Admin/Page.php:281
+#: src/Admin/Page.php:422
 msgid "Reset conditions"
 msgstr ""
 
 #. translators: 1: tab name, 2: number of draft items.
-#: src/Admin/Page.php:367
+#: src/Admin/Page.php:508
 msgid "%1$s（%2$d件）"
 msgstr ""
 
-#: src/Admin/Page.php:401
+#: src/Admin/Page.php:542
 #: src/Admin/PlanningPanel.php:946
 msgid "Used by published posts"
 msgstr ""
 
-#: src/Admin/Page.php:405
+#: src/Admin/Page.php:546
 #: src/Admin/PlanningPanel.php:947
 msgid "Used outside published posts"
 msgstr ""
 
-#: src/Admin/Page.php:408
-#: src/Admin/Page.php:432
+#: src/Admin/Page.php:549
+#: src/Admin/Page.php:573
 #: src/Admin/PlanningPanel.php:948
 msgid "Globally unused"
 msgstr ""
 
 #. translators: %s: taxonomy search keyword.
-#: src/Admin/Page.php:426
+#: src/Admin/Page.php:567
 msgid "Keyword: %s"
 msgstr ""
 
-#: src/Admin/Page.php:455
+#: src/Admin/Page.php:596
 msgid "No active conditions"
 msgstr ""
 
 #. translators: %d: number of active search, filter, or sort conditions.
-#: src/Admin/Page.php:460
+#: src/Admin/Page.php:601
 msgid "%d active condition"
 msgid_plural "%d active conditions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/Page.php:548
+#: src/Admin/Page.php:689
 msgid "表示件数"
 msgstr ""
 
-#: src/Admin/Page.php:552
+#: src/Admin/Page.php:693
 msgid "適用"
 msgstr ""
 
-#: src/Admin/Page.php:556
+#: src/Admin/Page.php:697
 msgid "該当する項目はありません"
 msgstr ""
 
 #. translators: 1: filtered total, 2: first visible item, 3: last visible item.
-#: src/Admin/Page.php:559
+#: src/Admin/Page.php:700
 msgid "全%1$s件中 %2$s〜%3$s件を表示"
 msgstr ""
 
-#: src/Admin/Page.php:564
+#: src/Admin/Page.php:705
 msgid "一覧上部のページ移動"
 msgstr ""
 
-#: src/Admin/Page.php:564
+#: src/Admin/Page.php:705
 msgid "一覧下部のページ移動"
 msgstr ""
 
-#: src/Admin/Page.php:565
+#: src/Admin/Page.php:706
 msgid "最初のページへ"
 msgstr ""
 
-#: src/Admin/Page.php:566
+#: src/Admin/Page.php:707
 msgid "前のページへ"
 msgstr ""
 
 #. translators: %d: current page number.
-#: src/Admin/Page.php:577
+#: src/Admin/Page.php:718
 msgid "%dページ目"
 msgstr ""
 
 #. translators: %d: target page number.
-#: src/Admin/Page.php:581
+#: src/Admin/Page.php:722
 msgid "%dページへ"
 msgstr ""
 
-#: src/Admin/Page.php:586
+#: src/Admin/Page.php:727
 msgid "次のページへ"
 msgstr ""
 
-#: src/Admin/Page.php:587
+#: src/Admin/Page.php:728
 msgid "最後のページへ"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:115
+#: src/Admin/PlanBoard.php:116
 msgid "操作計画から削除しました。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:128
+#: src/Admin/PlanBoard.php:129
 msgid "操作計画を破棄しました。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:332
+#: src/Admin/PlanBoard.php:341
 msgid "処理を中断しました。操作計画から再開してください。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:347
+#: src/Admin/PlanBoard.php:356
 msgid "一部の処理に失敗しました。操作履歴を確認してください。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:347
+#: src/Admin/PlanBoard.php:356
 msgid "処理に失敗しました。操作履歴を確認してください。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:348
+#: src/Admin/PlanBoard.php:357
 msgid "処理が完了しました。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:435
+#: src/Admin/PlanBoard.php:444
+msgid "最終的な実行件数"
+msgstr ""
+
+#: src/Admin/PlanBoard.php:449
 msgid "操作計画はまだありません。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:435
+#: src/Admin/PlanBoard.php:449
 msgid "カテゴリーまたはタグを選択し、処理パネルから計画へ追加してください。"
 msgstr ""
 
 #. translators: %s: taxonomy label.
-#: src/Admin/PlanBoard.php:461
+#: src/Admin/PlanBoard.php:475
 msgid "%sの操作計画"
 msgstr ""
 
 #. translators: %s: taxonomy label.
-#: src/Admin/PlanBoard.php:462
+#: src/Admin/PlanBoard.php:476
 msgid "処理方法"
 msgstr ""
 
 #. translators: %s: taxonomy label.
-#: src/Admin/PlanBoard.php:462
+#: src/Admin/PlanBoard.php:476
 msgid "対象"
 msgstr ""
 
 #. translators: %s: taxonomy label.
-#: src/Admin/PlanBoard.php:462
+#: src/Admin/PlanBoard.php:476
 msgid "変更内容"
 msgstr ""
 
 #. translators: %s: taxonomy label.
-#: src/Admin/PlanBoard.php:462
+#: src/Admin/PlanBoard.php:476
 msgid "状態"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:467
-#: src/Admin/PlanBoard.php:629
+#: src/Admin/PlanBoard.php:481
+#: src/Admin/PlanBoard.php:654
 msgid "処理中"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:469
+#: src/Admin/PlanBoard.php:483
 msgid "エラーあり"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:470
+#: src/Admin/PlanBoard.php:484
 msgid "実行可能"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:470
+#: src/Admin/PlanBoard.php:484
 msgid "警告あり"
 msgstr ""
 
 #. translators: 1: taxonomy, 2: target term names, 3: action name.
-#: src/Admin/PlanBoard.php:474
+#: src/Admin/PlanBoard.php:488
 msgid "%1$s「%2$s」の%3$sを操作計画から削除"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:484
+#: src/Admin/PlanBoard.php:498
 msgid "編集中の操作計画をすべて破棄しますか？"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:484
+#: src/Admin/PlanBoard.php:498
 msgid "計画をすべて破棄"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:490
+#: src/Admin/PlanBoard.php:504
 msgid "処理を再開"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:492
+#: src/Admin/PlanBoard.php:506
 msgid "変更内容を確認"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:514
+#: src/Admin/PlanBoard.php:528
 msgid "実行結果"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:514
+#: src/Admin/PlanBoard.php:528
 msgid "変更内容のプレビュー"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:529
+#: src/Admin/PlanBoard.php:543
 msgid "実行"
 msgstr ""
 
 #. translators: %d: number of planned actions.
-#: src/Admin/PlanBoard.php:552
+#: src/Admin/PlanBoard.php:566
 msgid "処理件数：%d件"
 msgstr ""
 
 #. translators: %s: taxonomy label.
-#: src/Admin/PlanBoard.php:572
+#: src/Admin/PlanBoard.php:586
 msgid "%sを削除"
 msgstr ""
 
 #. translators: %d: number of terms to delete.
-#: src/Admin/PlanBoard.php:572
+#: src/Admin/PlanBoard.php:586
 msgid "削除対象：%d件"
 msgstr ""
 
 #. translators: %d: affected published post count.
 #. translators: %d: number of affected published posts.
-#: src/Admin/PlanBoard.php:582
+#: src/Admin/PlanBoard.php:596
 #: src/Admin/PlanningPanel.php:373
 msgid "影響を受ける公開済み投稿：%d件"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:589
+#: src/Admin/PlanBoard.php:603
 #: src/Admin/PlanningPanel.php:376
 msgid "処理後に削除"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:589
+#: src/Admin/PlanBoard.php:603
 #: src/Admin/PlanningPanel.php:376
 msgid "削除せず保持"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:597
+#: src/Admin/PlanBoard.php:611
 #: src/Admin/PlanningPanel.php:387
 msgid "対象投稿を取得できませんでした。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:597
+#: src/Admin/PlanBoard.php:611
 msgid "対象投稿を確認"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:618
+#: src/Admin/PlanBoard.php:632
 msgid "一部の処理に失敗しました。成功した処理の結果は保持されています。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:618
+#: src/Admin/PlanBoard.php:632
 msgid "処理を完了できませんでした。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:722
-#: src/Admin/PlanBoard.php:744
+#. translators: 1: total, 2: completed, 3: pending, 4: failed, 5: skipped, 6: current status.
+#: src/Admin/PlanBoard.php:665
+msgid "全体：%1$d件、完了：%2$d件、未処理：%3$d件、失敗：%4$d件、スキップ：%5$d件、現在の状態：%6$s"
+msgstr ""
+
+#: src/Admin/PlanBoard.php:747
+#: src/Admin/PlanBoard.php:769
 #: src/Admin/PlanningPanel.php:714
 msgid "見つからない分類"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:746
+#: src/Admin/PlanBoard.php:771
 msgid "分類を削除"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:756
+#: src/Admin/PlanBoard.php:781
 msgid "対象外の投稿で使用中のため分類を保持します。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:757
+#: src/Admin/PlanBoard.php:782
 msgid "子カテゴリーがあるため分類を保持します。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:758
+#: src/Admin/PlanBoard.php:783
 msgid "処理前に確認が必要です。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:769
+#: src/Admin/PlanBoard.php:794
 msgid "操作計画が変更されたか、この操作を行えない状態です。画面を更新して確認してください。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:770
+#: src/Admin/PlanBoard.php:795
 msgid "この操作を行う権限がありません。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:772
+#: src/Admin/PlanBoard.php:797
 msgid "対象のカテゴリーまたはタグが正しくありません。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:773
+#: src/Admin/PlanBoard.php:798
 msgid "操作計画を処理できませんでした。もう一度お試しください。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:786
+#: src/Admin/PlanBoard.php:811
 msgid "現在、別のオブジェクトで使用されています。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:787
+#: src/Admin/PlanBoard.php:812
 msgid "すでに削除されているか、見つかりません。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:788
+#: src/Admin/PlanBoard.php:813
 msgid "種別が操作計画と一致しません。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:789
+#: src/Admin/PlanBoard.php:814
 msgid "操作計画へ重複して追加されています。"
 msgstr ""
 
-#: src/Admin/PlanBoard.php:790
+#: src/Admin/PlanBoard.php:815
 msgid "現在の使用状況を確認できません。"
 msgstr ""
 
 #. translators: 1: deletion target name, 2: reason deletion cannot start.
-#: src/Admin/PlanBoard.php:793
+#: src/Admin/PlanBoard.php:818
 msgid "削除を開始できませんでした。「%1$s」は%2$s"
+msgstr ""
+
+#: src/Admin/PlanBoard.php:820
+msgid "すべての対象を処理できないため、この操作は失敗として終了しました。操作計画を作り直し、変更内容をもう一度確認してください。"
 msgstr ""
 
 #: src/Admin/PlanningPanel.php:84

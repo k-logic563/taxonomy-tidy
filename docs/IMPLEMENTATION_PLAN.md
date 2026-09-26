@@ -358,6 +358,34 @@ MVP受け入れ条件を検証し、インストール可能なリリース候�
 
 この判断により、1,000件規模では統合先候補分だけ管理画面HTMLが増加することを既知の制限として許容する。一覧テーブルのサーバー側ページネーション、サーバー側の権限・nonce・taxonomy・ID・階層・計画整合性検証は維持する。実ブラウザでの主要導線とアクセシビリティ確認が未完了のため、Phase 7は`In progress`、Phase 8は`Blocked`、判定は`No-Go`のままとする。
 
+### 2026-09-26 MT-061修正・再検証
+
+不正nonce時のUndo batchを、非再試行のJSON 403と再読み込み／再ログイン案内へ修正した。stale previewはAjax／通常POSTとも409へ統一した。開始前競合と開始後の項目競合を別ケースとして定義し、前者は無変更で開始拒否、後者は管理者変更を上書きせず安全なItemだけ継続して`undo_partial_failed`となることを確認した。
+
+自動検証、MT-061A/B/C全条件、関連Undo回帰、ソース未マウントの新規環境におけるRC ZIPスモークは成功した。Criticalの製品失敗は0件になったが、Critical保留11件とHigh保留10件が残る。よってPhase 7は`In progress`、Phase 8は`Blocked`、判定は`No-Go`のままとし、完了扱いや外部公開は行わない。
+
+### 2026-09-26 残存Critical 11件 実ブラウザ試験
+
+現行RC ZIPをソース非マウントの独立Docker環境へ管理画面から導入し、残存Critical 11件をChromiumで実施した。成功9件、失敗2件、保留0件。Critical全体は成功42・失敗2・保留0、Highは成功18・失敗0・保留10となった。
+
+MT-036は実行中進捗に必須の「未処理」「スキップ」が表示されず、MT-052は全Item開始不能時にOperationが`failed`へ遷移せず`previewed`に残る。この2件を公開阻害事項とする。データ変更の安全性、ロック、重複防止には異常がなく、PHP／JavaScript／Networkログにも予期しないエラーはなかった。
+
+Phase 7は`In progress`、Phase 8は`Blocked`、判定は`No-Go`を維持する。失敗を修正して影響範囲の回帰試験を成功させ、残存High 10件を完了するまでフェーズ完了や外部公開を行わない。詳細は`docs/MANUAL_TEST_CRITICAL_COMPLETION_REPORT.md`を参照。
+
+### 2026-09-26 CC-001／CC-002 修正・回帰
+
+CC-001は既存のItem状態集計を用い、実行中と終端直後に全体・完了・未処理・失敗・スキップ・現在の状態を日本語表示する限定修正で解消した。Itemは相互排他の`pending`／`completed`／`failed`／`skipped`のいずれかとし、`total = pending + completed + failed + skipped`を保つ。
+
+CC-002は、利用者が実行を受諾した後にdelete計画の全対象が開始前安全検証で処理不能となる場合だけを、既存の状態グラフ`previewed -> running -> failed`で終端保存する限定修正で解消した。Item／Journalとterm／relationshipは不変とし、一般のstale preview、nonce、権限、ロック拒否は従来どおり`previewed`を保つ。終端失敗は履歴に理由と日本語の計画再作成案内を残す。
+
+`make check`と新RC ZIPの完全性確認は成功し、Chromium実ブラウザでMT-036／052と限定回帰MT-034／045／050が成功した。Criticalは成功44・失敗0・保留0、Highは成功18・失敗0・保留10。High保留10件とSafari実機未確認が残るため、Phase 7は`In progress`、Phase 8は`Blocked`、判定は`No-Go`のままとし、完了扱いや外部公開は行わない。
+
+### 2026-09-26 残存High 10件 実ブラウザ試験
+
+現行RC ZIPをソース非マウントの独立4環境へ導入し、残存High 10件を実施した。MT-011、015、025、028、031、035、045の7件は成功した。MT-069は320 CSS pxの操作履歴一覧で表の横幅が明示スクロール領域へ閉じず、ページ全体が329 px横移動するため失敗とした。MT-006はライフサイクル実挙動が成功した一方で上位正本にアンインストール保持方針がなく、MT-070はVoiceOver／NVDA実読み上げを実行できず、それぞれ保留とした。
+
+集計はCritical成功44・失敗0・保留0、High成功25・失敗1・保留2、全72件成功69・失敗1・保留2。製品コードは変更していない。MT-069の修正・回帰、MT-006の正本確定、MT-070とSafariの実機確認が残るため、Phase 7は`In progress`、Phase 8は`Blocked`、判定は`No-Go`を維持し、完了扱いや外部公開は行わない。詳細は`docs/MANUAL_TEST_HIGH_COMPLETION_REPORT.md`を参照。
+
 ## 13. フェーズ開始用テンプレート
 
 ```text

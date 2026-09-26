@@ -51,11 +51,11 @@ Undo開始も同じ元Operationロック内で子集合と状態を再読込し�
 
 ## 9. `make check`結果
 
-成功。PHPCS 61/61、JavaScript lint、PHPUnitおよびWordPress統合テストは112 tests / 1,399 assertionsで成功した。PHP構文、Undo Repository/サービス、OperationLock、状態遷移、Ajax/管理リクエスト、操作履歴、追加競合テストを含む。
+成功。PHPCS 61/61、JavaScript lint、PHPUnitおよびWordPress統合テストは112 tests / 1,399 assertionsで成功した。Undo Repository/サービス、OperationLock、状態遷移、Ajax/管理リクエスト、操作履歴、追加競合テストを含む。加えて全PHPファイルへ独立した`php -l`を実行し、構文エラー0件だった。
 
 ## 10. Git commit・作業ツリー状態
 
-ベースcommitは`0f8549adbc48fb4882d6f57af9023f7edc0f4d16`。RCは未コミットの修正を含むdirty worktreeから生成した。既存の未コミット変更と旧手動テストレポートは保持した。
+ブラウザ試験とRC生成時のベースcommitは`0f8549adbc48fb4882d6f57af9023f7edc0f4d16`で、RCは未コミットの修正を含むdirty worktreeから生成した。その後、同じ製品コードを含む`b8de258b64d46f6a5990cc8f0933292e44c817a0`が現在のHEADとなった。本報告の最終検証記述だけが未コミットである。既存の変更と旧手動テストレポートは保持した。
 
 ## 11. RC ZIP名
 

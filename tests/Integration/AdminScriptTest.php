@@ -57,6 +57,18 @@ final class AdminScriptTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( "button.dataset.submitting === '1'", $script );
 		$this->assertStringContainsString( 'globalThis.setTimeout', $script );
 		$this->assertStringContainsString( "document.querySelector( '.taxonomy-tidy-history-error' )", $script );
+		$this->assertStringContainsString( "if ( error?.name === 'DataError' )", $script );
+		$this->assertStringContainsString( "showStopped( error?.name === 'DataError' ? error.message", $script );
+	}
+
+	/** Undo Ajax distinguishes an invalid nonce from retryable transport failures. */
+	public function test_undo_ajax_returns_non_retryable_session_guidance_for_invalid_nonce(): void {
+		$page = $this->page_source();
+		$this->assertStringContainsString( 'wp_verify_nonce( $nonce, HistoryPage::NONCE_ACTION )', $page );
+		$this->assertStringContainsString( 'セッションまたは認証情報が無効になりました。ページを再読み込みし、必要に応じて再ログインしてから操作を再開してください。', $page );
+		$this->assertStringContainsString( "'retryable' => false", $page );
+		$this->assertStringContainsString( "\t\t\t\t403\n\t\t\t);", $page );
+		$this->assertStringContainsString( 'UndoErrorCode::STALE_PREVIEW, UndoErrorCode::LOCKED', $page );
 	}
 
 	/** Plan-modal focus resolves the current trigger after Ajax replaces the board. */
@@ -100,5 +112,13 @@ final class AdminScriptTest extends WP_UnitTestCase {
 		$script = file_get_contents( dirname( __DIR__, 2 ) . '/assets/js/plan-board.js' );
 		$this->assertIsString( $script );
 		return $script;
+	}
+
+	/** Returns the Ajax controller source. */
+	private function page_source(): string {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local version-controlled test subject.
+		$page = file_get_contents( dirname( __DIR__, 2 ) . '/src/Admin/Page.php' );
+		$this->assertIsString( $page );
+		return $page;
 	}
 }

@@ -1,5 +1,98 @@
 # Phase 8 リリースチェックリスト
 
+## 2026-09-26 残存High 10件実施後
+
+- [x] 現行RC ZIPをソース非マウントの独立4環境へ管理画面から導入
+- [x] MT-011／015／025／028／031／035／045成功
+- [ ] MT-069 — 320 CSS pxの操作履歴一覧でページ全体が329 px横移動する（公開阻害）
+- [ ] MT-006 — 実挙動は保持・再利用に成功したが、アンインストール方針の正本未確定
+- [ ] MT-070 — VoiceOver／NVDA実読み上げ未実施
+- [ ] Safari実機スモーク — 起動のみ。WebDriver／Apple Events権限不足で操作未確認
+- [x] `make check`成功（PHPCS 62/62、JavaScript lint、PHPUnit 119 tests / 1,466 assertions、Ajax PHPUnit 1 test / 6 assertions）
+- [x] RC ZIPの`unzip -t`、checksum、現行ソースとの内容照合成功
+- [x] 4環境で未処理JS例外、予期しない5xx、PHP Fatal／Warning／Notice／Deprecated 0件
+- [x] Critical 成功44・失敗0・保留0
+- [ ] Highの失敗・保留を0件にする
+- [ ] Go
+- [x] **No-Go** — MT-069失敗、MT-006／070保留のため
+
+集計: Critical 成功44・失敗0・保留0、High 成功25・失敗1・保留2、全72件 成功69・失敗1・保留2。
+
+対象ZIP: `dist/taxonomy-tidy-0.1.0.zip`
+
+SHA-256: `528362390fa5183d53fd6e938786351ecc4ce5f71f51a10e637c89bbbacd1610`
+
+Phase 7は`In progress`、Phase 8は`Blocked`を維持する。製品コード修正、コミット、push、GitHub Release、WordPress.org公開は行っていない。詳細は`docs/MANUAL_TEST_HIGH_COMPLETION_REPORT.md`を参照。
+
+以下は今回のHigh完了試験より前のチェック記録として保持する。
+
+## 2026-09-26 CC-001／CC-002修正後RC
+
+- [x] CC-001: 実行中・終端直後の6進捗項目と`aria-live`を実装・検証
+- [x] CC-002: 受諾後の全delete対象開始不能を`failed`終端とし、Item／Journal 0・データ不変を検証
+- [x] 一般のstale、nonce、権限、ロック拒否が`previewed`を保つ回帰を検証
+- [x] `make check`成功（PHPCS 62/62、JavaScript lint、PHPUnit 119 tests / 1,466 assertions、Ajax PHPUnit 1 test / 6 assertions）
+- [x] 新RC ZIPの`unzip -t`／checksum照合成功
+- [x] MT-036／052のChromium実ブラウザ再試験成功
+- [x] 限定回帰MT-034／045／050成功
+- [x] 独立2環境の`debug.log` 0 byte、未処理JSエラー・予期しない4xx/5xx 0件
+- [x] Critical 成功44・失敗0・保留0
+- [ ] High保留10件を完了
+- [ ] Go
+- [x] **No-Go** — High保留10件が残るため
+
+集計: Critical 成功44・失敗0・保留0、High 成功18・失敗0・保留10、全72件 成功62・失敗0・保留10。
+
+対象ZIP: `dist/taxonomy-tidy-0.1.0.zip`
+
+SHA-256: `528362390fa5183d53fd6e938786351ecc4ce5f71f51a10e637c89bbbacd1610`
+
+Phase 7は`In progress`、Phase 8は`Blocked`を維持する。コミット、push、GitHub Release、WordPress.org公開は行っていない。詳細は`docs/MANUAL_TEST_CRITICAL_COMPLETION_REPORT.md`を参照。
+
+以下は修正前またはそれ以前のチェック記録として保持する。
+
+## 2026-09-26 残存Critical完了後
+
+- [x] 現行RC ZIPをソース非マウントの独立環境へ管理画面から導入
+- [x] 残存Critical 11件をChromium実ブラウザで実施（成功9、失敗2、保留0）
+- [x] MT-027、034、038、039、044、049、050、051、068成功
+- [ ] MT-036 — 実行中進捗に「未処理」「スキップ」がない（公開阻害CC-001）
+- [ ] MT-052 — 全Item開始不能時にOperationが`failed`にならない（公開阻害CC-002）
+- [x] 4環境の`debug.log` 0 byte、未処理JSエラー・予期しない4xx/5xx 0件
+- [x] Critical保留0件
+- [ ] High保留10件を完了
+- [ ] Go
+- [x] **No-Go** — Critical失敗2件、High保留10件が残るため
+
+集計: Critical 成功42・失敗2・保留0、High 成功18・失敗0・保留10、全72件 成功60・失敗2・保留10。
+
+対象ZIP: `dist/taxonomy-tidy-0.1.0.zip`
+
+SHA-256: `48025c0f330f5ed829e103448c92a5e25aea9cad08d72f40f030174887d798e2`
+
+Phase 7は`In progress`、Phase 8は`Blocked`を維持する。詳細は`docs/MANUAL_TEST_CRITICAL_COMPLETION_REPORT.md`を参照。
+
+## 2026-09-26 MT-061修正後RC
+
+- [x] 不正nonceがJSON 403、非再試行、再読み込み／再ログイン案内となる
+- [x] Undo開始前の状態競合が409で停止し、子Item／Journalを作らず管理者変更を保持する
+- [x] Undo開始後の項目競合は安全なItemを継続し、競合Itemだけ失敗、`undo_partial_failed`となる
+- [x] MT-061A/B/Cの全条件をソース未マウントの独立RC環境で確認
+- [x] MT-058～060、MT-062A/B、MT-063 ChromiumのUndo回帰成功
+- [x] Firefox／WebKitのMT-063は変更影響外であり、2026-09-25の成功証跡を確認
+- [x] `make check`成功（通常114 tests / 1,421 assertions、Ajax 1 test / 6 assertions）
+- [x] `make dist`、`unzip -t`、SHA-256照合成功
+- [x] 新規WordPress環境で名称変更、複数source統合、複数タグ／カテゴリー削除、複数Item Undoをスモーク
+- [x] 予期しないConsole／Network／PHPエラー0件、最終`debug.log` 0行
+- [ ] Go
+- [x] **No-Go** — Critical保留11件、High保留10件が残るため
+
+対象ZIP: `dist/taxonomy-tidy-0.1.0.zip`
+
+SHA-256: `48025c0f330f5ed829e103448c92a5e25aea9cad08d72f40f030174887d798e2`
+
+Phase 7は`In progress`、Phase 8は`Blocked`を維持する。以下は初回Phase 8検証時点のチェックリストとして保持する。
+
 実施日: 2026-09-19（Asia/Tokyo）  
 対象: Taxonomy Tidy 0.1.0 / Git `65828f028fc16483128180f4325dc308cebbdbb1` からの作業ツリー
 

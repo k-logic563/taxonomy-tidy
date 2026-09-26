@@ -12,7 +12,8 @@
 - Phase 7: `In progress`（現行UIの実ブラウザ確認未完了）
 - Phase 8: `Blocked`
 - 現在の判定: `No-Go`
-- 主な解除条件: 現行の統合先selectとUndo自動継続を含むリリース候補ZIPで、本書のCriticalおよびHighを実施すること
+- 2026-09-26最新集計: Critical 成功44・失敗0・保留0、High 成功25・失敗1・保留2
+- 主な解除条件: MT-069の狭幅不具合を修正・回帰し、MT-006の保持方針を正本へ明記し、MT-070を実スクリーンリーダーで完了すること
 
 ### 優先度
 
@@ -215,8 +216,8 @@ make seed-large
 - 操作手順: (1) 無効化して再有効化し、履歴と画面を確認する。(2) 同じRC ZIPで再インストールまたは上書き更新する。(3) スキーマ再適用後の件数を確認する。(4) DBバックアップ後に管理画面から削除（アンインストール）する。(5) 3テーブルの現行挙動を確認し、再インストールする。
 - 期待結果: 無効化・再有効化・同版再適用で履歴と設定が保持され、重複テーブルを作らない。アンインストールでは現行文書どおり監査・復旧用3テーブルを保持する。
 - 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-non-mutating.json
-- 備考: 正式旧版からの更新は未実施理由を記録する。保持方針の正本未確定は差異4を参照。 【2026-09-20実施】無効化・再有効化・削除・再導入のライフサイクル一式は未実施。
+- 証跡: build/manual-test/high-completion/evidence/group-a/results.json、MT-006-before-uninstall.sql、各スクリーンショット
+- 備考: 【2026-09-26再試験】無効化・再有効化、同一RC ZIP上書き、DBバックアップ、管理画面削除、再導入を完了。3テーブル、schema option、履歴は全段階で保持され、再導入後も履歴を再利用でき、実挙動は成功した。ただし`REQUIREMENTS.md`にアンインストール時の3テーブル／schema option保持、履歴再利用、利用者への告知方針が定義されていないため、正本確定まで保留とする。
 
 ### B. 検索、絞り込み、並び替え、ページネーション
 
@@ -271,9 +272,9 @@ make seed-large
 - 事前条件: MT-010の複合条件を適用済み。
 - 操作手順: 「条件をリセット」を押し、検索語、未使用、並び順・方向、ページ番号、条件要約を確認する。
 - 期待結果: 検索・絞り込み・非既定ソート・ページ番号が解除され、現在taxonomyと表示件数は維持され、全件表示へ戻る。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-non-mutating.json
-- 備考: GETなのでデータ変更がないことも確認する。 【2026-09-20実施】検索条件リセットの専用アサーションがロケーター不一致で完了せず、製品挙動を確定できていない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/high-completion/evidence/group-b/results.json、MT-011-*.png
+- 備考: 【2026-09-26完了】カテゴリー50件表示とタグ100件表示の双方で、検索、未使用、公開数、降順、2ページ目を設定してからリセット。URLは`page`、`taxonomy`、`per_page`だけとなり、条件要約は「条件なし」、表示件数とtaxonomyは維持、データ変更なしを確認。
 
 #### MT-012 [High] 表示件数20・50・100
 
@@ -315,9 +316,9 @@ make seed-large
 - 事前条件: largeデータ、DevTools PerformanceまたはNetworkを利用可能。
 - 操作手順: (1) 存在しない語で検索する。(2) 空状態、上下pagination、選択状態を確認する。(3) 条件を戻し、タグ画面をCold loadする。(4) 検索パネル、処理パネル、select、スクロール、ページ移動を各10回操作する。(5) DOM行数、HTML転送量、長いタスク、応答時間を記録する。
 - 期待結果: 0件の日本語表示となり不正なページリンクを出さない。一覧行はページサイズ以内、統合先候補は同一taxonomy全件を1組だけ含み、フリーズ、操作取りこぼし、JSエラーがない。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-non-mutating.json
-- 備考: selectの1,000件描画は現行の既知の制限。体感と計測値を必ず記録する。 【2026-09-20実施】0件表示と1,000タグ環境の実ブラウザ操作性は未実施。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/high-completion/evidence/group-b/results.json、MT-015-*.png、network.json、console.txt
+- 備考: 【2026-09-26完了】0件時の日本語空状態、paginationなし、選択なしを確認。1,000タグのcold load 757.51 ms、転送26,306 bytes、DOMContentLoaded 80.9 ms、20行、DOM 1,797要素、統合先1,000件、反復操作最大930.21 ms、Long Task 0件、予期しないJS／Networkエラー0件。全件select描画は既知の制限として継続。
 
 ### C. 処理パネルと操作計画
 
@@ -427,9 +428,9 @@ make seed-large
 - 事前条件: 処理パネルを開ける状態。
 - 操作手順: (1) 未選択で計画追加する。(2) 1件選択、名称変更、新名称空欄で追加する。(3) 現名称と同じ値で追加する。(4) 2件選択して名称変更を試す。
 - 期待結果: 各操作を追加せず、該当する選択／変更内容セクション内に日本語エラーを表示し、修正可能な入力またはエラーへフォーカスする。termは不変。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-core-workflows.json
-- 備考: エラー時だけ処理パネルが開く。 【2026-09-20実施】未選択・空欄・同名エラーは確認したが、複数選択時の名称変更拒否を完了していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/high-completion/evidence/group-c/results.json、MT-025-*.png
+- 備考: 【2026-09-26完了】未選択、空名、同名、複数rename、不正slug、空白だけの名前を日本語でセクション内拒否し、適切な入力またはエラーへフォーカス。エラー時のみパネルが開き、青いセクションoutlineなし、修正後の再送信成功、データ不変を確認。
 
 #### MT-026 [High] 統合先未選択・自己統合・taxonomy跨ぎ
 
@@ -449,9 +450,9 @@ make seed-large
 - 事前条件: 既定カテゴリー、PUB、DRAFT、BOTH、EXCLUDED termを用意。
 - 操作手順: (1) 既定カテゴリーを選び削除を追加する。(2) 公開使用中カテゴリー／タグで試す。(3) 下書きだけ、固定ページだけで使用するtermで試す。(4) 未使用termとの混合選択でも試す。
 - 期待結果: すべて拒否される。混合選択でも安全なtermだけを勝手に計画せず、既定カテゴリー・使用中termは残る。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-core-workflows.json
-- 備考: 全relationship判定を確認するCriticalケース。 【2026-09-20実施】使用中termの拒否は確認したが、サイトの既定カテゴリーそのものの削除拒否を未確認。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/critical-completion/evidence/group-a/
+- 備考: 全relationship判定を確認するCriticalケース。 【2026-09-26完了】既定カテゴリー、公開・下書き・非公開・固定ページで使用中のcategory/tag、未使用termとの混合をすべて拒否し、term・relationship不変、Item/Journal 0を確認。
 
 #### MT-028 [High] 重複・矛盾・カテゴリー子孫方向の計画拒否
 
@@ -460,9 +461,9 @@ make seed-large
 - 事前条件: 既存draftと`MT-CAT-PARENT`／`CHILD`を用意。
 - 操作手順: (1) 同じ名称変更を二重追加する。(2) 同じtermへrename後、mergeまたはdeleteを追加する。(3) PARENTをCHILDへ統合する。(4) 必要に応じてタブを跨いで戻る。
 - 期待結果: 重複・矛盾は計画へ追加されず、カテゴリーを子孫へ統合できない。既存の有効なdraftは保持される。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-advanced-workflows.json
-- 備考: 【2026-09-20実施】重複計画と子孫方向の一部は確認したが、記載する全矛盾パターンを完了していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/high-completion/evidence/group-c/results.json
+- 備考: 【2026-09-26完了】rename重複、rename＋merge、rename＋delete、merge＋delete、自己統合、taxonomy跨ぎ、親から子孫への統合をすべて拒否。有効な既存draftを保持し、データ変更と内部情報露出がないことを確認。
 
 #### MT-029 [Critical] 消失したtermを含む計画
 
@@ -495,9 +496,9 @@ make seed-large
 - 事前条件: rename、slug変更、merge、delete、保持予定sourceを含む計画を用意。
 - 操作手順: 各項目について、処理方法、変更対象、変更後、影響する公開済み投稿数、削除／保持予定、警告／エラーをベースラインと比較する。
 - 期待結果: 数値と名称が正しく、slugは変更時だけ、警告・エラー・削除／保持は0件なら不要表示されない。ハッシュ、fingerprint、Operation ID、term ID、内部statusを表示しない。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-core-workflows.json
-- 備考: 【2026-09-20実施】名称変更プレビューは確認したが、記載する全処理種別の最小表示・件数比較を完了していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/high-completion/evidence/group-c/results.json、MT-031-preview.png
+- 備考: 【2026-09-26完了】rename、明示slug変更、merge、delete、子カテゴリーを持つsource保持を同一プレビューで照合。名称・件数・削除／保持理由は正しく、未変更slug、0件の警告／エラー、hash、fingerprint、Operation／term ID、内部statusは非表示。キャンセル後のterm／relationship不変も確認。
 
 #### MT-032 [High] 対象投稿一覧の遅延表示
 
@@ -528,9 +529,9 @@ make seed-large
 - 事前条件: 有効な複数Item計画、Networkを低速化。
 - 操作手順: (1) フッターを確認する。(2) 「実行」を素早く連打、Enter連打、ダブルクリックする。(3) Network要求数、履歴、変更ジャーナルを確認する。
 - 期待結果: フッターの主要操作は「キャンセル」「実行」だけ。閉じるはヘッダーにある。最初の実行で操作が無効化／ロックされ、同じ変更、Item、Journalを重複生成しない。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-core-workflows.json
-- 備考: 【2026-09-20実施】単一実行と完了は確認したが、意図的な高速二重クリック時の要求数を未計測。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/critical-completion/evidence/group-c/
+- 備考: 【2026-09-26完了】連続Enter、ダブルクリック、別タブ同時操作でもOperation 1件、各Item attempt 1、Journal一意を確認。
 
 #### MT-035 [High] モーダルのフォーカストラップと背景非操作
 
@@ -539,9 +540,9 @@ make seed-large
 - 事前条件: プレビューを開く。
 - 操作手順: (1) 初期フォーカスを確認する。(2) Tabを末尾まで、Shift+Tabを先頭まで繰り返す。(3) 背景のリンク・入力をマウスとキーボードで操作しようとする。(4) スクリーンリーダーのダイアログ名を確認する。
 - 期待結果: `role=dialog`、`aria-modal=true`、見出し名が読み上げられ、フォーカスはモーダル内を循環する。背景は誤操作・スクロールできない。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-core-workflows.json
-- 備考: 背景の完全なinert性は実ブラウザで重点確認する。 【2026-09-20実施】DOM上のdialog属性とフォーカス移動は確認したが、全フォーカス循環・背景非操作を完了していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/high-completion/evidence/group-d/results.json、MT-035-undo-result.png
+- 備考: 【2026-09-26完了】preview／Undoの両モーダルで`role=dialog`、`aria-modal=true`、見出し参照、初期フォーカス、Tab／Shift+Tab循環、背景クリック非操作、body scroll lock、Esc終了と起点へのフォーカス復帰を確認。実行中／Undo中はEscと背景クリックで閉じず、二重操作できないことも確認。
 
 #### MT-036 [Critical] 実行中モーダルのロックと進捗
 
@@ -550,9 +551,9 @@ make seed-large
 - 事前条件: 10件超の処理、Slow 3G等で各requestを観察可能。
 - 操作手順: 実行開始後、キャンセル、閉じる、Esc、背景クリックを試し、本文、`aria-live`、ボタン状態を観察する。
 - 期待結果: 実行中は閉じられず二重実行できない。本文に日本語の全体、完了、未処理、失敗、スキップ、状態が更新され、処理ごとの利用者クリックを要求しない。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-core-workflows.json
-- 備考: 【2026-09-20実施】実行中のEsc・背景クリック・閉じる操作を実通信中に網羅していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: 修正後 build/manual-test/critical-fix-retest/evidence/group-c/MT-036-running.png、MT-036-after.json、network.json、console.txt／修正前 build/manual-test/critical-completion/evidence/group-c/MT-036-failure.png、network.json
+- 備考: 【2026-09-26修正前失敗】ロック等は成功したが「未処理」「スキップ」が欠落しCC-001とした。【同日再試験成功】全体・完了・未処理・失敗・スキップ・現在の状態を実行中の`aria-live`と終端直後に日本語表示。自動batch、閉鎖・二重実行拒否、Item 15／Journal 15の一意性も確認し、CC-001を解消。
 
 ### E. 実行、一括処理、データ境界
 
@@ -574,9 +575,9 @@ make seed-large
 - 事前条件: `MT-CAT-MERGE-A/B/TARGET`の計画、PUB-01～03の初期assignment記録。
 - 操作手順: 1つのプレビューで「実行」を1回押し、完了まで待つ。投稿とtermの状態を確認する。
 - 期待結果: 対象公開投稿からA/Bが外れTARGETが1回だけ付く。TARGET付与済み投稿に重複せず、UNRELATEDと他taxonomyは不変。安全なsourceだけ削除される。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-advanced-workflows.json
-- 備考: 【2026-09-20実施】複数カテゴリー統合は完了したが、全投稿の前後assignment厳密比較を保存していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/critical-completion/evidence/group-a/MT-038-*
+- 備考: 【2026-09-26完了】全対象assignmentを厳密比較し、destination重複なし、無関係term・別taxonomy不変、source削除、Item/Journal一意を確認。
 
 #### MT-039 [Critical] 複数タグ統合の一括実行
 
@@ -585,9 +586,9 @@ make seed-large
 - 事前条件: `MT-TAG-MERGE-A/B/TARGET`の計画。
 - 操作手順: 「実行」を1回押し、完了後にPUB-01～03とterm一覧、履歴を確認する。
 - 期待結果: A/Bが公開投稿から外れTARGETが追加される。PUB-01の既存TARGETを壊さず重複しない。無関係タグは残る。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-core-workflows.json
-- 備考: 【2026-09-20実施】複数タグ統合は完了したが、全投稿の前後assignment厳密比較を保存していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/critical-completion/evidence/group-a/MT-039-*
+- 備考: 【2026-09-26完了】全対象assignmentを厳密比較し、destination重複なし、無関係term・別taxonomy不変、source削除、Item/Journal一意を確認。
 
 #### MT-040 [Critical] 複数カテゴリー削除の一括実行
 
@@ -640,9 +641,9 @@ make seed-large
 - 事前条件: PARENTにCHILDがあり、PARENTを別categoryへ統合する計画。
 - 操作手順: プレビューの保持理由を確認して実行し、PARENT、CHILD.parent、公開投稿assignmentを確認する。
 - 期待結果: 公開投稿のassignmentはdestinationへ移るがPARENTは削除されず、CHILDの親も自動変更されない。警告と履歴が理由を示す。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-advanced-workflows.json
-- 備考: 【2026-09-20実施】source保持は確認したが、子カテゴリーの親IDと全assignmentの前後比較を完了していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/critical-completion/evidence/group-a/MT-044-*、MT-044-history.png
+- 備考: 【2026-09-26完了】公開投稿だけdestinationへ移動し、sourceと子カテゴリーのparentを保持。プレビュー、保存結果、履歴詳細の保持理由を確認。
 
 #### MT-045 [High] 実行完了後の画面状態
 
@@ -651,9 +652,9 @@ make seed-large
 - 事前条件: completed、partial_failed、failedを少なくとも各1回作る（後二者はMT-051/052と共用可）。
 - 操作手順: 各終端後にモーダル状態、操作計画メッセージ、履歴、再読み込み、タブ移動を確認する。
 - 期待結果: completed／partial_failed／failedを区別し、終端後に実行済みモーダルを自動再表示しない。成功以外を成功文言で表示しない。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-core-workflows.json
-- 備考: 【2026-09-20実施】completed後の画面は確認したが、partial_failed・failed後を未確認。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/high-completion/evidence/group-d/results.json、MT-045-completed.png、MT-045-partial-failed.png、MT-045-failed.png、MT-045-*-after.json
+- 備考: 【2026-09-26完了】completed、partial_failed（35成功・1失敗・Journal 70）、failed（開始可能Item 0・Journal 0）の3終端を区別して日本語表示・履歴保存。成功以外を成功文言にせず、タブ移動・再読み込みで古いモーダルが再表示されず、失敗時のsource／relationship不変を確認。
 
 ### F. 中断、再開、古いプレビュー、競合
 
@@ -697,9 +698,9 @@ make seed-large
 - 事前条件: rename／merge計画のプレビューモーダルを開いたままにする。
 - 操作手順: 別の管理者タブでsourceまたはdestinationの名前／slugを変更し、元タブで「実行」を押す。
 - 期待結果: 古いプレビューとして実行開始前に拒否し、予定していた変更を1件も適用しない。再確認を促す日本語表示となる。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-undo-workflows.json
-- 備考: 【2026-09-20実施】実行直前のterm名称・slug変更によるstale拒否は未実施。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/critical-completion/evidence/group-b/MT-049A-*、MT-049B-*
+- 備考: 【2026-09-26完了】source／destinationのname・slug変更を別試行し、開始前拒否、予定変更0、管理者変更保持、Item/Journal 0を確認。
 
 #### MT-050 [Critical] 実行直前のrelationship変更
 
@@ -708,9 +709,9 @@ make seed-large
 - 事前条件: mergeまたはdeleteプレビューを開く。
 - 操作手順: (1) 別タブで対象投稿へsourceを追加／削除する、または削除予定termを下書きへ付与する。(2) 元タブで実行する。(3) 全対象の状態を確認する。
 - 期待結果: 開始前競合なら全開始を拒否する。開始後のItem単位競合なら危険なItemを変更せずpartial_failedとし、安全なItemだけ継続する。新たな投稿を固定対象へ勝手に追加しない。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-undo-workflows.json
-- 備考: 開始前とバッチ間の2パターンを実施する。 【2026-09-20実施】実行直前のrelationship変更によるstale拒否は未実施。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/critical-completion/evidence/group-b/MT-050A-*、MT-050B-*
+- 備考: 【2026-09-26完了】開始前は全拒否、開始後は競合Itemを上書きせず安全Itemだけ継続し`partial_failed`。プレビュー後の新規投稿を固定対象へ含めないことも確認。
 
 #### MT-051 [Critical] 実行直前の対象term削除
 
@@ -719,9 +720,9 @@ make seed-large
 - 事前条件: mergeプレビューを開く。
 - 操作手順: 別タブでsource、別試行でdestinationを削除し、元タブで実行する。
 - 期待結果: 実行を拒否または該当Itemをfailedとし、成功表示しない。他のterm・relationshipを変更しない。利用者向けに再実行可否を判断できる説明を出す。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-undo-workflows.json
-- 備考: 【2026-09-20実施】実行直前の対象term削除による拒否は未実施。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/critical-completion/evidence/group-b/MT-051A-*、MT-051B-*
+- 備考: 【2026-09-26完了】source／destination削除を別試行し、開始前拒否、別termへの誤適用なし、Item/Journal 0、成功・内部例外表示なしを確認。
 
 #### MT-052 [Critical] partial_failed／failedとロック競合
 
@@ -730,9 +731,9 @@ make seed-large
 - 事前条件: 複数Itemを用意し、バッチ間に1対象だけ安全条件を崩せる。別管理者タブも用意。
 - 操作手順: (1) 1バッチ後に1termを使用中へ変え、残りを継続する。(2) 全対象が開始不能な計画を試す。(3) 同taxonomy処理を別タブから同時開始する。(4) 結果、履歴、エラー、再開ボタンを確認する。
 - 期待結果: 成功と失敗の混在はpartial_failed、成功Itemなしはfailed、ロック競合は安全停止する。終端失敗を自動再実行せず、理由と再実行可否を日本語で判断できる。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-undo-workflows.json
-- 備考: 【2026-09-20実施】partial_failed・failed・lock競合の全組合せは未実施。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: 修正後 build/manual-test/critical-fix-retest/evidence/group-b/MT-052A-*、MT-052B-*、MT-052C-*、results.json／修正前 build/manual-test/critical-completion/evidence/group-b/MT-052A-*、MT-052B-*、MT-052C-*
+- 備考: 【2026-09-26修正前失敗】部分競合とロックは成功したが、全Item開始不能が`previewed`に残りCC-002とした。【同日再試験成功】部分競合は`partial_failed`、利用者が実行を受諾した後に全delete対象が開始前安全検証で処理不能となった場合は`failed`、ロック競合は安全停止を確認。全体失敗はItem／Journal 0、term／relationship不変、日本語で計画再作成案内、自動再実行0で、CC-002を解消。一般のstale、nonce、権限、ロック拒否は従来どおり`previewed`を保つ。
 
 ### G. 操作履歴とUndo
 
@@ -743,9 +744,9 @@ make seed-large
 - 事前条件: draft、previewのみ、completed、partial_failed、failed、別管理者の操作を用意。
 - 操作手順: 各管理者で操作履歴を開き、日時順、種別、処理、対象件数、変更件数、結果、Undo可否を確認する。
 - 期待結果: draftと通常／Undo previewだけの操作、他管理者の操作は表示されない。開始済み操作だけがWordPress設定タイムゾーンで新しい順に表示される。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-undo-workflows.json
-- 備考: 【2026-09-20実施】開始済み履歴は確認したが、別管理者との所有者分離と全状態の一覧比較を完了していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/undo-completion/MT-053/
+- 備考: 【2026-09-25再試験】draft、通常／Undo preview、他管理者操作を除外し、completed、partial_failed、failed、undoing、undoneの日時順、taxonomy、処理、件数、結果、Undo可否、所有者分離、直接URL拒否を確認した。
 
 #### MT-054 [High] 履歴詳細の要約、全ログ遅延表示、折りたたみ
 
@@ -776,9 +777,9 @@ make seed-large
 - 事前条件: MT-039 completed。PUB-01は元からTARGETあり、PUB-02/03はTARGETなし。
 - 操作手順: Undoプレビュー後「元に戻す」を1回押し、全投稿のA/B/TARGET/UNRELATEDを初期ベースラインと比較する。
 - 期待結果: A/Bは元々持っていた投稿だけへ復元される。元操作が新規追加したTARGETだけが外れ、PUB-01の既存TARGETは残る。UNRELATEDは不変。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-undo-workflows.json
-- 備考: sourceが削除済みなら記録属性で安全に再作成し、新ID対応を内部で扱う。 【2026-09-20実施】統合Undoとsource復元は確認したが、全投稿の既存destination・無関係assignment厳密比較を保存していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/undo-completion/MT-056/
+- 備考: sourceが削除済みなら記録属性で安全に再作成し、新ID対応を内部で扱う。 【2026-09-25再試験】全投稿の正規化assignmentを前後比較し、sourceの新ID復元、既存destination、無関係assignment、子Undo Operation 1件、重複なしを確認した。
 
 #### MT-057 [Critical] 複数カテゴリーを含むUndo
 
@@ -787,9 +788,9 @@ make seed-large
 - 事前条件: 複数source統合または複数削除のcompleted操作。
 - 操作手順: Undoプレビューで復元term／assignment／削除assignment件数を確認し、「元に戻す」を1回押して終端まで待つ。
 - 期待結果: 追加クリックなしで全Itemを処理し、可能なtermと公開投稿assignmentを正しく復元する。親属性も記録どおりである。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/results-undo-workflows.json
-- 備考: 【2026-09-20実施】複数カテゴリーUndoは完了したが、親属性を含む全復元値の厳密比較を保存していない。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/undo-completion/MT-057/
+- 備考: 【2026-09-25再試験】12 sourceカテゴリーを1回の操作・3 batchでUndoし、親属性、全assignment、無関係分類を厳密比較して復元と重複なしを確認した。
 
 #### MT-058 [Critical] 複数タグ・30件超Undoの自動継続
 
@@ -821,8 +822,8 @@ make seed-large
 - 操作手順: 別タブで対象termまたはassignmentを変更し、元タブで「元に戻す」を押す。
 - 期待結果: stale previewとして開始せず、1件もUndoしない。再確認を促し、元操作と管理者変更を保持する。
 - 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
-- 証跡: build/manual-test/evidence/results-undo-workflows.json
-- 備考: 【2026-09-20実施】プレビュー後の状態変更を400で拒否し、Undoを開始しないことを確認。
+- 証跡: build/manual-test/evidence/results-undo-workflows.json、build/manual-test/undo-completion/MT-061C-4a/
+- 備考: 【2026-09-26再試験】プレビュー後・開始前の状態変更をAjax HTTP 409で拒否し、子Undoを`undo_previewed`から進めず、子Item／Journal 0件、管理者変更保持、「もう一度確認」案内を確認した。通常POSTも自動テストで409 mappingを確認した。
 
 #### MT-061 [Critical] Undo途中の通信断、最大3回再試行、再開
 
@@ -832,8 +833,33 @@ make seed-large
 - 操作手順: (1) Undo開始後、1つのbatch requestを一時失敗させて復旧し、要求回数を数える。(2) 別試行ではOfflineを継続し、3回失敗後の停止表示を確認する。(3) Online復旧後、履歴の「取り消しを再開」を1回押す。
 - 期待結果: 一時失敗は最大3回まで、成功すれば継続する。3回失敗では中断を成功扱いせず、履歴からpendingだけを自動再開できる。重複Undoしない。
 - 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
-- 証跡: build/manual-test/recovery/MT-061/pattern-a/、build/manual-test/recovery/MT-061/pattern-b/、build/manual-test/recovery/MT-061/non-retry/、build/manual-test/recovery/MT-063/network.json
-- 備考: 権限・nonce・競合・lock・非進捗応答は通信再試行対象にしないことも確認する。 【2026-09-20回復試験】パターンAは最初の成功後、次要求を1回abortし、Network上の要求5回（成功4・意図的失敗1）で追加クリックなくundoneへ継続した。パターンBは最初の10件成功後に3要求を連続abortし、合計4要求で無限再試行せず停止、undoing・pending 26件を保存し、復旧後の「取り消しを再開」1回でundoneへ到達した。追加確認で、権限403、不正nonce、lock 409は各1要求で停止し、進捗が前進しない正常形式応答は2要求目で停止した。競合409もMT-063で1要求だけで停止し、いずれも通信失敗用3回再試行の対象にならないことをNetworkで確認した。全assignmentは元操作前と一致し、Item・Journal重複なし。
+- 証跡: build/manual-test/undo-completion/MT-061A/、build/manual-test/undo-completion/MT-061B/、build/manual-test/undo-completion/MT-061C-1/～MT-061C-5/、build/manual-test/undo-completion/MT-061C-4a/、build/manual-test/undo-completion/MT-061C-4b/
+- 備考: 【2026-09-26再試験】2026-09-25の旧C-4は最初のbatch成功後に競合を注入したためC-4bに該当し、200で安全なItemを継続して`undo_partial_failed`（成功35、失敗1）となる仕様どおりの結果だった。C-4aを開始前競合として分離し、HTTP 409、request 1回、自動再送0回、子Item／Journal 0件、管理者変更保持を確認した。C-2は明示JSON 403と再読み込み／再ログイン案内へ修正した。A、B、Cの全サブケースを同一RCで再実行し成功した。
+
+##### MT-061A: 一時的な通信失敗
+
+- Undo batch requestの1つを一時的に失敗させ、復旧後に最大3回の範囲で自動再試行して追加操作なしに継続することを確認する。
+
+##### MT-061B: 継続する通信失敗
+
+- 最初のbatch成功後にUndo batch requestを3回連続して失敗させ、無限再試行せず停止することを確認する。通信復旧後は履歴の「取り消しを再開」1回からpending Itemだけを自動継続する。
+
+##### MT-061C: 自動再試行してはいけない応答
+
+MT-061Cは、Undo batchにおいて自動再試行の対象にしてはいけない応答を正しく停止できることの確認である。一時的な通信失敗だけを最大3回の自動再試行対象とし、権限、nonce、ロック、状態またはfingerprint競合、進捗が前進しない応答は自動再試行しない。
+
+各サブケースは30件を超えるUndo対象、`completed`の元Operation、作成済みの子Undo Operationを用意する。C-1、C-2、C-3、C-4b、C-5は最初のbatchを正常完了して`undoing`かつpending Itemが残る状態から開始する。C-4aだけはUndoプレビュー作成後、最初のUndo batchを送る前に競合を作る。サブケースごとに独立した初期状態を使用し、DB状態を使い回さない。通信制御は対象のUndo batch Ajax requestだけに限定する。
+
+- **MT-061C-1 権限不足による403**: Undo batchを実行できない権限状態で1回送信する。サーバー側capability検証で403相当として拒否し、自動再送を0回、対象request合計1回で停止する。成功・完了表示を行わず、内部情報を含まない日本語の権限エラーと再ログインまたは権限確認が必要と判断できる表示を行い、Operation、Item、Journal、assignmentを変更しない。
+- **MT-061C-2 不正または期限切れnonce**: Undo batch requestのnonceを無効な値へ変更して1回送信する。サーバー側で拒否し、自動再送を0回、対象request合計1回で停止する。成功・完了表示を行わず、再読み込みまたは再認証が必要と分かる日本語を表示し、新しいnonceを自動取得せず、Operation、Item、Journal、assignmentを変更しない。
+- **MT-061C-3 操作ロック競合による409**: 同じ対象Operationに有効なロックを別処理で保持した状態で1回送信する。409相当で拒否し、自動再送を0回、対象request合計1回で停止する。競合側を成功表示せず、別の処理が実行中であることを日本語で表示する。子Undo Operationを追加作成せず、Item、Journal、assignmentを重複変更しない。ロック解除後は既存の子Undo Operationから明示的に再開できる。
+- **MT-061C-4a Undo開始前の状態競合**: 事前条件はUndoプレビュー済み、子Undo Operationが`undo_previewed`、子Item／子Journalが0件であること。プレビュー後、「元に戻す」を押す前に別の管理者画面からsource／destination termの値または対象relationshipを変更し、保存済みhash／fingerprint／実行対象と現在状態を不一致にする。その後「元に戻す」を1回押す。HTTP 409、対象request 1回、自動再送0回で拒否し、子Undo Operationを`undo_previewed`から進めず、term、relationship、Operation Item、Journalを1件も変更しない。別管理者の変更を保持し、「状態が変わったため開始しなかったので、もう一度確認する」旨を日本語で表示する。証跡として競合注入の時刻と方法、Networkのrequest／409応答、前後の元／子Operation、Item、Journal、term、relationship、投稿assignment、画面エラーを保存する。最終Operation状態は子`undo_previewed`、成功0件、失敗0件とする。
+- **MT-061C-4b Undo開始後・バッチ途中の項目競合**: 事前条件は最初のUndo batchが成功し、子Undo Operationが`undoing`、完了Itemとpending Itemの両方があること。次batchを送る前に、pending Itemが対象とするtermまたはrelationshipを別の管理者画面から変更する。その後は通常の自動継続に戻す。各batchはHTTP 200で継続してよく、自動再送は通信再試行として0回とする。競合Itemを上書きせず、競合していないItemだけ処理し、最終Operation状態を`undo_partial_failed`とする。成功件数と失敗件数がItem実数に一致し、競合理由を日本語で表示し、同じItem／Journalを重複生成しない。証跡として競合注入の時刻と対象Item、全Undo batchのrequest／response、前後のOperation、Item、Journal、term、relationship、投稿assignment、最終件数と画面表示を保存する。
+- **MT-061C-5 正常形式だが進捗が前進しない応答**: Playwrightのroute制御などにより、HTTP成功、現行API仕様に適合するJSON、対象と整合するOperation IDと状態、前回と同じcompleted・pending件数とcursorまたは進捗位置、新しいItem完了・Journal追加なしの応答を1回だけ返す。クライアントが非進捗を検出し、通信障害用の再試行に入らず、自動再送を0回、対象request合計1回で停止する。成功・完了表示を行わず、継続できなかったことを日本語で表示し、Operation、Item、Journal、assignmentを重複変更しない。ページ再読み込みまたは履歴から状態を再確認できる。
+
+各サブケースでUndo batch requestとHeartbeat、履歴取得等を分けて記録する。対象Undo batch requestは最初の拒否または非進捗request 1回、同じ条件の自動再送 0回、合計1回であることを確認する。拒否requestの前後で元Operation、子Undo Operation、status、Item数と各status、Journal数、term、relationship、投稿ごとのassignmentを比較し、最初に正常完了したbatch以外の変更がないことを確認する。
+
+MT-061C-1、C-2、C-3、C-4a、C-4b、C-5の6サブケースがすべて成功した場合だけMT-061Cを成功とする。1件でも失敗した場合は失敗、失敗がなく1件でも実施できない場合は保留とし、成功したサブケースと未確認のサブケースを分けて記録する。MT-061全体はMT-061A、MT-061B、MT-061Cの結果を合わせて判定する。
 
 #### MT-062 [Critical] Undo途中の更新・タブ終了と再開
 
@@ -843,8 +869,8 @@ make seed-large
 - 操作手順: 最初の10件完了後、(a)ブラウザ更新、別試行で(b)タブ終了する。履歴でundoing子Operationを開き、「取り消しを再開」を1回押す。
 - 期待結果: pendingだけを処理し、既に戻したItemやJournalを重複させない。再開後も内部バッチごとのボタンを要求しない。
 - 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
-- 証跡: build/manual-test/recovery/MT-062/pattern-a/、build/manual-test/recovery/MT-062/pattern-b/
-- 備考: 【2026-09-20回復試験】別々の独立環境でブラウザ更新とPlaywright Page終了を実施した。いずれもUndo 10件完了・pending 26件・undoingを保存し、再開前にモーダルを自動表示せず、「取り消しを再開」1回から残件だけを自動処理してundoneへ到達した。全assignmentは元操作前と一致し、Item・Journal重複なし。
+- 証跡: build/manual-test/undo-completion/MT-062A/、build/manual-test/undo-completion/MT-062B/
+- 備考: 【2026-09-25再試験】別々の独立環境で最初の10件後にブラウザ更新（A）とPage終了（B）を実施。undoing・pending 26件を保持し、「取り消しを再開」1回から残件だけを処理してundoneへ到達した。全assignmentは元操作前と一致し、Item・Journal重複なし。
 
 #### MT-063 [Critical] Undoの重複開始防止
 
@@ -854,8 +880,8 @@ make seed-large
 - 操作手順: 両タブでUndoプレビューを開き、ほぼ同時に「元に戻す」を押す。完了後、再度元履歴からUndoを試す。
 - 期待結果: 1つだけ開始し、他方は既開始・lock・staleとして拒否する。子Operation、term、assignment、Journalが重複しない。完了後は再Undo不可となる。
 - 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
-- 証跡: build/manual-test/undo-concurrency/
-- 備考: 【2026-09-21修正後再試験】同一元Operationを2タブから同時にプレビューし、両方が同じ子Operationを再利用した。続くUndo batchの同時送信は一方だけが200で実行され、他方は409で成功表示されず、子Operation 1件、子Item 36件、子Journal 66件、Undo実行1回を確認した。term・assignmentは元操作前と一致し、重複はなく、完了後の再Undoも不可。旧失敗証跡は`build/manual-test/recovery/MT-063/`に保持する。
+- 証跡: build/manual-test/undo-completion/MT-063-firefox/、build/manual-test/undo-completion/MT-063-webkit/
+- 備考: 【2026-09-25ブラウザ差分試験】Firefox 155とWebKit 26.6の独立環境で、同時2タブから子Operation 1件、Undo実行1回、競合側の安全な日本語拒否、データ・Item・Journal重複なし、完了後の再Undo不可を確認した。
 
 #### MT-064 [High] Undoモーダルと結果のアクセシビリティ
 
@@ -910,9 +936,9 @@ make seed-large
 - 事前条件: demoデータ、マウス／トラックパッドを使わない。
 - 操作手順: Tab、Shift+Tab、矢印、Space、Enter、Escだけで、タブ移動、パネル開閉、検索、選択、計画追加、計画確認、モーダルキャンセル、再表示、実行、履歴詳細、ログ展開、Undoまで行う。
 - 期待結果: フォーカス順が論理的で常に視認でき、全主要操作に到達・実行でき、フォーカス消失や背景への脱出がない。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: docs/MANUAL_TEST_REPORT.md「ケース別結果」
-- 備考: 公開可否に直結するGo条件。 【2026-09-20実施】主要導線すべてをポインティングデバイスなしで通す試験は未実施。
+- 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
+- 証跡: build/manual-test/critical-completion/evidence/group-d/MT-068-*
+- 備考: 【2026-09-26完了】4タブ、パネル、検索、選択、radio、計画、preview cancel/reopen/execute、履歴詳細、ログ展開、Undoをキーボードだけで完了。フォーカストラップ・復帰・可視フォーカスとassignment復元を確認。
 
 #### MT-069 [High] 狭幅・拡大表示
 
@@ -921,9 +947,9 @@ make seed-large
 - 事前条件: 320 CSS px相当、400%、ブラウザ標準拡大200%を個別に試せる。
 - 操作手順: 4タブ、両パネル、一覧、操作計画、履歴詳細、モーダル、長いterm名を各幅で表示し、横スクロール領域もキーボード操作する。
 - 期待結果: 内容が重なり・切れ・画面外固定にならず、表は明示領域内で操作でき、主要ボタンとモーダル本文／固定footerへ到達できる。
-- 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: build/manual-test/evidence/MT-069-320px.png、MT-069-1280px.png
-- 備考: WCAG準拠の正式監査ではなくリリース前の操作可能性確認。 【2026-09-20実施】320px等の計測は成功したが、200%・400%拡大と人による操作性確認を未実施。
+- 実施結果: [ ] 未実施 [ ] 成功 [x] 失敗 [ ] 保留
+- 証跡: build/manual-test/high-completion/evidence/group-d/results.json、MT-069-*.png
+- 備考: 【2026-09-26失敗】320 CSS pxのカテゴリー／タグ一覧、長いterm名、640 CSS pxの200%相当ではページ全体の横あふれなし。320 CSS pxの操作履歴一覧（400%相当）では、720 px最小幅の表が明示スクロール領域へ閉じず、document幅649 px、ページ全体の横移動329 pxを再現した。表領域自体はキーボードフォーカス可能。headless Chromiumの標準拡大shortcutは倍率を変更せず、実200%確認も未完了。
 
 #### MT-070 [High] スクリーンリーダー基本確認
 
@@ -933,8 +959,8 @@ make seed-large
 - 操作手順: ページ見出しから4タブ、accordion summary、表見出し／sort、checkbox label、入力エラー、preview dialog、progress live region、history logsを移動する。
 - 期待結果: 名前、role、状態、現在位置、エラー関連付けが理解でき、閉じる`×`には「閉じる」のラベルがある。視覚だけの内部アイコンは重複読上げしない。
 - 実施結果: [ ] 未実施 [ ] 成功 [ ] 失敗 [x] 保留
-- 証跡: docs/MANUAL_TEST_REPORT.md「ケース別結果」
-- 備考: 【2026-09-20実施】Playwright WebKitは確認したが、VoiceOver/NVDAによる実読み上げは未実施。
+- 証跡: docs/MANUAL_TEST_HIGH_COMPLETION_REPORT.md「MT-070」
+- 備考: 【2026-09-26再試験】Safari 27.0とVoiceOverの存在は確認したが、`safaridriver --enable`は管理者認証を通せず、SafariへのApple Eventsも拒否された。VoiceOverの実読み上げを操作・記録できていないため保留を維持する。Playwright WebKitやDOM検査を代替成功とは扱わない。
 
 #### MT-071 [High] WordPress管理画面・公開側への非干渉
 
@@ -956,37 +982,37 @@ make seed-large
 - 期待結果: プラグイン起因のPHPエラー・警告・非推奨、未処理JSエラー、予期しない4xx/5xxが0件。意図した拒否応答はケースIDと対応付けられる。
 - 実施結果: [ ] 未実施 [x] 成功 [ ] 失敗 [ ] 保留
 - 証跡: 各*-console.txt、各*-network.txt、docs/MANUAL_TEST_REPORT.md「ログ確認」
-- 備考: WordPress Core由来と判断する場合も根拠を添えて保留／既知事項にする。 【2026-09-20実施】最終debug.logは0行。ブラウザ記録に未処理JSエラー・予期しない5xxなし。MT-060の400は意図した拒否。
+- 備考: WordPress Core由来と判断する場合も根拠を添えて保留／既知事項にする。 【2026-09-26再確認】最終RCスモークのdebug.logは0行。ブラウザ記録に未処理JSエラー・予期しない5xxなし。MT-060／MT-061C-4aの409とMT-061C-1/C-2の403は意図した拒否。
 
 ## 6. Go／No-Go判定表
 
 | 判定条件 | 結果 | 証跡・備考 |
 |---|---|---|
-| Criticalがすべて成功 | [ ] Go [x] No-Go | Critical失敗0件、保留14件。 |
-| Highに未確認または重大な失敗がない | [ ] Go [x] No-Go | High失敗0件、保留10件。 |
+| Criticalがすべて成功 | [x] Go [ ] No-Go | Critical成功44件、失敗0件、保留0件。MT-036とMT-052の修正・回帰成功。 |
+| Highに未確認または重大な失敗がない | [ ] Go [x] No-Go | High成功25件、失敗1件、保留2件。MT-069失敗、MT-006／070保留。 |
 | 配布ZIPで主要操作を確認済み | [x] Go [ ] No-Go | RC ZIPを管理画面から新規導入して確認。 |
-| 名称変更、統合、複数削除が成功 | [x] Go [ ] No-Go | 実行自体は成功。厳密な全assignment比較を要するMT-038/039は保留。 |
+| 名称変更、統合、複数削除が成功 | [x] Go [ ] No-Go | MT-038/039を含め、厳密な全assignment比較まで成功。 |
 | 複数件を利用者の1回の実行操作で処理できる | [x] Go [ ] No-Go | MT-042成功。 |
 | 中断後の再開で重複処理が発生しない | [x] Go [ ] No-Go | MT-046～048、MT-061～062でpending再開と重複なしを確認。 |
 | 複数件のUndoが1回の操作で完了する | [x] Go [ ] No-Go | MT-058で36 Itemの自動継続を確認。 |
 | 対象外投稿や無関係な分類を変更しない | [x] Go [ ] No-Go | MT-043で両taxonomyと全対象外オブジェクトを正規化JSON比較。 |
 | 日本語UIに意図しない英語が混在しない | [x] Go [ ] No-Go | MT-005成功。 |
-| PHPエラーとJavaScriptエラーがない | [x] Go [ ] No-Go | MT-072成功。意図したMT-060の400を除く。 |
-| キーボード操作とモーダルの基本アクセシビリティを確認済み | [ ] Go [x] No-Go | MT-033/064は再試験成功。MT-068/070は保留。 |
-| Phase 8の既知のリリース阻害事項を解消または正式に受容済み | [ ] Go [x] No-Go | MT-063は修正後再試験に成功したが、Critical/High保留が残る。 |
+| PHPエラーとJavaScriptエラーがない | [x] Go [ ] No-Go | MT-072成功。意図したHTTP拒否、通信遮断、ローカルHTTP環境警告を除き、追加試験でも予期しないPHP/JavaScriptエラーなし。 |
+| キーボード操作とモーダルの基本アクセシビリティを確認済み | [ ] Go [x] No-Go | MT-033/064/068は成功。スクリーンリーダー実機のMT-070は保留。 |
+| Phase 8の既知のリリース阻害事項を解消または正式に受容済み | [ ] Go [x] No-Go | CC-001／CC-002は解消。MT-069の不具合とMT-006／070の未確定事項が残る。 |
 
 ### 最終判定
 
 - [ ] **Go**
-- [x] **No-Go（失敗0件、保留24件）**
+- [x] **No-Go（失敗1件、保留2件）**
 
-判定日: 2026-09-21
+判定日: 2026-09-26
 
 判定者: Codex（実ブラウザ操作支援）
 
-対象ZIP／SHA-256: `taxonomy-tidy-0.1.0.zip` / `6612c00c498387cd76d0cf1b045fb713de1132f2dab264fb6726fa939718e5ba`
+対象ZIP／SHA-256: `taxonomy-tidy-0.1.0.zip` / `528362390fa5183d53fd6e938786351ecc4ce5f71f51a10e637c89bbbacd1610`
 
-未解決Issue: 失敗0件、保留24件。MT-063修正後再試験の詳細は`docs/MANUAL_TEST_UNDO_CONCURRENCY_RETEST_REPORT.md`を参照。
+未解決Issue: MT-069の狭幅横あふれ、MT-006の保持方針未確定、MT-070の実スクリーンリーダー未実施。詳細は`docs/MANUAL_TEST_HIGH_COMPLETION_REPORT.md`を参照。
 
 Goに変更できるのは、上表をすべて満たし、失敗を修正した場合は影響範囲の回帰試験まで成功した後だけとする。Mediumの失敗を残す場合も、利用者影響、回避策、公開後対応時期を明記して承認を得る。
 
@@ -994,10 +1020,10 @@ Goに変更できるのは、上表をすべて満たし、失敗を修正した
 
 | 優先度 | 総数 | 未実施 | 成功 | 失敗 | 保留 |
 |---|---:|---:|---:|---:|---:|
-| Critical | 44 | 0 | 30 | 0 | 14 |
-| High | 28 | 0 | 18 | 0 | 10 |
+| Critical | 44 | 0 | 44 | 0 | 0 |
+| High | 28 | 0 | 25 | 1 | 2 |
 | Medium | 0 | 0 | 0 | 0 | 0 |
-| 合計 | 72 | 0 | 48 | 0 | 24 |
+| 合計 | 72 | 0 | 69 | 1 | 2 |
 
 ## 8. テスト開始前に必要なもの
 
@@ -1016,7 +1042,7 @@ Goに変更できるのは、上表をすべて満たし、失敗を修正した
 
 - MT-033とMT-064は新RC ZIPのChromium再試験で成功した。詳細は`docs/MANUAL_TEST_RETEST_REPORT.md`を参照。
 - 現行RC ZIPで名称変更、統合、複数削除、両taxonomy一括実行、履歴、36 Item Undo自動継続に加え、実行／Undoの通信断・更新・タブ終了からのpending再開を確認した。
-- MT-063の重複子Operation作成は修正され、新RC ZIPの同時2タブ再試験で子Operation 1件、Undo実行1回、データ・Item・Journalの重複なしを確認した。Undo回帰のうちMT-061A/Bは成功、MT-061CとMT-062は試験ハーネス起動不調により新RCでの再確認が完了していない。詳細は`docs/MANUAL_TEST_UNDO_CONCURRENCY_RETEST_REPORT.md`を参照。
+- MT-063はFirefox/WebKitの既存成功に加え、修正後RCのChromiumでも子Operation 1件、Undo実行1回、データ・Item・Journalの重複なしを確認した。MT-062A/Bも修正後RCで再成功。MT-061CはC-1/C-2/C-3/C-4a/C-4b/C-5の全6条件が成功し、MT-061全体を成功へ更新した。詳細は`docs/MANUAL_TEST_UNDO_COMPLETION_REPORT.md`を参照。
 - キーボードのみの全導線、実スクリーンリーダー、200%・400%拡大は保留。320～1280 CSS pxの機械計測は横溢れなし。
 - 1,000タグの統合先全件selectは製品判断で許容されたが、今回のRC環境ではlarge seedを投入しておらず、体感性能と操作性は保留。
 - RC ZIPは新規環境へ管理画面から導入済み。同版上書き、アンインストール、正式旧版からの更新は保留。

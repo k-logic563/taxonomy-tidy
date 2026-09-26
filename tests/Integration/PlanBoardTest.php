@@ -11,6 +11,8 @@ namespace TaxonomyTidy\Tests\Integration;
 
 use TaxonomyTidy\Admin\PlanBoard;
 use TaxonomyTidy\Admin\PlanController;
+use TaxonomyTidy\Admin\Page;
+use TaxonomyTidy\Application\Execution\ExecutionErrorCode;
 use TaxonomyTidy\Application\Execution\ExecutionWorkflow;
 use TaxonomyTidy\Application\Execution\ItemExecutor;
 use TaxonomyTidy\Application\Planning\PlanService;
@@ -294,6 +296,91 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '削除を開始できませんでした。「Changed delete target」は現在、別のオブジェクトで使用されています。', $output );
 		$this->assertInstanceOf( WP_Term::class, get_term( $first, 'post_tag' ) );
 		$this->assertInstanceOf( WP_Term::class, get_term( $second, 'post_tag' ) );
+		$this->assertSame( Status::PREVIEWED->value, $this->operations->find( (int) $result['operations']['post_tag']['id'] )['status'] );
+	}
+
+	/** An accepted run with no startable items becomes a persisted failed history entry. */
+	public function test_all_unstartable_items_finish_failed_without_changes_or_retry(): void {
+		global $wpdb;
+		$user_id   = $this->login_admin();
+		$first     = $this->term( 'post_tag', 'Failed start A' );
+		$second    = $this->term( 'post_tag', 'Failed start B' );
+		$operation = $this->workflow->add( $user_id, Taxonomy::POST_TAG, $this->delete_item( array( $first, $second ) ) );
+		$this->post( 'preview_all' );
+		$this->assertSame( array(), $this->board->handle()['errors'] );
+		$draft = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		wp_set_object_terms( $draft, array( $first, $second ), 'post_tag' );
+
+		$this->post( 'run_all' );
+		$result = $this->board->handle();
+		$saved  = $this->operations->find( (int) $operation['id'] );
+
+		$this->assertSame( array( ExecutionErrorCode::NO_STARTABLE_ITEMS ), $result['errors'] );
+		$this->assertSame( Status::FAILED->value, $saved['status'] );
+		$this->assertNotNull( $saved['started_at'] );
+		$this->assertNotNull( $saved['completed_at'] );
+		$this->assertSame( ExecutionErrorCode::NO_STARTABLE_ITEMS, $saved['errors']['start_failure']['code'] );
+		$this->assertSame( 'relationships_added', $saved['errors']['start_failure']['reason'] );
+		$this->assertSame(
+			array(
+				'total'     => 0,
+				'pending'   => 0,
+				'completed' => 0,
+				'failed'    => 0,
+				'skipped'   => 0,
+			),
+			$saved['result_data']
+		);
+		$this->assertSame( array(), ( new OperationItemRepository( $wpdb ) )->find_for_operation( (int) $operation['id'] ) );
+		$this->assertSame( array(), ( new ChangeJournalRepository( $wpdb ) )->find_for_operation( (int) $operation['id'] ) );
+		$this->assertInstanceOf( WP_Term::class, get_term( $first, 'post_tag' ) );
+		$this->assertInstanceOf( WP_Term::class, get_term( $second, 'post_tag' ) );
+		$this->assertCount( 1, $this->operations->history( $user_id, 1, 20 )['items'] );
+
+		ob_start();
+		$this->board->render( $result );
+		$output = (string) ob_get_clean();
+		$this->assertStringContainsString( 'すべての対象を処理できないため、この操作は失敗として終了しました。', $output );
+		$this->assertStringContainsString( '操作計画を作り直し、変更内容をもう一度確認してください。', $output );
+		$this->assertStringNotContainsString( '処理が完了しました。', $output );
+		$this->assertStringNotContainsString( 'value="continue_all"', $output );
+
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_POST                     = array();
+		$_GET['view']              = 'history';
+		$_GET['history_id']        = (string) $operation['id'];
+		ob_start();
+		( new Page() )->render();
+		$history_output = (string) ob_get_clean();
+		unset( $_GET['view'], $_GET['history_id'] );
+		$this->assertStringContainsString( '<dt>結果</dt><dd>失敗</dd>', $history_output );
+		$this->assertStringContainsString( '操作計画を作り直し、変更内容をもう一度確認してください。', $history_output );
+	}
+
+	/** Invalid nonce does not turn an unstarted preview into a failed operation. */
+	public function test_run_nonce_rejection_keeps_previewed_operation(): void {
+		$user_id = $this->login_admin();
+		$tag     = $this->term( 'post_tag', 'Nonce preview' );
+		$plan    = $this->workflow->add( $user_id, Taxonomy::POST_TAG, $this->rename_item( $tag, 'Nonce changed' ) );
+		$this->post( 'preview_all' );
+		$this->assertSame( array(), $this->board->handle()['errors'] );
+		$this->post( 'run_all' );
+		$_POST[ PlanController::NONCE_FIELD ] = 'invalid';
+		$this->assertSame( array( 'invalid_nonce' ), $this->board->handle()['errors'] );
+		$this->assertSame( Status::PREVIEWED->value, $this->operations->find( (int) $plan['id'] )['status'] );
+	}
+
+	/** Capability rejection does not accept or fail the pending execution request. */
+	public function test_run_capability_rejection_keeps_previewed_operation(): void {
+		$user_id = $this->login_admin();
+		$tag     = $this->term( 'post_tag', 'Capability preview' );
+		$plan    = $this->workflow->add( $user_id, Taxonomy::POST_TAG, $this->rename_item( $tag, 'Capability changed' ) );
+		$this->post( 'preview_all' );
+		$this->assertSame( array(), $this->board->handle()['errors'] );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		$this->post( 'run_all' );
+		$this->assertSame( array( 'permission_denied' ), $this->board->handle()['errors'] );
+		$this->assertSame( Status::PREVIEWED->value, $this->operations->find( (int) $plan['id'] )['status'] );
 	}
 
 	/** A lock failure in the second taxonomy prevents the first from starting. */
@@ -336,6 +423,11 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$first = $this->board->handle();
 		$this->assertSame( Status::RUNNING->value, $first['results']['category']['status'] );
 		$this->assertSame( Status::COMPLETED->value, $first['results']['post_tag']['status'] );
+		ob_start();
+		$this->board->render( $first );
+		$progress_output = (string) ob_get_clean();
+		$this->assertStringContainsString( '全体：11件、完了：10件、未処理：1件、失敗：0件、スキップ：0件、現在の状態：処理中', $progress_output );
+		$this->assertStringContainsString( 'aria-live="polite"', $progress_output );
 		$this->post_remove( $first['results']['category'], 'category', 0 );
 		$this->assertSame( array( 'plan_invalid' ), $this->board->handle()['errors'] );
 		$_SERVER['REQUEST_METHOD'] = 'GET';
@@ -395,6 +487,9 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->board->render( $final );
 		$output = (string) ob_get_clean();
 		$this->assertStringContainsString( '一部の処理に失敗しました。操作履歴を確認してください。', $output );
+		$this->assertStringContainsString( '現在の状態：一部失敗', $output );
+		$this->assertStringContainsString( '未処理：0件', $output );
+		$this->assertStringContainsString( 'スキップ：0件', $output );
 		$this->assertStringNotContainsString( 'role="dialog"', $output );
 	}
 

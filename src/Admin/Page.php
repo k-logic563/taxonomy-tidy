@@ -149,7 +149,19 @@ final class Page {
 				403
 			);
 		}
-		check_ajax_referer( HistoryPage::NONCE_ACTION, HistoryPage::NONCE_FIELD );
+		// Return a client-safe JSON error instead of WordPress' bare "-1" response,
+		// so an expired session can be distinguished from a network failure.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Read and verified immediately below.
+		$nonce = is_string( $_POST[ HistoryPage::NONCE_FIELD ] ?? null ) ? sanitize_text_field( wp_unslash( $_POST[ HistoryPage::NONCE_FIELD ] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, HistoryPage::NONCE_ACTION ) ) {
+			wp_send_json_error(
+				array(
+					'message'   => __( 'セッションまたは認証情報が無効になりました。ページを再読み込みし、必要に応じて再ログインしてから操作を再開してください。', 'taxonomy-tidy' ),
+					'retryable' => false,
+				),
+				403
+			);
+		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified above.
 		$request  = wp_unslash( $_POST );
 		$undo_id  = absint( $request['undo_operation_id'] ?? 0 );
@@ -166,7 +178,7 @@ final class Page {
 		try {
 			wp_send_json_success( $this->history_service()->continue_undo( $undo_id, get_current_user_id(), $taxonomy ) );
 		} catch ( \TaxonomyTidy\Application\Undo\UndoException $exception ) {
-			$status = in_array( $exception->error_code(), array( UndoErrorCode::LOCKED, UndoErrorCode::IN_PROGRESS, UndoErrorCode::ALREADY_UNDONE, UndoErrorCode::NOT_RESUMABLE, UndoErrorCode::DUPLICATE ), true ) ? 409 : 400;
+			$status = in_array( $exception->error_code(), array( UndoErrorCode::STALE_PREVIEW, UndoErrorCode::LOCKED, UndoErrorCode::IN_PROGRESS, UndoErrorCode::ALREADY_UNDONE, UndoErrorCode::NOT_RESUMABLE, UndoErrorCode::DUPLICATE ), true ) ? 409 : 400;
 			wp_send_json_error(
 				array(
 					'message'   => $this->undo_error_message( $exception->error_code() ),
@@ -226,7 +238,7 @@ final class Page {
 	private function undo_error_message( string $code ): string {
 		return match ( $code ) {
 			UndoErrorCode::LOCKED => __( '別の処理が実行中です。操作履歴から状態を確認してください。', 'taxonomy-tidy' ),
-			UndoErrorCode::STALE_PREVIEW => __( '確認後に状態が変わったため、取り消しを開始しませんでした。', 'taxonomy-tidy' ),
+			UndoErrorCode::STALE_PREVIEW => __( '確認後に状態が変わったため、取り消しを開始しませんでした。もう一度確認してください。', 'taxonomy-tidy' ),
 			UndoErrorCode::IN_PROGRESS => __( 'すでに取り消し処理を実行中です。操作履歴から状態を確認してください。', 'taxonomy-tidy' ),
 			UndoErrorCode::ALREADY_UNDONE => __( 'この操作はすでに取り消されています。', 'taxonomy-tidy' ),
 			UndoErrorCode::NOT_RESUMABLE => __( 'この取り消し処理は完了状態のため再開できません。操作履歴で結果を確認してください。', 'taxonomy-tidy' ),

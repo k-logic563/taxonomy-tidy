@@ -171,6 +171,36 @@ final class PersistenceTest extends WP_UnitTestCase {
 		$this->assertSame( 'Expected test failure.', $stored_items[1]['last_error'] );
 	}
 
+	/** Progress is derived from mutually exclusive persisted item states. */
+	public function test_item_progress_counts_are_complete_and_consistent(): void {
+		global $wpdb;
+
+		$operations   = new OperationRepository( $wpdb );
+		$items        = new OperationItemRepository( $wpdb );
+		$operation_id = $operations->create( 7, Taxonomy::POST_TAG );
+		$completed    = $items->add( $operation_id, 'progress:completed', Action::RENAME, array() );
+		$failed       = $items->add( $operation_id, 'progress:failed', Action::DELETE, array() );
+		$skipped      = $items->add( $operation_id, 'progress:skipped', Action::MERGE, array() );
+		$items->add( $operation_id, 'progress:pending', Action::RENAME, array() );
+		$this->assertTrue( $items->mark_completed( $completed ) );
+		$this->assertTrue( $items->mark_failed( $failed, 'Expected progress failure.' ) );
+		$this->assertTrue( $items->mark_skipped( $skipped, 'source_retained' ) );
+
+		$progress = $items->progress( $operation_id );
+
+		$this->assertSame(
+			array(
+				'total'     => 4,
+				'pending'   => 1,
+				'completed' => 1,
+				'failed'    => 1,
+				'skipped'   => 1,
+			),
+			$progress
+		);
+		$this->assertSame( $progress['total'], $progress['completed'] + $progress['pending'] + $progress['failed'] + $progress['skipped'] );
+	}
+
 	/**
 	 * Only one operation can hold the lock for a taxonomy.
 	 */
