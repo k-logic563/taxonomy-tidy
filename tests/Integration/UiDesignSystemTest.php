@@ -21,6 +21,9 @@ final class UiDesignSystemTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '.taxonomy-tidy .tt-button', $css );
 		$this->assertStringContainsString( '.taxonomy-tidy .tt-control', $css );
 		$this->assertStringContainsString( '.taxonomy-tidy .taxonomy-tidy-modal__close:focus-visible', $css );
+		$this->assertStringContainsString( ".taxonomy-tidy .taxonomy-tidy-plan-notice {\n\tdisplay: flex;\n\talign-items: center;", $css );
+		$this->assertStringContainsString( ".taxonomy-tidy .taxonomy-tidy-plan-notice > p {\n\tflex: 1 1 auto;\n\tmin-width: 0;\n\tmargin: 0;", $css );
+		$this->assertStringNotContainsString( "\n.notice {", $css );
 		$this->assertDoesNotMatchRegularExpression( '/(?:^|})\s*(?:button|input|select|textarea|p|h[1-6])\s*\{/m', $css );
 	}
 

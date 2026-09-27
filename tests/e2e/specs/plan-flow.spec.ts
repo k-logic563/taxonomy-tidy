@@ -42,6 +42,44 @@ test('E2E-005 / MT-037：名称変更の実行', async ({ page }) => {
   await modal.expectOpen('E2E-CAT-RENAME');
   await modal.execute();
 
+  const notice = page.locator('.taxonomy-tidy-plan-notice');
+  await expect(notice).toHaveCSS('display', 'flex');
+  await expect(notice).toHaveCSS('align-items', 'center');
+  await expect(notice).toHaveCSS('border-left-width', '4px');
+  const singleLineLayout = await notice.evaluate((element) => {
+    const paragraph = element.querySelector('p');
+    if (!paragraph) throw new Error('The plan notice paragraph is missing.');
+    const outer = element.getBoundingClientRect();
+    const inner = paragraph.getBoundingClientRect();
+    return {
+      top: inner.top - outer.top,
+      bottom: outer.bottom - inner.bottom,
+      overflows: element.scrollWidth > element.clientWidth || paragraph.scrollWidth > paragraph.clientWidth,
+    };
+  });
+  expect(Math.abs(singleLineLayout.top - singleLineLayout.bottom)).toBeLessThanOrEqual(1);
+  expect(singleLineLayout.overflows).toBe(false);
+
+  await page.setViewportSize({ width: 320, height: 720 });
+  await notice.locator('p').evaluate((paragraph) => {
+    paragraph.textContent = '操作が完了しました。長い日本語の通知でも文字が欠けたり重なったりせず、通知枠の内側で自然に複数行へ折り返されます。'.repeat(3);
+  });
+  const narrowLayout = await notice.evaluate((element) => {
+    const paragraph = element.querySelector('p');
+    if (!paragraph) throw new Error('The plan notice paragraph is missing.');
+    const outer = element.getBoundingClientRect();
+    const inner = paragraph.getBoundingClientRect();
+    return {
+      top: inner.top - outer.top,
+      bottom: outer.bottom - inner.bottom,
+      lines: inner.height / Number.parseFloat(getComputedStyle(paragraph).lineHeight),
+      overflows: element.scrollWidth > element.clientWidth || paragraph.scrollWidth > paragraph.clientWidth,
+    };
+  });
+  expect(narrowLayout.lines).toBeGreaterThan(1);
+  expect(Math.abs(narrowLayout.top - narrowLayout.bottom)).toBeLessThanOrEqual(1);
+  expect(narrowLayout.overflows).toBe(false);
+
   const state = readE2EState();
   expect(state.terms.cat_rename).toMatchObject({
     exists: true,

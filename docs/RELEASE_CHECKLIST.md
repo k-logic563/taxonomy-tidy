@@ -1,5 +1,35 @@
 # Phase 8 リリースチェックリスト
 
+## 2026-09-27 最終リリース判定
+
+- [x] 手動テスト72件を機械再集計
+- [x] Critical 成功44・失敗0・保留0
+- [x] High 成功25・失敗1・保留2を確認し、Criticalへの波及がないことを評価
+- [x] CC-001、CC-002、MT-061Cを含むCritical関連不具合の修正後結果と証跡を確認
+- [x] `make check`成功（PHPCS 64/64、JavaScript lint、PHPUnit 119 tests / 1,472 assertions、Ajax 1 test / 6 assertions）
+- [x] 正式Playwright E2E成功（認証setup 1件＋E2E-001〜008、計9件）
+- [x] 現行作業ツリーからRC ZIPを再生成
+- [x] `unzip -t`、SHA-256照合、配布除外、変更製品ファイルのソース一致を確認
+- [x] 現行RC ZIPをソース非マウントの独立環境へ導入
+- [x] 影響限定回帰: 名称変更、結果通知、320 CSS px折返し、操作履歴、Undo
+- [x] 実行後の再読み込みでプレビューモーダルが自動再表示されない
+- [x] slug、無関係assignment、下書き、未操作termが不変
+- [x] 重複Item 0、重複Journal 0
+- [x] 製品起因PHP Fatal／Warning／Notice／Deprecated 0、未処理JavaScriptエラー 0、予期しないNetworkエラー 0
+- [x] 複数カテゴリー／タグ統合、複数削除、一括実行、対象外データ不変の直近実ブラウザ証跡を再確認
+- [x] `git diff --check`成功
+- [x] Phase 7 `Completed`
+- [x] Phase 8 `Completed`
+- [x] **Go**
+
+集計: Critical 成功44・失敗0・保留0、High 成功25・失敗1・保留2、全72件 成功69・失敗1・保留2。
+
+対象ZIP: `dist/taxonomy-tidy-0.1.0.zip`
+
+SHA-256: `f79e2f7d300e8e528551c2e9b62baecf2ef4b4f6858d1f250aba93558884793f`
+
+公開後確認: MT-069の狭幅操作履歴、MT-006のアンインストール保持方針、MT-070のVoiceOver／NVDA実読み上げ、Safari実機、実ブラウザ200%拡大。今回の明示基準に従い、これらHighの失敗・保留はCriticalへ波及しないため公開阻害としない。外部公開、WordPress.org申請、commit、push、タグ、GitHub Releaseは実施していない。
+
 ## 2026-09-26 残存High 10件実施後
 
 - [x] 現行RC ZIPをソース非マウントの独立4環境へ管理画面から導入

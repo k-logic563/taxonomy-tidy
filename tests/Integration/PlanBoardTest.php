@@ -167,6 +167,7 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->board->render( $result );
 		$output = (string) ob_get_clean();
 		$this->assertStringContainsString( '処理が完了しました。', $output );
+		$this->assertStringContainsString( 'class="notice notice-success inline taxonomy-tidy-plan-notice" role="status"', $output );
 		$this->assertStringNotContainsString( 'role="dialog"', $output );
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 		$_POST                     = array();
@@ -294,6 +295,7 @@ final class PlanBoardTest extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'execution_stale_preview' ), $result['errors'] );
 		$this->assertStringContainsString( '削除を開始できませんでした。「Changed delete target」は現在、別のオブジェクトで使用されています。', $output );
+		$this->assertStringContainsString( 'class="notice notice-error inline taxonomy-tidy-plan-notice" role="alert"', $output );
 		$this->assertInstanceOf( WP_Term::class, get_term( $first, 'post_tag' ) );
 		$this->assertInstanceOf( WP_Term::class, get_term( $second, 'post_tag' ) );
 		$this->assertSame( Status::PREVIEWED->value, $this->operations->find( (int) $result['operations']['post_tag']['id'] )['status'] );
@@ -487,6 +489,7 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->board->render( $final );
 		$output = (string) ob_get_clean();
 		$this->assertStringContainsString( '一部の処理に失敗しました。操作履歴を確認してください。', $output );
+		$this->assertStringContainsString( 'class="notice notice-warning inline taxonomy-tidy-plan-notice" role="status"', $output );
 		$this->assertStringContainsString( '現在の状態：一部失敗', $output );
 		$this->assertStringContainsString( '未処理：0件', $output );
 		$this->assertStringContainsString( 'スキップ：0件', $output );

@@ -1142,6 +1142,21 @@
 	border-radius: var(--tt-radius-sm);
 }
 
+.taxonomy-tidy .taxonomy-tidy-plan-notice {
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
+	padding: var(--tt-space-2) var(--tt-space-3);
+}
+
+.taxonomy-tidy .taxonomy-tidy-plan-notice > p {
+	flex: 1 1 auto;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	overflow-wrap: anywhere;
+}
+
 .taxonomy-tidy .taxonomy-tidy-message--warning {
 	color: var(--tt-color-warning);
 }

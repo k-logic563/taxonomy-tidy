@@ -58,8 +58,8 @@
 | 4 | 操作計画・検証・プレビュー | Completed |
 | 5 | バッチ実行と復旧 | Completed |
 | 6 | 操作履歴とUndo | Completed |
-| 7 | 管理画面の完成と操作性 | In progress |
-| 8 | 互換性・受け入れ・リリース候補 | Blocked |
+| 7 | 管理画面の完成と操作性 | Completed |
+| 8 | 互換性・受け入れ・リリース候補 | Completed |
 
 使用できる状態は`Not started`、`In progress`、`Blocked`、`Completed`です。実装と表が一致しない場合は、作業前に報告してください。
 
@@ -385,6 +385,16 @@ CC-002は、利用者が実行を受諾した後にdelete計画の全対象が�
 現行RC ZIPをソース非マウントの独立4環境へ導入し、残存High 10件を実施した。MT-011、015、025、028、031、035、045の7件は成功した。MT-069は320 CSS pxの操作履歴一覧で表の横幅が明示スクロール領域へ閉じず、ページ全体が329 px横移動するため失敗とした。MT-006はライフサイクル実挙動が成功した一方で上位正本にアンインストール保持方針がなく、MT-070はVoiceOver／NVDA実読み上げを実行できず、それぞれ保留とした。
 
 集計はCritical成功44・失敗0・保留0、High成功25・失敗1・保留2、全72件成功69・失敗1・保留2。製品コードは変更していない。MT-069の修正・回帰、MT-006の正本確定、MT-070とSafariの実機確認が残るため、Phase 7は`In progress`、Phase 8は`Blocked`、判定は`No-Go`を維持し、完了扱いや外部公開は行わない。詳細は`docs/MANUAL_TEST_HIGH_COMPLETION_REPORT.md`を参照。
+
+### 2026-09-27 最終リリース判定
+
+今回指定された0.1.0の判定基準に従い、Highの失敗・保留はCriticalへ波及しない限り公開阻害としない方針で再判定した。手動テスト72件を機械集計し、Critical成功44・失敗0・保留0、High成功25・失敗1・保留2、全体成功69・失敗1・保留2を確認した。CC-001、CC-002、MT-061Cを含む過去のCritical関連不具合は修正後の証跡と回帰結果があり、最新結果ではすべて成功している。
+
+現行作業ツリーで`make check`（PHPCS 64/64、JavaScript lint、PHPUnit 119 tests / 1,472 assertions、Ajax 1 test / 6 assertions）とPlaywright E2E-001〜008が成功した。同じ作業ツリーから`taxonomy-tidy-0.1.0.zip`を生成し、`unzip -t`、checksum、配布除外、製品ソース一致を確認した。SHA-256は`f79e2f7d300e8e528551c2e9b62baecf2ef4b4f6858d1f250aba93558884793f`である。
+
+直近の製品差分は操作結果通知のHTML classと表示用CSS、および対応テストに限定され、taxonomy変更、Operation、Item、Journal、Undoの処理経路は変更していない。影響する名称変更、結果通知、操作履歴、Undo、再読み込み時のモーダル非再表示を、ソース非マウントの独立環境へ現行RC ZIPを導入してChromiumで限定回帰し成功した。slugと無関係assignmentは不変、重複Item／Journalは0、`debug.log`は未生成、製品起因PHPエラー、未処理JavaScriptエラー、予期しないNetworkエラーは0件だった。複数カテゴリー／タグ統合、複数削除、対象外データ保持、一括実行のデータ厳密比較は2026-09-26の現行処理ロジックに対する成功証跡を再確認し、変更影響外と判断した。
+
+MT-069の320 CSS pxにおける操作履歴一覧のページ横あふれ、MT-006のアンインストール保持方針未確定、MT-070の実スクリーンリーダー未確認、Safari実機未確認は、Criticalへ波及しない既知の残存リスクおよび公開後の確認事項として残す。この判定基準では公開阻害ではないため、Phase 7とPhase 8を`Completed`、最終判定を`Go`とする。外部公開、commit、push、タグ、GitHub Release、WordPress.org申請は実施していない。
 
 ## 13. フェーズ開始用テンプレート
 

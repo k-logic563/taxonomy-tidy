@@ -436,9 +436,9 @@ final class PlanBoard {
 		<div id="taxonomy-tidy-board-content">
 		<h2><?php echo esc_html__( '操作計画', 'taxonomy-tidy' ); ?></h2>
 		<?php if ( array() !== $state['errors'] ) : ?>
-			<div class="notice notice-error inline" role="alert"><p><?php echo esc_html( array() !== (array) ( $state['error_messages'] ?? array() ) ? implode( ' ', $state['error_messages'] ) : implode( ' ', array_map( array( $this, 'error_label' ), $state['errors'] ) ) ); ?></p></div>
+			<div class="notice notice-error inline taxonomy-tidy-plan-notice" role="alert"><p><?php echo esc_html( array() !== (array) ( $state['error_messages'] ?? array() ) ? implode( ' ', $state['error_messages'] ) : implode( ' ', array_map( array( $this, 'error_label' ), $state['errors'] ) ) ); ?></p></div>
 		<?php elseif ( is_string( $state['notice'] ) ) : ?>
-			<div class="notice notice-<?php echo esc_attr( 'warning' === ( $state['notice_type'] ?? 'success' ) ? 'warning' : 'success' ); ?> inline" role="status"><p><?php echo esc_html( $state['notice'] ); ?></p></div>
+			<div class="notice notice-<?php echo esc_attr( 'warning' === ( $state['notice_type'] ?? 'success' ) ? 'warning' : 'success' ); ?> inline taxonomy-tidy-plan-notice" role="status"><p><?php echo esc_html( $state['notice'] ); ?></p></div>
 		<?php endif; ?>
 		<?php if ( array() !== (array) $state['results'] && ! $state['modal'] ) : ?>
 			<section class="taxonomy-tidy-execution-summary" aria-live="polite" aria-label="<?php echo esc_attr__( '最終的な実行件数', 'taxonomy-tidy' ); ?>">

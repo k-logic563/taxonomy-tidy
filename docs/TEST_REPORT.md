@@ -1,5 +1,38 @@
 # Taxonomy Tidy 0.1.0 Phase 8 テストレポート
 
+## 2026-09-27 最終リリース判定
+
+判定は **Go**。今回指定された基準では、Highの失敗・保留はCriticalへ影響しない限り0.1.0の公開阻害事項としない。手動テスト72件の最新結果を`docs/MANUAL_TEST_PLAN.md`から機械集計し、Critical成功44・失敗0・保留0、High成功25・失敗1・保留2、全体成功69・失敗1・保留2を確認した。古い失敗記録は履歴として保持し、CC-001、CC-002、MT-061Cを含む修正後の最新結果を採用した。
+
+### 最終自動検証
+
+- Git HEAD: `e58aaf95aa19980995d57a0bd83bc91e2db13142`。作業ツリーには操作結果通知の表示調整と対応テスト5ファイルの未コミット差分があり、その差分を含む現行ツリーを検証対象とした。
+- `make check`: 成功。PHPCS 64/64、JavaScript lint、PHPUnit 119 tests / 1,472 assertions、Ajax PHPUnit 1 test / 6 assertions。
+- `npm run e2e`: 成功。認証setup 1件とChromium E2E-001〜008の計9件。
+- `git diff --check`: 成功。
+- `make dist`: 成功。`dist/taxonomy-tidy-0.1.0.zip`を現行ツリーから生成。
+- ZIP: `unzip -t`成功、`.sha256`照合成功、開発用ファイルの除外成功。`src/`、`assets/`、`bootstrap/`、`languages/`、プラグイン本体、README、CHANGELOG、LICENSEが生成ステージと現行ソースに一致。
+- SHA-256: `f79e2f7d300e8e528551c2e9b62baecf2ef4b4f6858d1f250aba93558884793f`。
+
+### Critical限定回帰と最終スモーク
+
+直近差分は操作結果通知へ専用classを付け、通知本文を狭幅で折り返すCSSとそのテストを追加する表示限定変更である。taxonomy変更、実行、Undo、永続化の処理ロジックは変更していない。このため影響ケースを名称変更、実行結果メッセージ、操作履歴、Undo、モーダル非再表示、実行時エラー監視に限定した。
+
+現行RC ZIPをソース非マウントの独立WordPress 6.6.2 / PHP 8.2.25 / MySQL 8.0環境へ導入し、Chromiumで名称変更、320 CSS pxの結果通知、操作履歴、Undo、再読み込み後のモーダル非再表示を再試験して成功した。変更前後の保存状態をWP-CLIで比較し、名称変更時のslug、無関係カテゴリー、下書きと未操作termを保持し、Undo後に元の名称とassignmentへ復元した。Operationは元操作`completed` 1件、子Undo`undone` 1件、Item 2件、Journal 2件で、重複Item 0・重複Journal 0だった。
+
+複数カテゴリー／タグ統合、複数削除、プレビューモーダルからの一括実行、対象外投稿・分類の不変は、2026-09-26の現行処理ロジックに対する実ブラウザ厳密比較証跡を再確認した。今回の表示差分はこれらのデータ処理経路へ到達しないため全件再実行は不要と判断し、現行`make check`と正式E2Eの統合・削除シナリオを追加の回帰根拠とした。
+
+ブラウザ監視では未処理JavaScriptエラー、予期しないHTTPエラー、request failureは0件。`WP_DEBUG_LOG=true`で`debug.log`は生成されず、Apache/PHPログにも製品起因のFatal／Warning／Notice／Deprecated／stack traceはなかった。データ破壊、対象外変更、二重処理、重複Journalは検出していない。
+
+### 既知の残存リスクと公開後確認
+
+- MT-069: 320 CSS pxの操作履歴一覧でページ全体が横へ329 px移動する。表領域はキーボードフォーカス可能で、Criticalの主要操作、データ安全性、エラー監視へ波及しないため、今回の基準では公開後対応とする。
+- MT-006: 無効化、再有効化、同版上書き、アンインストール、再導入の実挙動は成功したが、アンインストール時の保持方針が上位要件で未確定。
+- MT-070: VoiceOver／NVDAによる実読み上げ未確認。
+- Safari実機スモークと実ブラウザ200%拡大は未確認。Playwright WebKitの既存試験をSafari実機の代替成功とは扱わない。
+
+Phase 7とPhase 8は`Completed`。外部公開、WordPress.org申請、commit、push、タグ、GitHub Releaseは実施していない。
+
 ## 2026-09-26 残存High 10件 実ブラウザ試験
 
 現行RC ZIPをソース非マウントの4つの独立Docker環境へ管理画面から導入し、保留だったHigh 10件をChrome for Testing / Chromium 153で実施した。結果は成功7件、失敗1件、保留2件。Criticalは成功44・失敗0・保留0、Highは成功25・失敗1・保留2、全72件は成功69・失敗1・保留2となった。
