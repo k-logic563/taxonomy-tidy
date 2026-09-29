@@ -396,6 +396,12 @@ CC-002は、利用者が実行を受諾した後にdelete計画の全対象が�
 
 MT-069の320 CSS pxにおける操作履歴一覧のページ横あふれ、MT-006のアンインストール保持方針未確定、MT-070の実スクリーンリーダー未確認、Safari実機未確認は、Criticalへ波及しない既知の残存リスクおよび公開後の確認事項として残す。この判定基準では公開阻害ではないため、Phase 7とPhase 8を`Completed`、最終判定を`Go`とする。外部公開、commit、push、タグ、GitHub Release、WordPress.org申請は実施していない。
 
+### 2026-09-29 公開用メタデータ整備
+
+アンインストール時に3つの監査・復旧テーブルとDB schema version optionを保持する方針を`REQUIREMENTS.md`へ正本化し、利用者向け`README.md`とWordPress.org向け`readme.txt`へ明記した。2026-09-26の保持・再利用の実ブラウザ結果と合わせ、MT-006を成功へ変更した。最新集計はCritical成功44・失敗0・保留0、High成功26・失敗1・保留1、全72件成功70・失敗1・保留1である。
+
+`readme.txt`をWordPress.org公式形式で作成し、`Tested up to: 7.1`はWordPress 7.1.1のZIP導入・有効化・管理画面描画・ログ確認の実測記録を根拠とした。`make check`、Playwright E2E-001〜008、配布ZIPの完全性・checksum・ソース一致は成功した。指定GitHubリポジトリとIssuesは公開設定後の未認証確認でともにHTTP 200となり、公開用メタデータのブロッカーは解消したため、現行RCをリリース対象として固定可能とする。Phase 7／8の実装完了状態は変更しない。
+
 ## 13. フェーズ開始用テンプレート
 
 ```text

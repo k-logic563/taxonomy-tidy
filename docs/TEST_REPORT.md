@@ -1,5 +1,25 @@
 # Taxonomy Tidy 0.1.0 Phase 8 テストレポート
 
+## 2026-09-29 WordPress.org公開用メタデータ検証
+
+WordPress.org向け`readme.txt`を新規作成し、Contributors `klogic563`、Stable tag `0.1.0`、Requires at least `6.6`、Requires PHP `8.2`、Tested up to `7.1`、GPLv2 or laterを設定した。`Tested up to: 7.1`は、2026-09-19にWordPress 7.1.1 / PHP 8.4.25 / MySQL 8.0へ当時のRC ZIPを導入し、有効化、管理画面描画、空のdebug logを確認した実測記録を根拠とする。最低対応環境の実ブラウザ主試験はWordPress 6.6.2である。
+
+- 公式readme validator: エラー・警告0。任意項目のDonate linkがないというNote 1件のみ。
+- `readme.txt`: 5,831 bytes。概要は150文字以内。Stable tagと本体Versionは`0.1.0`で一致し、Contributorsは`klogic563`。
+- メインヘッダー: 必須・指定項目を確認し、Taxonomy Tidy固有のGitHub URLをPlugin URIへ追加。Author URIは追加していない。
+- アンインストール: 3テーブルとschema optionの保持方針を`REQUIREMENTS.md`へ正本化し、`README.md`と`readme.txt`へ利用者向けに明記。`uninstall.php`や製品動作は変更していない。これによりMT-006を成功へ変更した。
+- `git diff --check`: 成功。
+- JSON: `package.json`、`package-lock.json`、`composer.json`、`composer.lock`の`jq` parse成功。
+- XML: PHPCS、PHPUnit設定の`xmllint`成功。shell: `sh -n bin/*.sh`成功。
+- `make check`: 成功。PHPCS 64/64、JavaScript lint、PHPUnit 119 tests / 1,472 assertions、Ajax 1 test / 6 assertions。
+- Playwright: 新規の隔離・破棄可能なDocker環境でE2E-001〜008を再実行し、認証setupを含む9件成功。初回は既存環境との8081番ポート競合で開始前に停止し、18081番へ分離した。1回目の全件実行では6件成功後にChromium context終了timeoutで3件失敗したが、smoke 3件の限定再試験は成功し、その後の全9件単一再実行も成功した。
+- 配布ZIP: `dist/taxonomy-tidy-0.1.0.zip`。`unzip -t`、`.sha256`照合、直下ディレクトリ、必須ファイル、禁止開発物、秘密情報パターン、生成ステージと製品ソースの一致を確認。
+- SHA-256: `253f313045b41ce5bd1900b89e92b358006760b41047b959f61a7ad8bde00b3b`。
+- 最新手動集計: Critical成功44・失敗0・保留0、High成功26・失敗1・保留1、全72件成功70・失敗1・保留1。
+- 製品ロジック: 変更なし。メインPHPの変更はPlugin URIヘッダーだけ。
+
+指定されたGitHubリポジトリ`https://github.com/k-logic563/taxonomy-tidy`とIssues URLは、公開設定後の2026-09-29に未認証でともにHTTP 200を確認した。これにより今回の公開用メタデータ検証で残っていた唯一のブロッカーは解消し、現行RCを「リリース対象として固定可能」と判定する。commit、push、tag、GitHub Release、WordPress.org申請・SVN公開は実施していない。
+
 ## 2026-09-27 最終リリース判定
 
 判定は **Go**。今回指定された基準では、Highの失敗・保留はCriticalへ影響しない限り0.1.0の公開阻害事項としない。手動テスト72件の最新結果を`docs/MANUAL_TEST_PLAN.md`から機械集計し、Critical成功44・失敗0・保留0、High成功25・失敗1・保留2、全体成功69・失敗1・保留2を確認した。古い失敗記録は履歴として保持し、CC-001、CC-002、MT-061Cを含む修正後の最新結果を採用した。

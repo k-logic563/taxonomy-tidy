@@ -44,13 +44,32 @@ docker compose --project-directory "$project_dir" run --rm --no-deps \
 
 rm -f "$plugin_dir/composer.json" "$plugin_dir/composer.lock"
 
-test -f "$plugin_dir/taxonomy-tidy.php"
-test -f "$plugin_dir/vendor/autoload.php"
-test -f "$plugin_dir/README.md"
-test -f "$plugin_dir/LICENSE"
+for required_file in \
+	taxonomy-tidy.php \
+	readme.txt \
+	README.md \
+	CHANGELOG.md \
+	LICENSE \
+	vendor/autoload.php
+do
+	test -f "$plugin_dir/$required_file"
+done
+
+stable_tag=$(sed -n 's/^Stable tag:[[:space:]]*\([^[:space:]]*\).*$/\1/p' "$plugin_dir/readme.txt")
+contributors=$(sed -n 's/^Contributors:[[:space:]]*\(.*\)$/\1/p' "$plugin_dir/readme.txt")
+
+if [ "$stable_tag" != "$version" ]; then
+	echo "Stable tag must match the plugin version." >&2
+	exit 1
+fi
+
+if [ "$contributors" != "klogic563" ]; then
+	echo "The WordPress.org contributor must be klogic563." >&2
+	exit 1
+fi
 
 if find "$plugin_dir" \
-	\( -name .env -o -name .git -o -name .github -o -name node_modules -o -name tests -o -name tools -o -name docker-compose.yml \) \
+	\( -name '.env*' -o -name '.git*' -o -name .github -o -name node_modules -o -name tests -o -name tools -o -name 'docker-compose*.yml' -o -name 'package*.json' -o -name 'playwright*' \) \
 	-print -quit | grep -q .; then
 	echo "The staged package contains a forbidden development file." >&2
 	exit 1

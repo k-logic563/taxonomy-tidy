@@ -1,5 +1,38 @@
 # Phase 8 リリースチェックリスト
 
+## 2026-09-29 WordPress.org公開用メタデータ
+
+- [x] 公式形式の`readme.txt`を作成
+- [x] Contributors `klogic563`
+- [x] Stable tagとプラグインVersionが`0.1.0`で一致
+- [x] Tested up to `7.1`をWordPress 7.1.1の実測記録から採用
+- [x] WordPress.org公式readme validatorでエラー・警告0（Donate linkなしのNoteのみ）
+- [x] `readme.txt` 5,831 bytes、概要150文字以内
+- [x] READMEの操作文言を現行UIの「実行」へ統一
+- [x] アンインストール時の3テーブル・schema option保持方針を要件と利用者向け文書へ明記
+- [x] MT-006を成功へ再判定
+- [x] メインプラグインヘッダーを公式仕様と照合
+- [x] `readme.txt`を配布ZIPの必須ファイルとして検査
+- [x] `git diff --check`、JSON／XML／shell構文確認
+- [x] `make check`成功（PHPCS 64/64、JavaScript lint、PHPUnit 119 tests / 1,472 assertions、Ajax 1 test / 6 assertions）
+- [x] Playwright E2E成功（認証setup 1件＋E2E-001〜008、計9件）
+- [x] `make dist`、`unzip -t`、SHA-256照合成功
+- [x] ZIP必須ファイル、禁止開発物、秘密情報パターン、製品ソース一致を確認
+- [x] ZIPに`readme.txt`を含む
+- [x] Critical成功44・失敗0・保留0を維持
+- [x] 製品ロジック変更なし
+- [x] GitHubリポジトリURLが公開状態でHTTP 200
+- [x] GitHub Issues URLが公開状態でHTTP 200
+- [x] **リリース対象を固定可能**
+
+最新集計: Critical成功44・失敗0・保留0、High成功26・失敗1・保留1、全72件成功70・失敗1・保留1。
+
+対象ZIP: `dist/taxonomy-tidy-0.1.0.zip`
+
+SHA-256: `253f313045b41ce5bd1900b89e92b358006760b41047b959f61a7ad8bde00b3b`
+
+指定されたGitHubリポジトリとIssuesは、公開設定後の2026-09-29に未認証でともにHTTP 200を確認した。公開用メタデータのブロッカーは解消し、現行RCをリリース対象として固定可能とする。WordPress.org申請、commit、push、tag、GitHub Release、SVN公開は実施していない。
+
 ## 2026-09-27 最終リリース判定
 
 - [x] 手動テスト72件を機械再集計

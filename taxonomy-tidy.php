@@ -1,6 +1,7 @@
 <?php
 /**
  * Plugin Name:       Taxonomy Tidy
+ * Plugin URI:        https://github.com/k-logic563/taxonomy-tidy
  * Description:       Safely organize WordPress categories and tags in bulk.
  * Version:           0.1.0
  * Requires at least: 6.6
