@@ -5,7 +5,7 @@ set -eu
 : "${WP_CORE_DIR:=/tmp/wordpress}"
 : "${WP_TESTS_DIR:=/tmp/wordpress-tests-lib}"
 : "${WP_TESTS_DB_HOST:=test-database}"
-: "${WP_TESTS_DB_NAME:=taxonomy_tidy_tests}"
+: "${WP_TESTS_DB_NAME:=term_steward_tests}"
 : "${WP_TESTS_DB_USER:=root}"
 : "${WP_TESTS_DB_PASSWORD:=root}"
 : "${WP_VERSION:=6.6.2}"
@@ -35,3 +35,8 @@ sed -i "s/yourpasswordhere/${WP_TESTS_DB_PASSWORD}/" "${WP_TESTS_DIR}/wp-tests-c
 sed -i "s|localhost|${WP_TESTS_DB_HOST}|" "${WP_TESTS_DIR}/wp-tests-config.php"
 sed -i "s|dirname( __FILE__ ) . '/src/'|'${WP_CORE_DIR}/'|" "${WP_TESTS_DIR}/wp-tests-config.php"
 
+# Refresh an existing shared test-library volume after project identifiers change.
+sed -i "s|define( 'DB_NAME', '[^']*' );|define( 'DB_NAME', '${WP_TESTS_DB_NAME}' );|" "${WP_TESTS_DIR}/wp-tests-config.php"
+sed -i "s|define( 'DB_USER', '[^']*' );|define( 'DB_USER', '${WP_TESTS_DB_USER}' );|" "${WP_TESTS_DIR}/wp-tests-config.php"
+sed -i "s|define( 'DB_PASSWORD', '[^']*' );|define( 'DB_PASSWORD', '${WP_TESTS_DB_PASSWORD}' );|" "${WP_TESTS_DIR}/wp-tests-config.php"
+sed -i "s|define( 'DB_HOST', '[^']*' );|define( 'DB_HOST', '${WP_TESTS_DB_HOST}' );|" "${WP_TESTS_DIR}/wp-tests-config.php"

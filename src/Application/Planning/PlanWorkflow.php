@@ -2,17 +2,17 @@
 /**
  * Draft-plan and preview workflow.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Planning;
+namespace TermSteward\Application\Planning;
 
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
-use TaxonomyTidy\Infrastructure\Persistence\PersistenceException;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Persistence\OperationRepository;
+use TermSteward\Infrastructure\Persistence\PersistenceException;
 
 /**
  * Coordinates Phase 4 persistence without executing taxonomy changes.

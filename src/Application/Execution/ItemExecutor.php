@@ -2,17 +2,17 @@
 /**
  * Executes one fixed operation item.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Execution;
+namespace TermSteward\Application\Execution;
 
-use TaxonomyTidy\Domain\Operation\Action;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
-use TaxonomyTidy\Infrastructure\Persistence\PersistenceException;
+use TermSteward\Domain\Operation\Action;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Persistence\ChangeJournalRepository;
+use TermSteward\Infrastructure\Persistence\PersistenceException;
 use WP_Error;
 use WP_Post;
 use WP_Term;

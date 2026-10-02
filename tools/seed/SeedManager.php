@@ -4,12 +4,12 @@
  *
  * This file is executed only by WP-CLI and is excluded from plugin packages.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Development;
+namespace TermSteward\Development;
 
 use RuntimeException;
 use WP_Error;
@@ -25,28 +25,28 @@ final class SeedManager {
 	 *
 	 * @var string
 	 */
-	public const REGISTRY_OPTION = 'taxonomy_tidy_dev_seed_registry';
+	public const REGISTRY_OPTION = 'term_steward_dev_seed_registry';
 
 	/**
 	 * Marker applied to every seed-owned post and term.
 	 *
 	 * @var string
 	 */
-	public const MARKER = 'taxonomy-tidy-dev-seed-v1';
+	public const MARKER = 'term-steward-dev-seed-v1';
 
 	/**
 	 * Marker metadata key.
 	 *
 	 * @var string
 	 */
-	private const MARKER_META = '_taxonomy_tidy_seed_marker';
+	private const MARKER_META = '_term_steward_seed_marker';
 
 	/**
 	 * Stable fixture-key metadata key.
 	 *
 	 * @var string
 	 */
-	private const KEY_META = '_taxonomy_tidy_seed_key';
+	private const KEY_META = '_term_steward_seed_key';
 
 	/**
 	 * Creates or cleans one deterministic dataset.
@@ -349,7 +349,7 @@ final class SeedManager {
 						self::MARKER_META => self::MARKER,
 						self::KEY_META    => $key,
 					),
-					'post_content' => 'ローカル環境でTaxonomy Tidyの表示を確認するための記事です。',
+					'post_content' => 'ローカル環境でTerm Stewardの表示を確認するための記事です。',
 					'post_name'    => sprintf( 'tt-%s-%s', $registry['mode'], $key ),
 					'post_status'  => $definition['status'],
 					'post_title'   => $definition['title'],

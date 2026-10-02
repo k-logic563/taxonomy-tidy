@@ -2,22 +2,22 @@
 /**
  * Plugin translation integration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Admin\ErrorMessages;
-use TaxonomyTidy\Admin\Page;
-use TaxonomyTidy\Admin\PlanController;
-use TaxonomyTidy\Application\Planning\PlanErrorCode;
-use TaxonomyTidy\Plugin;
+use TermSteward\Admin\ErrorMessages;
+use TermSteward\Admin\Page;
+use TermSteward\Admin\PlanController;
+use TermSteward\Application\Planning\PlanErrorCode;
+use TermSteward\Plugin;
 use WP_UnitTestCase;
 
-use function TaxonomyTidy\load_translations;
-use function TaxonomyTidy\render_missing_dependencies_notice;
+use function TermSteward\term_steward_load_translations;
+use function TermSteward\term_steward_render_missing_dependencies_notice;
 
 /**
  * Verifies bundled Japanese translations and the English fallback.
@@ -38,7 +38,7 @@ final class I18nTest extends WP_UnitTestCase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The test preserves read-only query state; it does not process a request.
 		$this->original_get = $_GET;
 		$_GET               = array();
-		unload_textdomain( 'taxonomy-tidy', true );
+		unload_textdomain( 'term-steward', true );
 	}
 
 	/**
@@ -48,7 +48,7 @@ final class I18nTest extends WP_UnitTestCase {
 		remove_filter( 'plugin_locale', array( $this, 'use_japanese_locale' ), 10 );
 		remove_filter( 'plugin_locale', array( $this, 'use_english_locale' ), 10 );
 		remove_filter( 'load_textdomain_mofile', array( $this, 'use_bundled_japanese_catalog' ), 10 );
-		unload_textdomain( 'taxonomy-tidy', true );
+		unload_textdomain( 'term-steward', true );
 		$_GET = $this->original_get;
 		wp_set_current_user( 0 );
 		parent::tear_down();
@@ -78,7 +78,7 @@ final class I18nTest extends WP_UnitTestCase {
 
 		add_filter( 'plugin_locale', array( $this, 'use_japanese_locale' ), 10, 2 );
 		add_filter( 'load_textdomain_mofile', array( $this, 'use_bundled_japanese_catalog' ), 10, 2 );
-		load_translations();
+		term_steward_load_translations();
 
 		$_GET = array(
 			'taxonomy' => 'post_tag',
@@ -94,63 +94,63 @@ final class I18nTest extends WP_UnitTestCase {
 		$output = (string) ob_get_clean();
 
 		$translations = array(
-			'Categories'                                   => 'カテゴリー',
-			'Tags'                                         => 'タグ',
-			'Category'                                     => 'カテゴリー',
-			'Tag'                                          => 'タグ',
-			'Taxonomy views'                               => 'カテゴリーとタグの表示切り替え',
-			'Search panel'                                 => '検索パネル',
-			'Active conditions'                            => '適用中の条件',
-			'Search and filter terms'                      => 'カテゴリー・タグの検索・絞り込み',
-			'Find by keyword'                              => 'キーワードで探す',
-			'Keyword'                                      => 'キーワード',
-			'Search by name or slug.'                      => '名前またはスラッグから検索できます',
-			'Filter displayed terms'                       => '表示対象を絞る',
-			'Sort order'                                   => '並び順',
-			'Sort by'                                      => '並び替え対象',
-			'Name'                                         => '名前',
-			'Published posts'                              => '公開済み投稿数',
-			'Direction'                                    => '並び順',
-			'Ascending'                                    => '昇順',
-			'Descending'                                   => '降順',
-			'Globally unused only'                         => '完全に未使用のみ',
-			'Apply conditions'                             => '条件を適用',
-			'Reset conditions'                             => '条件をリセット',
-			'Keyword: %s'                                  => 'キーワード：%s',
-			'No active conditions'                         => '条件なし',
-			'Slug'                                         => 'スラッグ',
-			'Type'                                         => '種別',
-			'Parent category'                              => '親カテゴリー',
-			'Total relationships'                          => '全体の使用数',
-			'Usage'                                        => '利用状況',
-			'No terms found.'                              => '条件に一致するカテゴリー・タグはありません',
-			'Used by published posts'                      => '公開済み投稿で使用中',
-			'Used outside published posts'                 => '公開済み投稿以外で使用中',
-			'Globally unused'                              => '完全に未使用',
-			'You are not allowed to access Taxonomy Tidy.' => 'Taxonomy Tidyへアクセスする権限がありません。',
-			'Access denied'                                => 'アクセス拒否',
-			'Action panel'                                 => '処理パネル',
-			'Selected targets'                             => '選択中の対象',
-			'Action method'                                => '処理方法',
-			'Rename'                                       => '名称変更',
-			'Merge'                                        => '統合',
-			'Delete'                                       => '削除',
-			'Changes'                                      => '変更内容',
-			'Notices and validation results'               => '注意事項・検証結果',
-			'Execute'                                      => '実行する',
-			'New slug (optional)'                          => '新しいスラッグ（任意）',
-			'Leave blank to keep the current slug.'        => '空欄の場合は変更しません',
-			'Select a category or tag to process.'         => '処理するカテゴリーまたはタグを選択してください。',
-			'Select an action method.'                     => '処理方法を選択してください。',
-			'Enter a new name.'                            => '新しい名前を入力してください。',
-			'The slug format is invalid.'                  => 'スラッグの形式が正しくありません。',
-			'Operation plan'                               => '操作計画',
-			'Review changes'                               => '変更内容を確認',
+			'Categories'                                  => 'カテゴリー',
+			'Tags'                                        => 'タグ',
+			'Category'                                    => 'カテゴリー',
+			'Tag'                                         => 'タグ',
+			'Taxonomy views'                              => 'カテゴリーとタグの表示切り替え',
+			'Search panel'                                => '検索パネル',
+			'Active conditions'                           => '適用中の条件',
+			'Search and filter terms'                     => 'カテゴリー・タグの検索・絞り込み',
+			'Find by keyword'                             => 'キーワードで探す',
+			'Keyword'                                     => 'キーワード',
+			'Search by name or slug.'                     => '名前またはスラッグから検索できます',
+			'Filter displayed terms'                      => '表示対象を絞る',
+			'Sort order'                                  => '並び順',
+			'Sort by'                                     => '並び替え対象',
+			'Name'                                        => '名前',
+			'Published posts'                             => '公開済み投稿数',
+			'Direction'                                   => '並び順',
+			'Ascending'                                   => '昇順',
+			'Descending'                                  => '降順',
+			'Globally unused only'                        => '完全に未使用のみ',
+			'Apply conditions'                            => '条件を適用',
+			'Reset conditions'                            => '条件をリセット',
+			'Keyword: %s'                                 => 'キーワード：%s',
+			'No active conditions'                        => '条件なし',
+			'Slug'                                        => 'スラッグ',
+			'Type'                                        => '種別',
+			'Parent category'                             => '親カテゴリー',
+			'Total relationships'                         => '全体の使用数',
+			'Usage'                                       => '利用状況',
+			'No terms found.'                             => '条件に一致するカテゴリー・タグはありません',
+			'Used by published posts'                     => '公開済み投稿で使用中',
+			'Used outside published posts'                => '公開済み投稿以外で使用中',
+			'Globally unused'                             => '完全に未使用',
+			'You are not allowed to access Term Steward.' => 'Term Stewardへアクセスする権限がありません。',
+			'Access denied'                               => 'アクセス拒否',
+			'Action panel'                                => '処理パネル',
+			'Selected targets'                            => '選択中の対象',
+			'Action method'                               => '処理方法',
+			'Rename'                                      => '名称変更',
+			'Merge'                                       => '統合',
+			'Delete'                                      => '削除',
+			'Changes'                                     => '変更内容',
+			'Notices and validation results'              => '注意事項・検証結果',
+			'Execute'                                     => '実行する',
+			'New slug (optional)'                         => '新しいスラッグ（任意）',
+			'Leave blank to keep the current slug.'       => '空欄の場合は変更しません',
+			'Select a category or tag to process.'        => '処理するカテゴリーまたはタグを選択してください。',
+			'Select an action method.'                    => '処理方法を選択してください。',
+			'Enter a new name.'                           => '新しい名前を入力してください。',
+			'The slug format is invalid.'                 => 'スラッグの形式が正しくありません。',
+			'Operation plan'                              => '操作計画',
+			'Review changes'                              => '変更内容を確認',
 		);
 
 		foreach ( $translations as $source => $translation ) {
 			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- The test intentionally checks every literal catalog entry through one assertion loop.
-			$this->assertSame( $translation, __( $source, 'taxonomy-tidy' ) );
+			$this->assertSame( $translation, __( $source, 'term-steward' ) );
 		}
 		foreach ( $this->planning_error_messages() as $code => $messages ) {
 			$this->assertSame( $messages['ja'], ErrorMessages::label( $code ), 'Incorrect Japanese error for ' . $code );
@@ -189,9 +189,9 @@ final class I18nTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'Select a category or tag to process.', $error_output );
 
 		ob_start();
-		render_missing_dependencies_notice();
+		term_steward_render_missing_dependencies_notice();
 		$notice = (string) ob_get_clean();
-		$this->assertStringContainsString( 'Taxonomy Tidyを起動できませんでした', $notice );
+		$this->assertStringContainsString( 'Term Stewardを起動できませんでした', $notice );
 	}
 
 	/**
@@ -199,7 +199,7 @@ final class I18nTest extends WP_UnitTestCase {
 	 */
 	public function test_japanese_catalog_has_no_empty_user_facing_entries(): void {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local test fixture; no remote request is involved.
-		$catalog = file_get_contents( dirname( TAXONOMY_TIDY_PLUGIN_FILE ) . '/languages/taxonomy-tidy-ja.po' );
+		$catalog = file_get_contents( dirname( TERM_STEWARD_PLUGIN_FILE ) . '/languages/term-steward-ja.po' );
 		$this->assertIsString( $catalog );
 		$this->assertDoesNotMatchRegularExpression( '/msgid "[^"\n]+"\nmsgstr ""/', $catalog );
 	}
@@ -212,13 +212,13 @@ final class I18nTest extends WP_UnitTestCase {
 		wp_set_current_user( $user_id );
 
 		add_filter( 'plugin_locale', array( $this, 'use_english_locale' ), 10, 2 );
-		load_translations();
+		term_steward_load_translations();
 
 		ob_start();
 		Plugin::instance()->admin_page()->render();
 		$output = (string) ob_get_clean();
 
-		$this->assertSame( 'Categories', __( 'Categories', 'taxonomy-tidy' ) );
+		$this->assertSame( 'Categories', __( 'Categories', 'term-steward' ) );
 		$this->assertStringContainsString( 'Search panel', $output );
 		$this->assertStringContainsString( 'Find by keyword', $output );
 		$this->assertStringContainsString( 'Apply conditions', $output );
@@ -244,19 +244,19 @@ final class I18nTest extends WP_UnitTestCase {
 		$this->assertSame( 'ja', get_user_locale( $user_id ) );
 		$switched_to_japanese = switch_to_user_locale( $user_id );
 		add_filter( 'load_textdomain_mofile', array( $this, 'use_bundled_japanese_catalog' ), 10, 2 );
-		unload_textdomain( 'taxonomy-tidy', true );
-		load_translations();
+		unload_textdomain( 'term-steward', true );
+		term_steward_load_translations();
 		$this->assertSame( '処理するカテゴリーまたはタグを選択してください。', ErrorMessages::label( PlanErrorCode::SELECTION_REQUIRED ) );
 
 		if ( $switched_to_japanese ) {
 			$this->assertTrue( restore_previous_locale() );
 		}
 		remove_filter( 'load_textdomain_mofile', array( $this, 'use_bundled_japanese_catalog' ), 10 );
-		unload_textdomain( 'taxonomy-tidy', true );
+		unload_textdomain( 'term-steward', true );
 		update_user_meta( $user_id, 'locale', 'en_US' );
 		$this->assertSame( 'en_US', get_user_locale( $user_id ) );
 		$switched_to_english = switch_to_user_locale( $user_id );
-		load_translations();
+		term_steward_load_translations();
 		$this->assertSame( 'Select a category or tag to process.', ErrorMessages::label( PlanErrorCode::SELECTION_REQUIRED ) );
 		if ( $switched_to_english ) {
 			$this->assertTrue( restore_previous_locale() );
@@ -270,7 +270,7 @@ final class I18nTest extends WP_UnitTestCase {
 	 * @param string $domain Text domain being loaded.
 	 */
 	public function use_japanese_locale( string $locale, string $domain ): string {
-		return 'taxonomy-tidy' === $domain ? 'ja' : $locale;
+		return 'term-steward' === $domain ? 'ja' : $locale;
 	}
 
 	/**
@@ -280,7 +280,7 @@ final class I18nTest extends WP_UnitTestCase {
 	 * @param string $domain Text domain being loaded.
 	 */
 	public function use_english_locale( string $locale, string $domain ): string {
-		return 'taxonomy-tidy' === $domain ? 'en_US' : $locale;
+		return 'term-steward' === $domain ? 'en_US' : $locale;
 	}
 
 	/**
@@ -290,11 +290,11 @@ final class I18nTest extends WP_UnitTestCase {
 	 * @param string $domain Text domain being loaded.
 	 */
 	public function use_bundled_japanese_catalog( string $mofile, string $domain ): string {
-		if ( 'taxonomy-tidy' !== $domain ) {
+		if ( 'term-steward' !== $domain ) {
 			return $mofile;
 		}
 
-		return dirname( TAXONOMY_TIDY_PLUGIN_FILE ) . '/languages/taxonomy-tidy-ja.mo';
+		return dirname( TERM_STEWARD_PLUGIN_FILE ) . '/languages/term-steward-ja.mo';
 	}
 
 	/**

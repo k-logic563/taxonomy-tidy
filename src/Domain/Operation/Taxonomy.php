@@ -2,12 +2,12 @@
 /**
  * Supported operation taxonomies.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Domain\Operation;
+namespace TermSteward\Domain\Operation;
 
 /**
  * Prevents persistence of custom or mixed taxonomy operations.

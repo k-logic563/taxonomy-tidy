@@ -1,8 +1,8 @@
-# Taxonomy Tidy — Codex Working Agreement
+# Term Steward — Codex Working Agreement
 
 ## 1. 役割と資料の優先順位
 
-このファイルは、Taxonomy Tidyを変更するすべてのCodex作業に適用する恒常ルールです。
+このファイルは、Term Stewardを変更するすべてのCodex作業に適用する恒常ルールです。
 
 仕様は次の順序で解釈してください。
 
@@ -65,7 +65,7 @@
 
 ## 6. 管理画面
 
-- 利用者向け文言は日本語に統一し、`taxonomy-tidy` text domainで国際化してください。
+- 利用者向け文言は日本語に統一し、`term-steward` text domainで国際化してください。
 - WordPress標準管理画面の視覚パターンを尊重してください。
 - 情報を意味のある単位でグループ化し、余白と細い区切り線で階層を示してください。
 - 不要な説明文、枠線、カード、確認チェックボックスを追加しないでください。
@@ -94,7 +94,7 @@
 
 ## 8. 実装方針
 
-- 名前空間は`TaxonomyTidy`を使用してください。
+- 名前空間は`TermSteward`を使用してください。
 - WordPressフック、Application、Domain、Infrastructure、表示責務を分離してください。
 - 既存設計を優先し、部分修正のために全面再設計しないでください。
 - ユーザーの既存変更と無関係な差分を変更しないでください。

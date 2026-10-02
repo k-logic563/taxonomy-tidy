@@ -1,5 +1,7 @@
 # Taxonomy Tidy 0.1.0 MT-033 / MT-064 再試験報告
 
+> 旧開発名称：Taxonomy Tidy／現製品名称：Term Steward。以下はリブランド前の試験証跡です。
+
 ## 1. 結論
 
 MT-033とMT-064の根本原因を修正し、`make check`が成功した同じ作業ツリーから新しいRC ZIPを生成した。ソースをマウントしない新規Docker WordPress環境へ管理画面からZIPをアップロードし、Chromiumで両ケースと関連回帰を再試験した。

@@ -2,14 +2,14 @@
 /**
  * Plugin lifecycle hooks.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy;
+namespace TermSteward;
 
-use TaxonomyTidy\Infrastructure\Database\Schema;
+use TermSteward\Infrastructure\Database\Schema;
 
 /**
  * Handles activation and deactivation without creating persistent data yet.

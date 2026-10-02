@@ -2,20 +2,20 @@
 /**
  * Admin page access integration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
 use RuntimeException;
-use TaxonomyTidy\Admin\Access;
-use TaxonomyTidy\Admin\Page;
-use TaxonomyTidy\Admin\PlanController;
-use TaxonomyTidy\Application\Planning\PlanService;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
+use TermSteward\Admin\Access;
+use TermSteward\Admin\Page;
+use TermSteward\Admin\PlanController;
+use TermSteward\Application\Planning\PlanService;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Persistence\OperationRepository;
 use WP_UnitTestCase;
 
 /**
@@ -95,24 +95,24 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->page->render();
 		$output = (string) ob_get_clean();
 
-		$this->assertStringContainsString( '<h1>Taxonomy Tidy</h1>', $output );
+		$this->assertStringContainsString( '<h1>Term Steward</h1>', $output );
 		$this->assertStringContainsString( 'nav-tab-wrapper', $output );
-		$this->assertStringContainsString( '<details class="taxonomy-tidy-panel taxonomy-tidy-filter-panel">', $output );
-		$this->assertStringContainsString( '<details class="taxonomy-tidy-panel taxonomy-tidy-process-panel" >', $output );
-		$this->assertSame( 2, substr_count( $output, 'class="taxonomy-tidy-panel__summary" aria-expanded="false"' ) );
-		$this->assertStringContainsString( 'class="taxonomy-tidy-table-scroll" tabindex="0" role="region"', $output );
-		$this->assertStringContainsString( 'class="taxonomy-tidy-number"', $output );
+		$this->assertStringContainsString( '<details class="term-steward-panel term-steward-filter-panel">', $output );
+		$this->assertStringContainsString( '<details class="term-steward-panel term-steward-process-panel" >', $output );
+		$this->assertSame( 2, substr_count( $output, 'class="term-steward-panel__summary" aria-expanded="false"' ) );
+		$this->assertStringContainsString( 'class="term-steward-table-scroll" tabindex="0" role="region"', $output );
+		$this->assertStringContainsString( 'class="term-steward-number"', $output );
 		$this->assertStringContainsString( 'Search panel', $output );
 		$this->assertStringContainsString( 'Action panel', $output );
 		$this->assertStringContainsString( 'No active conditions', $output );
-		$this->assertStringContainsString( '<label for="taxonomy-tidy-search">Keyword</label>', $output );
-		$this->assertStringContainsString( 'aria-describedby="taxonomy-tidy-search-description"', $output );
-		$this->assertStringContainsString( '<label for="taxonomy-tidy-orderby">Sort by</label>', $output );
-		$this->assertStringContainsString( '<label for="taxonomy-tidy-order">Direction</label>', $output );
+		$this->assertStringContainsString( '<label for="term-steward-search">Keyword</label>', $output );
+		$this->assertStringContainsString( 'aria-describedby="term-steward-search-description"', $output );
+		$this->assertStringContainsString( '<label for="term-steward-orderby">Sort by</label>', $output );
+		$this->assertStringContainsString( '<label for="term-steward-order">Direction</label>', $output );
 		$this->assertStringContainsString( 'Apply conditions', $output );
 		$this->assertStringContainsString( 'Reset conditions', $output );
 		$this->assertSame( 4, substr_count( $output, '<form ' ) );
-		$this->assertStringContainsString( 'class="taxonomy-tidy-select-page"', $output );
+		$this->assertStringContainsString( 'class="term-steward-select-page"', $output );
 		$this->assertStringContainsString( 'No terms selected', $output );
 		$this->assertStringContainsString( '0 processes configured', $output );
 		$this->assertStringContainsString( 'Published posts', $output );
@@ -122,36 +122,36 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Changes', $output );
 		$this->assertStringContainsString( 'Notices and validation results', $output );
 		$this->assertStringContainsString( 'name="plan_command" value="add">計画に追加</button>', $output );
-		$this->assertStringContainsString( 'id="taxonomy-tidy-merge-source-group" class="taxonomy-tidy-field-group taxonomy-tidy-readonly-field"', $output );
-		$this->assertStringContainsString( 'class="taxonomy-tidy-field-display taxonomy-tidy-merge-sources"', $output );
-		$this->assertStringContainsString( 'id="taxonomy-tidy-merge-destination-group" class="taxonomy-tidy-field-group"', $output );
-		$this->assertStringContainsString( '<label class="taxonomy-tidy-field-label" for="taxonomy-tidy-destination">Merge destination</label>', $output );
-		$this->assertStringContainsString( 'id="taxonomy-tidy-destination-help" class="description taxonomy-tidy-field-help"', $output );
-		$this->assertStringContainsString( '<select class="taxonomy-tidy-field-control tt-control" id="taxonomy-tidy-destination" name="destination"', $output );
-		$this->assertStringContainsString( 'class="wrap taxonomy-tidy taxonomy-tidy-screen"', $output );
+		$this->assertStringContainsString( 'id="term-steward-merge-source-group" class="term-steward-field-group term-steward-readonly-field"', $output );
+		$this->assertStringContainsString( 'class="term-steward-field-display term-steward-merge-sources"', $output );
+		$this->assertStringContainsString( 'id="term-steward-merge-destination-group" class="term-steward-field-group"', $output );
+		$this->assertStringContainsString( '<label class="term-steward-field-label" for="term-steward-destination">Merge destination</label>', $output );
+		$this->assertStringContainsString( 'id="term-steward-destination-help" class="description term-steward-field-help"', $output );
+		$this->assertStringContainsString( '<select class="term-steward-field-control tt-control" id="term-steward-destination" name="destination"', $output );
+		$this->assertStringContainsString( 'class="wrap term-steward term-steward-screen"', $output );
 		$this->assertStringContainsString( 'class="button button-primary tt-button tt-button--primary"', $output );
 		$this->assertStringContainsString( '<option value="">Select a merge destination.</option>', $output );
 		$this->assertStringNotContainsString( '<datalist', $output );
-		$this->assertStringNotContainsString( 'taxonomy-tidy-destination-results', $output );
-		$this->assertStringContainsString( '<span class="taxonomy-tidy-field-label">Deletion targets</span>', $output );
-		$this->assertStringNotContainsString( 'taxonomy-tidy-actions-heading', $output );
+		$this->assertStringNotContainsString( 'term-steward-destination-results', $output );
+		$this->assertStringContainsString( '<span class="term-steward-field-label">Deletion targets</span>', $output );
+		$this->assertStringNotContainsString( 'term-steward-actions-heading', $output );
 		$this->assertStringNotContainsString( 'name="change_slug"', $output );
 		$this->assertStringNotContainsString( 'name="delete_confirmed"', $output );
 		$this->assertStringNotContainsString( 'Execute', $output );
 
-		$search_position = strpos( $output, 'taxonomy-tidy-filter-panel' );
-		$action_position = strpos( $output, 'taxonomy-tidy-process-panel' );
-		$table_position  = strpos( $output, 'taxonomy-tidy-inventory-table' );
+		$search_position = strpos( $output, 'term-steward-filter-panel' );
+		$action_position = strpos( $output, 'term-steward-process-panel' );
+		$table_position  = strpos( $output, 'term-steward-inventory-table' );
 		$this->assertIsInt( $search_position );
 		$this->assertIsInt( $action_position );
 		$this->assertIsInt( $table_position );
 		$this->assertLessThan( $action_position, $search_position );
 		$this->assertLessThan( $table_position, $action_position );
 
-		$target_group_position     = strpos( $output, 'taxonomy-tidy-target-heading' );
-		$method_group_position     = strpos( $output, '<h3 id="taxonomy-tidy-operation-heading">Action method</h3>' );
-		$changes_group_position    = strpos( $output, 'taxonomy-tidy-change-heading' );
-		$validation_group_position = strpos( $output, 'taxonomy-tidy-validation-heading' );
+		$target_group_position     = strpos( $output, 'term-steward-target-heading' );
+		$method_group_position     = strpos( $output, '<h3 id="term-steward-operation-heading">Action method</h3>' );
+		$changes_group_position    = strpos( $output, 'term-steward-change-heading' );
+		$validation_group_position = strpos( $output, 'term-steward-validation-heading' );
 		$execute_position          = strpos( $output, 'name="plan_command" value="add"' );
 		$this->assertIsInt( $target_group_position );
 		$this->assertIsInt( $method_group_position );
@@ -162,7 +162,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertLessThan( $changes_group_position, $method_group_position );
 		$this->assertLessThan( $validation_group_position, $changes_group_position );
 		$this->assertLessThan( $execute_position, $validation_group_position );
-		$this->assertMatchesRegularExpression( '/class="taxonomy-tidy-process-group taxonomy-tidy-validation"[^>]+hidden>/', $output );
+		$this->assertMatchesRegularExpression( '/class="term-steward-process-group term-steward-validation"[^>]+hidden>/', $output );
 	}
 
 	/** All same-taxonomy destinations are rendered once regardless of inventory paging. */
@@ -189,7 +189,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '>Full candidate 0001</option>', $output );
 		$this->assertStringContainsString( '>Full candidate 1000</option>', $output );
 		$this->assertSame( 1, substr_count( $output, '>Full candidate 1000</option>' ) );
-		$this->assertSame( 1, preg_match( '/<select[^>]+id="taxonomy-tidy-destination"[^>]*>(.*?)<\/select>/s', $output, $destination_select ) );
+		$this->assertSame( 1, preg_match( '/<select[^>]+id="term-steward-destination"[^>]*>(.*?)<\/select>/s', $output, $destination_select ) );
 		$this->assertSame( 1000, substr_count( $destination_select[1], 'data-term-key="' ) );
 		$this->assertLessThan( 328 * 1024, strlen( $output ) );
 	}
@@ -426,17 +426,17 @@ final class AdminPageTest extends WP_UnitTestCase {
 		ob_start();
 		$this->page->render();
 		$output = (string) ob_get_clean();
-		$this->assertStringContainsString( '<details class="taxonomy-tidy-panel taxonomy-tidy-process-panel" open>', $output );
-		$this->assertStringContainsString( 'class="taxonomy-tidy-panel__summary" aria-expanded="true"', $output );
-		$this->assertStringContainsString( 'id="taxonomy-tidy-new-name-error-0"', $output );
-		$this->assertStringContainsString( 'aria-invalid="true" aria-describedby="taxonomy-tidy-new-name-error-0"', $output );
+		$this->assertStringContainsString( '<details class="term-steward-panel term-steward-process-panel" open>', $output );
+		$this->assertStringContainsString( 'class="term-steward-panel__summary" aria-expanded="true"', $output );
+		$this->assertStringContainsString( 'id="term-steward-new-name-error-0"', $output );
+		$this->assertStringContainsString( 'aria-invalid="true" aria-describedby="term-steward-new-name-error-0"', $output );
 		$this->assertStringContainsString( 'Enter a new name.', $output );
-		$this->assertStringContainsString( 'id="taxonomy-tidy-new-slug-error-0"', $output );
-		$this->assertStringContainsString( 'taxonomy-tidy-new-slug-help taxonomy-tidy-new-slug-error-0', $output );
+		$this->assertStringContainsString( 'id="term-steward-new-slug-error-0"', $output );
+		$this->assertStringContainsString( 'term-steward-new-slug-help term-steward-new-slug-error-0', $output );
 		$this->assertStringContainsString( 'The slug format is invalid.', $output );
 		$this->assertMatchesRegularExpression( '/name="selected_terms\[\]"[^>]+checked=[\'\"]checked[\'\"]/', $output );
 		$this->assertMatchesRegularExpression( '/name="operation_action" value="rename"[^>]+checked=[\'\"]checked[\'\"]/', $output );
-		$this->assertMatchesRegularExpression( '/id="taxonomy-tidy-new-name"[^>]+data-error-focus="true"/', $output );
+		$this->assertMatchesRegularExpression( '/id="term-steward-new-name"[^>]+data-error-focus="true"/', $output );
 		$this->assertStringNotContainsString( 'autofocus', $output );
 	}
 
@@ -492,8 +492,8 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '変更後のslug', $output );
 		$this->assertStringNotContainsString( 'Preview created:', $output );
 		$this->assertStringNotContainsString( 'Warnings: 0', $output );
-		$this->assertStringContainsString( 'class="button tt-button tt-button--secondary taxonomy-tidy-modal__cancel"', $output );
-		$this->assertStringContainsString( 'class="taxonomy-tidy taxonomy-tidy-modal taxonomy-tidy-board-modal"', $output );
+		$this->assertStringContainsString( 'class="button tt-button tt-button--secondary term-steward-modal__cancel"', $output );
+		$this->assertStringContainsString( 'class="term-steward term-steward-modal term-steward-board-modal"', $output );
 		$this->assertStringContainsString( 'name="plan_command" value="run_all"', $output );
 		$this->assertStringNotContainsString( 'value="discard"', $output );
 		$this->assertStringNotContainsString( 'value="revise"', $output );
@@ -558,16 +558,16 @@ final class AdminPageTest extends WP_UnitTestCase {
 		ob_start();
 		$this->page->render();
 		$output = (string) ob_get_clean();
-		$this->assertStringContainsString( '<details class="taxonomy-tidy-panel taxonomy-tidy-process-panel" open>', $output );
-		$this->assertStringContainsString( 'class="taxonomy-tidy-panel__summary" aria-expanded="true"', $output );
-		$this->assertStringContainsString( 'id="taxonomy-tidy-selection-error-0"', $output );
-		$this->assertStringContainsString( 'id="taxonomy-tidy-operation-error-0"', $output );
+		$this->assertStringContainsString( '<details class="term-steward-panel term-steward-process-panel" open>', $output );
+		$this->assertStringContainsString( 'class="term-steward-panel__summary" aria-expanded="true"', $output );
+		$this->assertStringContainsString( 'id="term-steward-selection-error-0"', $output );
+		$this->assertStringContainsString( 'id="term-steward-operation-error-0"', $output );
 		$this->assertSame( 1, substr_count( $output, 'Select a category or tag to process.</p>' ) );
 		$this->assertSame( 1, substr_count( $output, 'Select an action method.</p>' ) );
-		$this->assertStringContainsString( 'id="taxonomy-tidy-selection-error-0" class="taxonomy-tidy-field-error" tabindex="-1"', $output );
+		$this->assertStringContainsString( 'id="term-steward-selection-error-0" class="term-steward-field-error" tabindex="-1"', $output );
 		$this->assertStringNotContainsString( 'data-error-focus="true"', $output );
-		$this->assertStringNotContainsString( 'id="taxonomy-tidy-selection-section" class="taxonomy-tidy-process-group" aria-labelledby="taxonomy-tidy-target-heading" tabindex', $output );
-		$this->assertStringNotContainsString( 'taxonomy-tidy-plan-heading', $output );
+		$this->assertStringNotContainsString( 'id="term-steward-selection-section" class="term-steward-process-group" aria-labelledby="term-steward-target-heading" tabindex', $output );
+		$this->assertStringNotContainsString( 'term-steward-plan-heading', $output );
 
 		$term_id = self::factory()->term->create(
 			array(
@@ -587,7 +587,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		ob_start();
 		$this->page->render();
 		$operation_output = (string) ob_get_clean();
-		$this->assertMatchesRegularExpression( '/id="taxonomy-tidy-action-rename"[^>]+data-error-focus="true"/', $operation_output );
+		$this->assertMatchesRegularExpression( '/id="term-steward-action-rename"[^>]+data-error-focus="true"/', $operation_output );
 	}
 
 	/**
@@ -637,16 +637,16 @@ final class AdminPageTest extends WP_UnitTestCase {
 		ob_start();
 		$this->page->render();
 		$merge_output = (string) ob_get_clean();
-		$this->assertStringContainsString( 'id="taxonomy-tidy-destination-error-0"', $merge_output );
+		$this->assertStringContainsString( 'id="term-steward-destination-error-0"', $merge_output );
 		$this->assertStringContainsString( 'The merge destination cannot be the same as its source.', $merge_output );
-		$this->assertStringContainsString( '<ul class="taxonomy-tidy-selected-list">', $merge_output );
+		$this->assertStringContainsString( '<ul class="term-steward-selected-list">', $merge_output );
 		$this->assertStringContainsString( '<li>Inline error source</li>', $merge_output );
-		$this->assertStringContainsString( 'aria-describedby="taxonomy-tidy-destination-help taxonomy-tidy-destination-selection-notice taxonomy-tidy-destination-error-0"', $merge_output );
-		$this->assertMatchesRegularExpression( '/id="taxonomy-tidy-destination"[^>]+data-error-focus="true"/', $merge_output );
-		$this->assertLessThan( strpos( $merge_output, 'taxonomy-tidy-destination-error-0' ), strpos( $merge_output, 'taxonomy-tidy-merge-destination-group' ) );
-		$this->assertMatchesRegularExpression( '/<select[^>]+id="taxonomy-tidy-destination"[^>]*>\s*<option value="">/', $merge_output );
+		$this->assertStringContainsString( 'aria-describedby="term-steward-destination-help term-steward-destination-selection-notice term-steward-destination-error-0"', $merge_output );
+		$this->assertMatchesRegularExpression( '/id="term-steward-destination"[^>]+data-error-focus="true"/', $merge_output );
+		$this->assertLessThan( strpos( $merge_output, 'term-steward-destination-error-0' ), strpos( $merge_output, 'term-steward-merge-destination-group' ) );
+		$this->assertMatchesRegularExpression( '/<select[^>]+id="term-steward-destination"[^>]*>\s*<option value="">/', $merge_output );
 		$this->assertStringContainsString( '選択していた統合先が統合元に含まれたため、選択を解除しました。', $merge_output );
-		$this->assertSame( 1, preg_match( '/<select[^>]+id="taxonomy-tidy-destination"[^>]*>(.*?)<\/select>/s', $merge_output, $destination_select ) );
+		$this->assertSame( 1, preg_match( '/<select[^>]+id="term-steward-destination"[^>]*>(.*?)<\/select>/s', $merge_output, $destination_select ) );
 		$this->assertStringNotContainsString( 'data-term-key="' . $term_id . '"', $destination_select[1] );
 		$this->assertStringContainsString( 'data-term-key="' . $second_id . '"', $destination_select[1] );
 
@@ -655,7 +655,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		ob_start();
 		$this->page->render();
 		$multiple_source_output = (string) ob_get_clean();
-		$this->assertSame( 1, preg_match( '/<select[^>]+id="taxonomy-tidy-destination"[^>]*>(.*?)<\/select>/s', $multiple_source_output, $multiple_destination_select ) );
+		$this->assertSame( 1, preg_match( '/<select[^>]+id="term-steward-destination"[^>]*>(.*?)<\/select>/s', $multiple_source_output, $multiple_destination_select ) );
 		$this->assertStringNotContainsString( 'data-term-key="' . $term_id . '"', $multiple_destination_select[1] );
 		$this->assertStringNotContainsString( 'data-term-key="' . $second_id . '"', $multiple_destination_select[1] );
 		$this->assertStringContainsString( 'data-term-key="' . $third_id . '"', $multiple_destination_select[1] );
@@ -664,9 +664,9 @@ final class AdminPageTest extends WP_UnitTestCase {
 		ob_start();
 		$this->page->render();
 		$missing_source_output = (string) ob_get_clean();
-		$source_group_position = strpos( $missing_source_output, 'taxonomy-tidy-merge-source-group' );
-		$source_error_position = strpos( $missing_source_output, 'taxonomy-tidy-merge-source-error-0' );
-		$destination_position  = strpos( $missing_source_output, 'taxonomy-tidy-merge-destination-group' );
+		$source_group_position = strpos( $missing_source_output, 'term-steward-merge-source-group' );
+		$source_error_position = strpos( $missing_source_output, 'term-steward-merge-source-error-0' );
+		$destination_position  = strpos( $missing_source_output, 'term-steward-merge-destination-group' );
 		$this->assertIsInt( $source_group_position );
 		$this->assertIsInt( $source_error_position );
 		$this->assertIsInt( $destination_position );
@@ -683,14 +683,14 @@ final class AdminPageTest extends WP_UnitTestCase {
 		ob_start();
 		$this->page->render();
 		$delete_output = (string) ob_get_clean();
-		$this->assertStringContainsString( 'id="taxonomy-tidy-delete-error-0"', $delete_output );
-		$this->assertStringContainsString( 'id="taxonomy-tidy-delete-error-0" class="taxonomy-tidy-field-error" tabindex="-1"', $delete_output );
+		$this->assertStringContainsString( 'id="term-steward-delete-error-0"', $delete_output );
+		$this->assertStringContainsString( 'id="term-steward-delete-error-0" class="term-steward-field-error" tabindex="-1"', $delete_output );
 		$this->assertStringContainsString( 'A category or tag that is in use cannot be deleted.', $delete_output );
-		$this->assertSame( 1, preg_match( '/<ul class="taxonomy-tidy-delete-list">(.*?)<\/ul>/s', $delete_output, $delete_targets ) );
+		$this->assertSame( 1, preg_match( '/<ul class="term-steward-delete-list">(.*?)<\/ul>/s', $delete_output, $delete_targets ) );
 		$this->assertStringContainsString( '<li>Inline error source</li>', $delete_targets[1] );
 		$this->assertStringNotContainsString( 'Published posts', $delete_targets[1] );
 		$this->assertStringNotContainsString( 'Total relationships', $delete_targets[1] );
-		$this->assertStringNotContainsString( 'taxonomy-tidy-readonly-field" aria-invalid="true" aria-describedby="taxonomy-tidy-delete-error-0" tabindex', $delete_output );
+		$this->assertStringNotContainsString( 'term-steward-readonly-field" aria-invalid="true" aria-describedby="term-steward-delete-error-0" tabindex', $delete_output );
 		$this->assertStringNotContainsString( 'name="delete_confirmed"', $delete_output );
 	}
 
@@ -727,7 +727,7 @@ final class AdminPageTest extends WP_UnitTestCase {
 		$matched = preg_match( '/<a class="button button-secondary tt-button tt-button--secondary" href="([^"]+)">/', $output, $matches );
 		$this->assertSame( 1, $matched );
 		$reset_url = html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' );
-		$this->assertStringContainsString( 'page=taxonomy-tidy', $reset_url );
+		$this->assertStringContainsString( 'page=term-steward', $reset_url );
 		$this->assertStringContainsString( 'taxonomy=post_tag', $reset_url );
 		$this->assertStringNotContainsString( 's=', $reset_url );
 		$this->assertStringNotContainsString( 'unused=', $reset_url );
@@ -767,8 +767,8 @@ final class AdminPageTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Inventory Screen Tag', $output );
 		$this->assertStringNotContainsString( 'Inventory Screen Category', $output );
-		$this->assertLessThan( strpos( $output, 'taxonomy-tidy-process-panel' ), strpos( $output, 'taxonomy-tidy-filter-panel' ) );
-		$this->assertLessThan( strpos( $output, 'taxonomy-tidy-inventory-table' ), strpos( $output, 'taxonomy-tidy-process-panel' ) );
+		$this->assertLessThan( strpos( $output, 'term-steward-process-panel' ), strpos( $output, 'term-steward-filter-panel' ) );
+		$this->assertLessThan( strpos( $output, 'term-steward-inventory-table' ), strpos( $output, 'term-steward-process-panel' ) );
 	}
 
 	/**

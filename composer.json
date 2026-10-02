@@ -1,5 +1,5 @@
 {
-    "name": "taxonomy-tidy/taxonomy-tidy",
+    "name": "klogic563/term-steward",
     "description": "Safely organize WordPress categories and tags in bulk.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "TaxonomyTidy\\": "src/"
+            "TermSteward\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "TaxonomyTidy\\Tests\\": "tests/"
+            "TermSteward\\Tests\\": "tests/"
         }
     },
     "config": {

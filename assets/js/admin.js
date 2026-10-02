@@ -1,36 +1,36 @@
 ( function () {
 	'use strict';
 
-	const form = document.querySelector( '.taxonomy-tidy-planning-form' );
+	const form = document.querySelector( '.term-steward-planning-form' );
 	if ( ! form ) {
 		return;
 	}
-	const panels = Array.from( document.querySelectorAll( '.taxonomy-tidy-panel' ) );
+	const panels = Array.from( document.querySelectorAll( '.term-steward-panel' ) );
 	panels.forEach( ( panel ) => {
-		const summary = panel.querySelector( '.taxonomy-tidy-panel__summary' );
+		const summary = panel.querySelector( '.term-steward-panel__summary' );
 		const updateExpanded = () => summary?.setAttribute( 'aria-expanded', panel.open ? 'true' : 'false' );
 		updateExpanded();
 		panel.addEventListener( 'toggle', updateExpanded );
 	} );
 
-	const termCheckboxes = Array.from( form.querySelectorAll( '.taxonomy-tidy-term-select' ) );
-	const selectPage = form.querySelector( '.taxonomy-tidy-select-page' );
-	const selectionSummary = form.querySelector( '.taxonomy-tidy-selection-summary' );
-	const selectedCount = form.querySelector( '.taxonomy-tidy-selected-count' );
-	const selectedTerms = form.querySelector( '.taxonomy-tidy-selected-terms' );
-	const currentName = form.querySelector( '.taxonomy-tidy-current-name' );
-	const currentSlug = form.querySelector( '.taxonomy-tidy-current-slug' );
-	const mergeSources = form.querySelector( '.taxonomy-tidy-merge-sources' );
-	const mergeOutcome = form.querySelector( '.taxonomy-tidy-merge-outcome' );
-	const deleteTargets = form.querySelector( '.taxonomy-tidy-delete-targets' );
-	const validation = form.querySelector( '.taxonomy-tidy-validation' );
-	const validationMessages = form.querySelector( '.taxonomy-tidy-validation-messages' );
+	const termCheckboxes = Array.from( form.querySelectorAll( '.term-steward-term-select' ) );
+	const selectPage = form.querySelector( '.term-steward-select-page' );
+	const selectionSummary = form.querySelector( '.term-steward-selection-summary' );
+	const selectedCount = form.querySelector( '.term-steward-selected-count' );
+	const selectedTerms = form.querySelector( '.term-steward-selected-terms' );
+	const currentName = form.querySelector( '.term-steward-current-name' );
+	const currentSlug = form.querySelector( '.term-steward-current-slug' );
+	const mergeSources = form.querySelector( '.term-steward-merge-sources' );
+	const mergeOutcome = form.querySelector( '.term-steward-merge-outcome' );
+	const deleteTargets = form.querySelector( '.term-steward-delete-targets' );
+	const validation = form.querySelector( '.term-steward-validation' );
+	const validationMessages = form.querySelector( '.term-steward-validation-messages' );
 	const actionChoices = Array.from( form.querySelectorAll( 'input[name="operation_action"]' ) );
 	const actionFields = Array.from( form.querySelectorAll( '[data-action-fields]' ) );
-	const changesSection = form.querySelector( '.taxonomy-tidy-changes-section' );
-	const destinationGroup = form.querySelector( '#taxonomy-tidy-merge-destination-group' );
-	const destination = form.querySelector( '#taxonomy-tidy-destination' );
-	const destinationNotice = form.querySelector( '#taxonomy-tidy-destination-selection-notice' );
+	const changesSection = form.querySelector( '.term-steward-changes-section' );
+	const destinationGroup = form.querySelector( '#term-steward-merge-destination-group' );
+	const destination = form.querySelector( '#term-steward-destination' );
+	const destinationNotice = form.querySelector( '#term-steward-destination-selection-notice' );
 	let sourceSignature = null;
 
 	function selectedRows() {
@@ -51,13 +51,13 @@
 				return;
 			}
 			const empty = document.createElement( 'p' );
-			empty.className = 'taxonomy-tidy-selected-empty';
+			empty.className = 'term-steward-selected-empty';
 			empty.textContent = selectedTerms.dataset.empty;
 			selectedTerms.append( empty );
 			return;
 		}
 		const list = document.createElement( 'ul' );
-		list.className = 'taxonomy-tidy-selected-list';
+		list.className = 'term-steward-selected-list';
 		rows.slice( 0, 5 ).forEach( ( row ) => {
 			const item = document.createElement( 'li' );
 			item.textContent = row.dataset.termName;
@@ -80,9 +80,9 @@
 			if ( rows.length > 0 ) {
 				const heading = document.createElement( 'p' );
 				const list = document.createElement( 'ul' );
-				heading.className = 'taxonomy-tidy-field-label';
+				heading.className = 'term-steward-field-label';
 				heading.textContent = mergeOutcome.dataset.heading;
-				list.className = 'taxonomy-tidy-outcome-list';
+				list.className = 'term-steward-outcome-list';
 				rows.forEach( ( row ) => {
 					const item = document.createElement( 'li' );
 					const retained = row.dataset.mergeRetained === '1';
@@ -107,7 +107,7 @@
 				deleteTargets.append( empty );
 			} else {
 				const list = document.createElement( 'ul' );
-				list.className = 'taxonomy-tidy-delete-list';
+				list.className = 'term-steward-delete-list';
 				rows.forEach( ( row ) => {
 					const item = document.createElement( 'li' );
 					item.textContent = row.dataset.termName;
@@ -122,7 +122,7 @@
 		const paragraph = document.createElement( 'p' );
 		const icon = document.createElement( 'span' );
 		const title = document.createElement( 'strong' );
-		paragraph.className = `taxonomy-tidy-message taxonomy-tidy-message--${ type }`;
+		paragraph.className = `term-steward-message term-steward-message--${ type }`;
 		icon.className = `dashicons dashicons-${ type === 'info' ? 'info-outline' : 'warning' }`;
 		icon.setAttribute( 'aria-hidden', 'true' );
 		title.textContent = `${ heading }:`;
@@ -243,12 +243,12 @@
 	updateActionFields();
 
 	const actionableError = form.querySelector( 'input[data-error-focus="true"], select[data-error-focus="true"], textarea[data-error-focus="true"]' );
-	const errorFocus = actionableError || form.querySelector( '.taxonomy-tidy-field-error' );
+	const errorFocus = actionableError || form.querySelector( '.term-steward-field-error' );
 	if ( errorFocus ) {
 		globalThis.requestAnimationFrame( () => errorFocus.focus() );
 	}
 
-	let modal = document.querySelector( '.taxonomy-tidy-modal' );
+	let modal = document.querySelector( '.term-steward-modal' );
 	let opener = null;
 	let busy = false;
 	let navigating = false;
@@ -273,7 +273,7 @@
 		originalOverflow = document.body.style.overflow;
 		document.body.style.overflow = 'hidden';
 		modal.hidden = false;
-		modal.querySelector( '.taxonomy-tidy-modal__close' ).focus();
+		modal.querySelector( '.term-steward-modal__close' ).focus();
 	}
 
 	function installModal( nextModal, trigger ) {
@@ -286,17 +286,17 @@
 	}
 
 	function showServerErrors( page ) {
-		form.querySelectorAll( '.taxonomy-tidy-field-error' ).forEach( ( error ) => error.remove() );
-		const panel = form.querySelector( '.taxonomy-tidy-process-panel' );
+		form.querySelectorAll( '.term-steward-field-error' ).forEach( ( error ) => error.remove() );
+		const panel = form.querySelector( '.term-steward-process-panel' );
 		panel.open = true;
 		let first = null;
-		page.querySelectorAll( '.taxonomy-tidy-process-group' ).forEach( ( section ) => {
+		page.querySelectorAll( '.term-steward-process-group' ).forEach( ( section ) => {
 			const heading = section.querySelector( 'h3[id]' );
-			const target = heading && form.querySelector( `#${ heading.id }` )?.closest( '.taxonomy-tidy-process-group' );
+			const target = heading && form.querySelector( `#${ heading.id }` )?.closest( '.term-steward-process-group' );
 			if ( ! target ) {
 				return;
 			}
-			section.querySelectorAll( '.taxonomy-tidy-field-error' ).forEach( ( error ) => {
+			section.querySelectorAll( '.term-steward-field-error' ).forEach( ( error ) => {
 				const copy = document.importNode( error, true );
 				target.append( copy );
 				first ||= copy;
@@ -321,8 +321,8 @@
 		submitter.classList.add( 'is-loading' );
 		submitter.setAttribute( 'aria-busy', 'true' );
 		if ( submitter.value === 'run' ) {
-			modal.querySelector( '.taxonomy-tidy-modal__cancel' ).disabled = true;
-			modal.querySelector( '.taxonomy-tidy-modal__close' ).disabled = true;
+			modal.querySelector( '.term-steward-modal__cancel' ).disabled = true;
+			modal.querySelector( '.term-steward-modal__close' ).disabled = true;
 		}
 		try {
 			const data = new globalThis.FormData( form );
@@ -336,24 +336,24 @@
 			}
 			const page = new globalThis.DOMParser().parseFromString( await response.text(), 'text/html' );
 			if ( submitter.value === 'run' ) {
-				const progress = page.querySelector( '#taxonomy-tidy-progress-heading' );
+				const progress = page.querySelector( '#term-steward-progress-heading' );
 				if ( progress ) {
 					navigating = true;
 					globalThis.location.reload();
 					return;
 				}
-				const error = page.querySelector( '.taxonomy-tidy-error-summary' );
+				const error = page.querySelector( '.term-steward-error-summary' );
 				if ( error ) {
-					modal.querySelector( '.taxonomy-tidy-modal__body' ).prepend( document.importNode( error, true ) );
+					modal.querySelector( '.term-steward-modal__body' ).prepend( document.importNode( error, true ) );
 				}
-				modal.querySelector( '.taxonomy-tidy-modal__cancel' ).disabled = false;
-				modal.querySelector( '.taxonomy-tidy-modal__close' ).disabled = false;
+				modal.querySelector( '.term-steward-modal__cancel' ).disabled = false;
+				modal.querySelector( '.term-steward-modal__close' ).disabled = false;
 				return;
 			}
-			const nextModal = page.querySelector( '.taxonomy-tidy-modal[data-auto-open="1"]' );
+			const nextModal = page.querySelector( '.term-steward-modal[data-auto-open="1"]' );
 			if ( nextModal ) {
-				const savedPlan = form.querySelector( '.taxonomy-tidy-plan' );
-				const nextPlan = page.querySelector( '.taxonomy-tidy-plan' );
+				const savedPlan = form.querySelector( '.term-steward-plan' );
+				const nextPlan = page.querySelector( '.term-steward-plan' );
 				if ( nextPlan ) {
 					if ( savedPlan ) {
 						savedPlan.replaceWith( document.importNode( nextPlan, true ) );
@@ -378,9 +378,9 @@
 	} );
 
 	document.addEventListener( 'click', ( event ) => {
-		if ( event.target.closest( '.taxonomy-tidy-reopen-preview' ) ) {
+		if ( event.target.closest( '.term-steward-reopen-preview' ) ) {
 			openModal( event.target.closest( 'button' ) );
-		} else if ( modal && ( event.target === modal || event.target.closest( '.taxonomy-tidy-modal__cancel, .taxonomy-tidy-modal__close' ) ) ) {
+		} else if ( modal && ( event.target === modal || event.target.closest( '.term-steward-modal__cancel, .term-steward-modal__close' ) ) ) {
 			closeModal();
 		}
 	} );
@@ -408,15 +408,15 @@
 
 	document.addEventListener( 'toggle', async ( event ) => {
 		const details = event.target;
-		if ( ! details.matches?.( '.taxonomy-tidy-preview-posts' ) || ! details.open || details.dataset.loaded ) {
+		if ( ! details.matches?.( '.term-steward-preview-posts' ) || ! details.open || details.dataset.loaded ) {
 			return;
 		}
 		const data = new globalThis.FormData();
-		data.set( 'action', 'taxonomy_tidy_preview_posts' );
+		data.set( 'action', 'term_steward_preview_posts' );
 		data.set( 'taxonomy', details.dataset.taxonomy );
 		data.set( 'operation_id', details.dataset.operation );
 		data.set( 'item_index', details.dataset.item );
-		data.set( 'taxonomy_tidy_nonce', form.querySelector( '[name="taxonomy_tidy_nonce"]' ).value );
+		data.set( 'term_steward_nonce', form.querySelector( '[name="term_steward_nonce"]' ).value );
 		try {
 			const response = await globalThis.fetch( globalThis.ajaxurl, { method: 'POST', body: data, credentials: 'same-origin' } );
 			const result = await response.json();
@@ -437,6 +437,6 @@
 	}, true );
 
 	if ( modal?.dataset.autoOpen === '1' ) {
-		openModal( form.querySelector( '.taxonomy-tidy-execute' ) || form.querySelector( '[value="preview"]' ) );
+		openModal( form.querySelector( '.term-steward-execute' ) || form.querySelector( '[value="preview"]' ) );
 	}
 }() );

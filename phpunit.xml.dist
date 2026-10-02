@@ -5,7 +5,7 @@
 	beStrictAboutTestsThatDoNotTestAnything="true"
 >
 	<testsuites>
-		<testsuite name="Taxonomy Tidy integration tests">
+		<testsuite name="Term Steward integration tests">
 			<directory suffix="Test.php">tests/Integration</directory>
 		</testsuite>
 	</testsuites>

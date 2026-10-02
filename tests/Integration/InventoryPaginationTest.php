@@ -2,16 +2,16 @@
 /**
  * Inventory page-size and navigation integration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
 use ReflectionMethod;
-use TaxonomyTidy\Admin\Page;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
+use TermSteward\Admin\Page;
+use TermSteward\Domain\Operation\Taxonomy;
 use WP_UnitTestCase;
 
 /** Verifies the shared category and tag inventory navigation. */
@@ -123,15 +123,15 @@ final class InventoryPaginationTest extends WP_UnitTestCase {
 		$this->assertSame( 20, $this->table_row_count( $output ) );
 		$this->assertSame( 2, substr_count( $output, '全45件中 21〜40件を表示' ) );
 		$this->assertSame( 2, substr_count( $output, 'aria-current="page" aria-label="2ページ目"' ) );
-		$this->assertSame( 2, substr_count( $output, 'class="tablenav-pages taxonomy-tidy-pagination"' ) );
+		$this->assertSame( 2, substr_count( $output, 'class="tablenav-pages term-steward-pagination"' ) );
 		$this->assertStringContainsString( 'class="manage-column sorted desc" aria-sort="descending"', $output );
 		$this->assertStringContainsString( 'class="manage-column sortable asc"', $output );
 		$this->assertStringContainsString( 'orderby=name', $output );
 		$this->assertStringContainsString( 'order=asc', $output );
-		$this->assertSame( 2, substr_count( $output, 'name="per_page" form="taxonomy-tidy-page-size-' ) );
+		$this->assertSame( 2, substr_count( $output, 'name="per_page" form="term-steward-page-size-' ) );
 		$this->assertSame( 2, substr_count( $output, '>適用</button>' ) );
-		$this->assertLessThan( strpos( $output, 'taxonomy-tidy-inventory-table' ), strpos( $output, 'taxonomy-tidy-table-nav--top' ) );
-		$this->assertLessThan( strpos( $output, 'taxonomy-tidy-table-nav--bottom' ), strpos( $output, 'taxonomy-tidy-inventory-table' ) );
+		$this->assertLessThan( strpos( $output, 'term-steward-inventory-table' ), strpos( $output, 'term-steward-table-nav--top' ) );
+		$this->assertLessThan( strpos( $output, 'term-steward-table-nav--bottom' ), strpos( $output, 'term-steward-inventory-table' ) );
 		$this->assertStringNotContainsString( '>表示件数<', $this->filter_panel( $output ) );
 		preg_match_all( '/\bid="([^"]+)"/', $output, $ids );
 		$this->assertCount( count( array_unique( $ids[1] ) ), $ids[1] );
@@ -147,7 +147,7 @@ final class InventoryPaginationTest extends WP_UnitTestCase {
 			}
 		}
 		$this->assertFalse( $open );
-		preg_match_all( '/<a class="button tt-button tt-button--pagination taxonomy-tidy-page-link" href="([^"]+)" aria-label="([^"]+)">/', $output, $links, PREG_SET_ORDER );
+		preg_match_all( '/<a class="button tt-button tt-button--pagination term-steward-page-link" href="([^"]+)" aria-label="([^"]+)">/', $output, $links, PREG_SET_ORDER );
 		$labels = array();
 		foreach ( $links as $link ) {
 			$url = html_entity_decode( $link[1], ENT_QUOTES, 'UTF-8' );
@@ -169,7 +169,7 @@ final class InventoryPaginationTest extends WP_UnitTestCase {
 		$this->assertSame( '3', $labels['3ページへ'] );
 		$this->assertStringNotContainsString( 'name="paged"', $output );
 		foreach ( array( 'top', 'bottom' ) as $position ) {
-			$this->assertSame( 1, preg_match( '/<form id="taxonomy-tidy-page-size-' . $position . '-form"[^>]*>(.*?)<\/form>/s', $output, $form_match ) );
+			$this->assertSame( 1, preg_match( '/<form id="term-steward-page-size-' . $position . '-form"[^>]*>(.*?)<\/form>/s', $output, $form_match ) );
 			$this->assertStringContainsString( 'name="taxonomy" value="post_tag"', $form_match[1] );
 			$this->assertStringContainsString( 'name="s" value="Navigation Tag"', $form_match[1] );
 			$this->assertStringContainsString( 'name="orderby" value="published_count"', $form_match[1] );
@@ -209,15 +209,15 @@ final class InventoryPaginationTest extends WP_UnitTestCase {
 	/** Current, boundary, omitted, single-page, and empty states remain clear. */
 	public function test_numbered_navigation_boundaries_and_empty_state(): void {
 		$middle = $this->render_navigation( 25, 50, 1000 );
-		$this->assertSame( 2, substr_count( $middle, 'taxonomy-tidy-page-ellipsis' ) );
+		$this->assertSame( 2, substr_count( $middle, 'term-steward-page-ellipsis' ) );
 		foreach ( array( '24ページへ', '25ページ目', '26ページへ', '最初のページへ', '最後のページへ' ) as $label ) {
 			$this->assertStringContainsString( $label, $middle );
 		}
 		$this->assertStringNotContainsString( 'aria-label="23ページへ"', $middle );
 		$this->assertStringContainsString( 'aria-current="page"', $middle );
-		$this->assertSame( 1, preg_match( '/<span class="button tt-button tt-button--pagination taxonomy-tidy-page-link taxonomy-tidy-page-current"[^>]*>25<\/span>/', $middle ) );
+		$this->assertSame( 1, preg_match( '/<span class="button tt-button tt-button--pagination term-steward-page-link term-steward-page-current"[^>]*>25<\/span>/', $middle ) );
 		$first = $this->render_navigation( 1, 50, 1000 );
-		$this->assertSame( 2, substr_count( $first, 'taxonomy-tidy-page-disabled' ) );
+		$this->assertSame( 2, substr_count( $first, 'term-steward-page-disabled' ) );
 		$this->assertSame( 2, substr_count( $first, 'aria-disabled="true"' ) );
 		$this->assertStringContainsString( 'aria-label="3ページへ"', $first );
 		$this->assertStringNotContainsString( 'aria-label="4ページへ"', $first );
@@ -228,10 +228,10 @@ final class InventoryPaginationTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'aria-label="47ページへ"', $near_last );
 		$this->assertStringContainsString( 'aria-label="49ページへ"', $near_last );
 		$last = $this->render_navigation( 50, 50, 1000 );
-		$this->assertSame( 2, substr_count( $last, 'taxonomy-tidy-page-disabled' ) );
+		$this->assertSame( 2, substr_count( $last, 'term-steward-page-disabled' ) );
 		$this->assertStringContainsString( 'aria-label="48ページへ"', $last );
 		$single = $this->render_navigation( 1, 1, 12 );
-		$this->assertStringNotContainsString( 'taxonomy-tidy-pagination', $single );
+		$this->assertStringNotContainsString( 'term-steward-pagination', $single );
 		$this->assertStringContainsString( '全12件中 1〜12件を表示', $single );
 		$empty = $this->render_navigation( 1, 0, 0 );
 		$this->assertStringContainsString( '該当する項目はありません', $empty );
@@ -266,7 +266,7 @@ final class InventoryPaginationTest extends WP_UnitTestCase {
 	 * @param string $html Rendered admin page.
 	 */
 	private function filter_panel( string $html ): string {
-		$start = strpos( $html, 'taxonomy-tidy-filter-panel' );
+		$start = strpos( $html, 'term-steward-filter-panel' );
 		$end   = strpos( $html, '</details>', $start );
 		return substr( $html, $start, $end - $start );
 	}

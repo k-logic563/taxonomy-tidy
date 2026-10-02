@@ -2,12 +2,12 @@
 /**
  * Supported operation actions.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Domain\Operation;
+namespace TermSteward\Domain\Operation;
 
 /**
  * Limits persisted items to the three MVP mutation types.

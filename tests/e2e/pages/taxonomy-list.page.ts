@@ -4,8 +4,8 @@ export class TaxonomyListPage {
   constructor(private readonly page: Page) {}
 
   async open(): Promise<void> {
-    await this.page.goto('/wp-admin/tools.php?page=taxonomy-tidy');
-    await expect(this.page.getByRole('heading', { name: 'Taxonomy Tidy', level: 1 })).toBeVisible();
+    await this.page.goto('/wp-admin/tools.php?page=term-steward');
+    await expect(this.page.getByRole('heading', { name: 'Term Steward', level: 1 })).toBeVisible();
   }
 
   async openCategories(): Promise<void> {

@@ -2,12 +2,12 @@
 /**
  * JSON persistence helper.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Infrastructure\Persistence;
+namespace TermSteward\Infrastructure\Persistence;
 
 /**
  * Encodes and decodes structured operation data consistently.

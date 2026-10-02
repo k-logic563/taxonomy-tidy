@@ -23,11 +23,11 @@ done
 if ! docker compose run --rm wp-cli core is-installed >/dev/null 2>&1; then
 	docker compose run --rm wp-cli core install \
 		--url="http://localhost:${WP_PORT:-8080}" \
-		--title="Taxonomy Tidy Development" \
+		--title="Term Steward Development" \
 		--admin_user="${WP_ADMIN_USER:-admin}" \
 		--admin_password="${WP_ADMIN_PASSWORD:-admin}" \
 		--admin_email="${WP_ADMIN_EMAIL:-admin@example.test}" \
 		--skip-email
 fi
 
-docker compose run --rm wp-cli plugin activate taxonomy-tidy
+docker compose run --rm wp-cli plugin activate term-steward

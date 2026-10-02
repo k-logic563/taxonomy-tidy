@@ -2,20 +2,20 @@
 /**
  * Bounded, retry-safe Undo workflow.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Undo;
+namespace TermSteward\Application\Undo;
 
-use TaxonomyTidy\Domain\Operation\Action;
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Persistence\DatabaseTransaction;
-use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
-use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
-use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
+use TermSteward\Domain\Operation\Action;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Persistence\DatabaseTransaction;
+use TermSteward\Infrastructure\Persistence\OperationItemRepository;
+use TermSteward\Infrastructure\Persistence\OperationLock;
+use TermSteward\Infrastructure\Persistence\OperationRepository;
 
 /** Coordinates preview validation, fixed inverse items, leases, and outcomes. */
 final class UndoWorkflow {

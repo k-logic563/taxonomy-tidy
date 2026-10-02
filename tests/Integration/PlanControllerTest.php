@@ -2,21 +2,21 @@
 /**
  * Phase 4 planning request security tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Admin\PlanController;
-use TaxonomyTidy\Application\Planning\PlanService;
-use TaxonomyTidy\Application\Planning\PlanWorkflow;
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Database\Schema;
-use TaxonomyTidy\Infrastructure\Database\Tables;
-use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
+use TermSteward\Admin\PlanController;
+use TermSteward\Application\Planning\PlanService;
+use TermSteward\Application\Planning\PlanWorkflow;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Database\Schema;
+use TermSteward\Infrastructure\Database\Tables;
+use TermSteward\Infrastructure\Persistence\OperationRepository;
 use WP_Term;
 use WP_UnitTestCase;
 

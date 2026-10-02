@@ -2,12 +2,12 @@
 /**
  * Stable execution error identifiers.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Execution;
+namespace TermSteward\Application\Execution;
 
 /** Execution errors safe to map to translated UI messages. */
 final class ExecutionErrorCode {

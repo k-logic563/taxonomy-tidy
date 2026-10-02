@@ -2,28 +2,28 @@
 /**
  * Phase 5 batched execution integration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Application\Execution\ExecutionErrorCode;
-use TaxonomyTidy\Application\Execution\ExecutionException;
-use TaxonomyTidy\Application\Execution\ExecutionWorkflow;
-use TaxonomyTidy\Application\Execution\ItemExecutor;
-use TaxonomyTidy\Application\Planning\PlanService;
-use TaxonomyTidy\Application\Planning\PlanWorkflow;
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Database\Schema;
-use TaxonomyTidy\Infrastructure\Database\Tables;
-use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
-use TaxonomyTidy\Infrastructure\Persistence\DatabaseTransaction;
-use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
-use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
-use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
+use TermSteward\Application\Execution\ExecutionErrorCode;
+use TermSteward\Application\Execution\ExecutionException;
+use TermSteward\Application\Execution\ExecutionWorkflow;
+use TermSteward\Application\Execution\ItemExecutor;
+use TermSteward\Application\Planning\PlanService;
+use TermSteward\Application\Planning\PlanWorkflow;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Database\Schema;
+use TermSteward\Infrastructure\Database\Tables;
+use TermSteward\Infrastructure\Persistence\ChangeJournalRepository;
+use TermSteward\Infrastructure\Persistence\DatabaseTransaction;
+use TermSteward\Infrastructure\Persistence\OperationItemRepository;
+use TermSteward\Infrastructure\Persistence\OperationLock;
+use TermSteward\Infrastructure\Persistence\OperationRepository;
 use WP_Term;
 use WP_UnitTestCase;
 

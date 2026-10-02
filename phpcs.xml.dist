@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<ruleset name="Taxonomy Tidy">
-	<description>WordPress coding standards for Taxonomy Tidy.</description>
+<ruleset name="Term Steward">
+	<description>WordPress coding standards for Term Steward.</description>
 
-	<file>taxonomy-tidy.php</file>
+	<file>term-steward.php</file>
 	<file>bootstrap</file>
 	<file>src</file>
 	<file>tests</file>

@@ -2,24 +2,24 @@
 /**
  * Persistence repository integration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Domain\Operation\Action;
-use TaxonomyTidy\Domain\Operation\InvalidStatusTransition;
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Database\Schema;
-use TaxonomyTidy\Infrastructure\Database\Tables;
-use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
-use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
-use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
-use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
-use TaxonomyTidy\Infrastructure\Persistence\PersistenceException;
+use TermSteward\Domain\Operation\Action;
+use TermSteward\Domain\Operation\InvalidStatusTransition;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Database\Schema;
+use TermSteward\Infrastructure\Database\Tables;
+use TermSteward\Infrastructure\Persistence\ChangeJournalRepository;
+use TermSteward\Infrastructure\Persistence\OperationItemRepository;
+use TermSteward\Infrastructure\Persistence\OperationLock;
+use TermSteward\Infrastructure\Persistence\OperationRepository;
+use TermSteward\Infrastructure\Persistence\PersistenceException;
 use WP_UnitTestCase;
 
 /**

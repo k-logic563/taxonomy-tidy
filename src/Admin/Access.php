@@ -2,12 +2,12 @@
 /**
  * Admin access policy.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Admin;
+namespace TermSteward\Admin;
 
 /**
  * Applies the capabilities required by the implementation plan.

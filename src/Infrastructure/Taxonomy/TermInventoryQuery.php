@@ -2,14 +2,14 @@
 /**
  * Read-only taxonomy inventory query.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Infrastructure\Taxonomy;
+namespace TermSteward\Infrastructure\Taxonomy;
 
-use TaxonomyTidy\Domain\Operation\Taxonomy;
+use TermSteward\Domain\Operation\Taxonomy;
 use wpdb;
 
 /**
@@ -110,7 +110,7 @@ final class TermInventoryQuery {
 			{$where_sql}
 			GROUP BY tt.term_taxonomy_id
 			{$having_sql}
-		) AS taxonomy_tidy_inventory";
+		) AS term_steward_inventory";
 		$count_values = array_merge(
 			array(
 				$this->database->terms,

@@ -2,12 +2,12 @@
 /**
  * Administration-script regression checks.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
 use WP_UnitTestCase;
 
@@ -28,7 +28,7 @@ final class AdminScriptTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'currentSourceIds.has( selectedId )', $script );
 		$this->assertStringContainsString( "destination.value = ''", $script );
 		$this->assertStringContainsString( 'destinationNotice.textContent = destinationGroup.dataset.cleared', $script );
-		$this->assertStringNotContainsString( 'taxonomy_tidy_search_destinations', $script );
+		$this->assertStringNotContainsString( 'term_steward_search_destinations', $script );
 	}
 
 	/** Asynchronous actions expose a non-color loading state to assistive technology. */
@@ -45,7 +45,7 @@ final class AdminScriptTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'const maxAttempts = 3', $script );
 		$this->assertStringContainsString( "progress.has_more && progress.status === 'undoing'", $script );
 		$this->assertStringContainsString( "[ 'undone', 'undo_partial_failed', 'failed' ].includes", $script );
-		$this->assertStringContainsString( "data.set( 'action', 'taxonomy_tidy_undo_batch' )", $script );
+		$this->assertStringContainsString( "data.set( 'action', 'term_steward_undo_batch' )", $script );
 		$this->assertStringContainsString( 'setModalLocked( true )', $script );
 		$this->assertStringContainsString( "button.setAttribute( 'aria-busy', 'true' )", $script );
 		$this->assertStringContainsString( 'progress.processed <= previousProcessed', $script );
@@ -53,10 +53,10 @@ final class AdminScriptTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'footer.replaceChildren( close )', $script );
 		$this->assertStringContainsString( "heading.textContent = strings.resultTitle || '取り消し結果'", $script );
 		$this->assertStringContainsString( "[ 'undone', 'undo_partial_failed', 'failed' ].includes( progress.status )", $script );
-		$this->assertStringContainsString( "document.querySelectorAll( '.taxonomy-tidy-undo-preview' )", $script );
+		$this->assertStringContainsString( "document.querySelectorAll( '.term-steward-undo-preview' )", $script );
 		$this->assertStringContainsString( "button.dataset.submitting === '1'", $script );
 		$this->assertStringContainsString( 'globalThis.setTimeout', $script );
-		$this->assertStringContainsString( "document.querySelector( '.taxonomy-tidy-history-error' )", $script );
+		$this->assertStringContainsString( "document.querySelector( '.term-steward-history-error' )", $script );
 		$this->assertStringContainsString( "if ( error?.name === 'DataError' )", $script );
 		$this->assertStringContainsString( "showStopped( error?.name === 'DataError' ? error.message", $script );
 	}
@@ -77,14 +77,14 @@ final class AdminScriptTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'openerSelector = selectorForOpener( trigger )', $script );
 		$this->assertStringContainsString( 'document.querySelector( openerSelector )', $script );
 		$this->assertStringContainsString( 'opener?.isConnected ? opener : null', $script );
-		$this->assertStringContainsString( '#taxonomy-tidy-board-content h2, .nav-tab[href*="view=plan"]', $script );
+		$this->assertStringContainsString( '#term-steward-board-content h2, .nav-tab[href*="view=plan"]', $script );
 		$this->assertStringContainsString( 'restoreOpenerFocus()', $script );
 	}
 
 	/** History logs are fetched only after expansion and use accessible state. */
 	public function test_history_script_lazily_expands_logs(): void {
 		$script = $this->history_script();
-		$this->assertStringContainsString( "data.set( 'action', 'taxonomy_tidy_history_logs' )", $script );
+		$this->assertStringContainsString( "data.set( 'action', 'term_steward_history_logs' )", $script );
 		$this->assertStringContainsString( "button.setAttribute( 'aria-expanded', 'true' )", $script );
 		$this->assertStringContainsString( "button.textContent = strings.collapse || '閉じる'", $script );
 		$this->assertStringContainsString( 'page <= totalPages', $script );

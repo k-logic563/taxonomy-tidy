@@ -2,20 +2,20 @@
 /**
  * Phase 4 admin plan request handling.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Admin;
+namespace TermSteward\Admin;
 
-use TaxonomyTidy\Application\Planning\PlanValidationException;
-use TaxonomyTidy\Application\Planning\PlanErrorCode;
-use TaxonomyTidy\Application\Planning\PlanWorkflow;
-use TaxonomyTidy\Application\Execution\ExecutionException;
-use TaxonomyTidy\Application\Execution\ExecutionWorkflow;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Persistence\PersistenceException;
+use TermSteward\Application\Planning\PlanValidationException;
+use TermSteward\Application\Planning\PlanErrorCode;
+use TermSteward\Application\Planning\PlanWorkflow;
+use TermSteward\Application\Execution\ExecutionException;
+use TermSteward\Application\Execution\ExecutionWorkflow;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Persistence\PersistenceException;
 
 /**
  * Sanitizes authenticated form requests and delegates to the plan workflow.
@@ -26,14 +26,14 @@ final class PlanController {
 	 *
 	 * @var string
 	 */
-	public const NONCE_ACTION = 'taxonomy_tidy_plan';
+	public const NONCE_ACTION = 'term_steward_plan';
 
 	/**
 	 * Form nonce field.
 	 *
 	 * @var string
 	 */
-	public const NONCE_FIELD = 'taxonomy_tidy_nonce';
+	public const NONCE_FIELD = 'term_steward_nonce';
 
 	/**
 	 * Planning workflow.
@@ -245,7 +245,7 @@ final class PlanController {
 	private function log_internal_error( \Throwable $exception ): void {
 		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Technical details belong in the configured debug log, never in rendered notices.
-			error_log( sprintf( 'Taxonomy Tidy planning error: %s: %s', $exception::class, $exception->getMessage() ) );
+			error_log( sprintf( 'Term Steward planning error: %s: %s', $exception::class, $exception->getMessage() ) );
 		}
 	}
 }

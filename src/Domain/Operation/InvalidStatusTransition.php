@@ -2,12 +2,12 @@
 /**
  * Invalid operation transition exception.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Domain\Operation;
+namespace TermSteward\Domain\Operation;
 
 use LogicException;
 

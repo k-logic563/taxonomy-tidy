@@ -1,5 +1,7 @@
 # Taxonomy Tidy 0.1.0 Phase 8 テストレポート
 
+> 旧開発名称：Taxonomy Tidy／現製品名称：Term Steward。この文書は2026-09-29以前の旧名称での試験証跡であり、旧slug、旧ZIP名、旧checksumを事実どおり保持しています。Term Stewardのリブランド後検証は別途追記しない限り、この結果から推定しません。
+
 ## 2026-09-29 WordPress.org公開用メタデータ検証
 
 WordPress.org向け`readme.txt`を新規作成し、Contributors `klogic563`、Stable tag `0.1.0`、Requires at least `6.6`、Requires PHP `8.2`、Tested up to `7.1`、GPLv2 or laterを設定した。`Tested up to: 7.1`は、2026-09-19にWordPress 7.1.1 / PHP 8.4.25 / MySQL 8.0へ当時のRC ZIPを導入し、有効化、管理画面描画、空のdebug logを確認した実測記録を根拠とする。最低対応環境の実ブラウザ主試験はWordPress 6.6.2である。

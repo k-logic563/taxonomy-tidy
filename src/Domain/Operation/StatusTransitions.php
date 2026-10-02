@@ -2,12 +2,12 @@
 /**
  * Operation state transition policy.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Domain\Operation;
+namespace TermSteward\Domain\Operation;
 
 /**
  * Defines only the state transitions required by the MVP plan.

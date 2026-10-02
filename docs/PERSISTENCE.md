@@ -6,7 +6,7 @@ Phase 2 adds only the storage needed by the MVP rename, merge, delete, recovery,
 
 All names use the current site's WordPress table prefix.
 
-### `wp_taxonomy_tidy_operations`
+### `wp_term_steward_operations`
 
 One row represents an administrator-approved operation lifecycle.
 
@@ -18,7 +18,7 @@ One row represents an administrator-approved operation lifecycle.
 
 `taxonomy` is limited by the repository API to `category` or `post_tag`. A unique nullable `lock_name` allows only one active lease per taxonomy while allowing any number of unlocked operations.
 
-### `wp_taxonomy_tidy_operation_items`
+### `wp_term_steward_operation_items`
 
 One row represents a fixed unit of rename, merge, or delete work.
 
@@ -28,7 +28,7 @@ One row represents a fixed unit of rename, merge, or delete work.
 
 `(operation_id, item_key)` is unique. Items remain `pending` while an attempt runs and become terminal only after success or a recorded failure. A request interrupted before that terminal update therefore leaves the item discoverable for retry.
 
-### `wp_taxonomy_tidy_changes`
+### `wp_term_steward_changes`
 
 One row records an actual change and the snapshots required for history or undo.
 
@@ -69,4 +69,4 @@ Unlisted transitions throw an `InvalidStatusTransition` before any state update.
 
 ## Schema lifecycle
 
-The schema version is stored in the non-autoloaded `taxonomy_tidy_schema_version` option. Activation runs `dbDelta()` for all three tables, and normal plugin loading applies the same idempotent migration when the stored version is outdated.
+The schema version is stored in the non-autoloaded `term_steward_schema_version` option. Activation runs `dbDelta()` for all three tables, and normal plugin loading applies the same idempotent migration when the stored version is outdated.

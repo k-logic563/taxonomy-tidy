@@ -2,15 +2,15 @@
 /**
  * Taxonomy inventory query integration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Taxonomy\TermInventoryQuery;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Taxonomy\TermInventoryQuery;
 use WP_UnitTestCase;
 
 /**

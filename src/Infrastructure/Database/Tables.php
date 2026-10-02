@@ -2,12 +2,12 @@
 /**
  * Persistence table names.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Infrastructure\Database;
+namespace TermSteward\Infrastructure\Database;
 
 use wpdb;
 
@@ -21,7 +21,7 @@ final class Tables {
 	 * @param \wpdb $database WordPress database connection supplying the site prefix.
 	 */
 	public static function operations( wpdb $database ): string {
-		return $database->prefix . 'taxonomy_tidy_operations';
+		return $database->prefix . 'term_steward_operations';
 	}
 
 	/**
@@ -30,7 +30,7 @@ final class Tables {
 	 * @param \wpdb $database WordPress database connection supplying the site prefix.
 	 */
 	public static function items( wpdb $database ): string {
-		return $database->prefix . 'taxonomy_tidy_operation_items';
+		return $database->prefix . 'term_steward_operation_items';
 	}
 
 	/**
@@ -39,6 +39,6 @@ final class Tables {
 	 * @param \wpdb $database WordPress database connection supplying the site prefix.
 	 */
 	public static function changes( wpdb $database ): string {
-		return $database->prefix . 'taxonomy_tidy_changes';
+		return $database->prefix . 'term_steward_changes';
 	}
 }

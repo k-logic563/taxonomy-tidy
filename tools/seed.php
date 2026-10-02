@@ -4,10 +4,10 @@
  *
  * This file is excluded from production plugin packages.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
-use TaxonomyTidy\Development\SeedManager;
+use TermSteward\Development\SeedManager;
 
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	throw new RuntimeException( 'The seed script must be executed through WP-CLI.' );

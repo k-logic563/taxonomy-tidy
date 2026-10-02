@@ -3,7 +3,7 @@
 set -eu
 
 project_dir=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-version=$(sed -n 's/^ \* Version:[[:space:]]*\([^[:space:]]*\).*$/\1/p' "$project_dir/taxonomy-tidy.php")
+version=$(sed -n 's/^ \* Version:[[:space:]]*\([^[:space:]]*\).*$/\1/p' "$project_dir/term-steward.php")
 
 if [ -z "$version" ]; then
 	echo "Could not determine the plugin version." >&2
@@ -12,9 +12,9 @@ fi
 
 build_root="$project_dir/build/dist"
 stage_root="$build_root/stage"
-plugin_dir="$stage_root/taxonomy-tidy"
+plugin_dir="$stage_root/term-steward"
 dist_dir="$project_dir/dist"
-archive="$dist_dir/taxonomy-tidy-$version.zip"
+archive="$dist_dir/term-steward-$version.zip"
 checksum="$archive.sha256"
 
 case "$build_root" in
@@ -45,7 +45,7 @@ docker compose --project-directory "$project_dir" run --rm --no-deps \
 rm -f "$plugin_dir/composer.json" "$plugin_dir/composer.lock"
 
 for required_file in \
-	taxonomy-tidy.php \
+	term-steward.php \
 	readme.txt \
 	README.md \
 	CHANGELOG.md \
@@ -54,6 +54,16 @@ for required_file in \
 do
 	test -f "$plugin_dir/$required_file"
 done
+
+if [ -e "$plugin_dir/taxonomy-tidy.php" ]; then
+	echo "The staged package contains the old main plugin file." >&2
+	exit 1
+fi
+
+if grep -R -I -n -E 'Taxonomy Tidy|taxonomy-tidy|taxonomy_tidy|TaxonomyTidy|TAXONOMY_TIDY' "$plugin_dir"; then
+	echo "The staged package contains an old product identifier." >&2
+	exit 1
+fi
 
 stable_tag=$(sed -n 's/^Stable tag:[[:space:]]*\([^[:space:]]*\).*$/\1/p' "$plugin_dir/readme.txt")
 contributors=$(sed -n 's/^Contributors:[[:space:]]*\(.*\)$/\1/p' "$plugin_dir/readme.txt")
@@ -79,7 +89,7 @@ find "$plugin_dir" -exec touch -t 202601010000 {} +
 rm -f "$archive" "$checksum"
 (
 	cd "$stage_root"
-	find taxonomy-tidy -print | LC_ALL=C sort | zip -X -q "$archive" -@
+	find term-steward -print | LC_ALL=C sort | zip -X -q "$archive" -@
 )
 
 (

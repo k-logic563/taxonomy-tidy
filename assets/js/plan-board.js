@@ -1,12 +1,12 @@
 ( function () {
 	'use strict';
 
-	let form = document.querySelector( '#taxonomy-tidy-board-form' );
+	let form = document.querySelector( '#term-steward-board-form' );
 	if ( ! form ) {
 		return;
 	}
 
-	let modal = document.querySelector( '.taxonomy-tidy-board-modal' );
+	let modal = document.querySelector( '.term-steward-board-modal' );
 	let opener = null;
 	let openerSelector = '';
 	let busy = false;
@@ -28,7 +28,7 @@
 
 	function restoreOpenerFocus() {
 		const currentOpener = openerSelector ? document.querySelector( openerSelector ) : null;
-		const target = currentOpener || ( opener?.isConnected ? opener : null ) || document.querySelector( '#taxonomy-tidy-board-content h2, .nav-tab[href*="view=plan"]' );
+		const target = currentOpener || ( opener?.isConnected ? opener : null ) || document.querySelector( '#term-steward-board-content h2, .nav-tab[href*="view=plan"]' );
 		if ( target ) {
 			if ( ! target.matches( 'button, a, input, select, textarea, [tabindex]' ) ) {
 				target.setAttribute( 'tabindex', '-1' );
@@ -38,7 +38,7 @@
 	}
 
 	function closeModal( force = false, restoreFocus = true ) {
-		if ( ! modal || ( ! force && ( busy || modal.querySelector( '.taxonomy-tidy-modal__close' )?.disabled ) ) ) {
+		if ( ! modal || ( ! force && ( busy || modal.querySelector( '.term-steward-modal__close' )?.disabled ) ) ) {
 			return;
 		}
 		modal.hidden = true;
@@ -64,14 +64,14 @@
 		document.body.style.overflow = 'hidden';
 		modal.hidden = false;
 		modalOpen = true;
-		( modal.querySelector( '.taxonomy-tidy-modal__close:not(:disabled)' ) || modal.querySelector( '.taxonomy-tidy-modal__footer button:not(:disabled)' ) )?.focus();
+		( modal.querySelector( '.term-steward-modal__close:not(:disabled)' ) || modal.querySelector( '.term-steward-modal__footer button:not(:disabled)' ) )?.focus();
 	}
 
 	function replaceBoard( page, trigger ) {
-		const nextContent = page.querySelector( '#taxonomy-tidy-board-content' );
+		const nextContent = page.querySelector( '#term-steward-board-content' );
 		if ( nextContent ) {
-			document.querySelector( '#taxonomy-tidy-board-content' )?.replaceWith( document.importNode( nextContent, true ) );
-			form = document.querySelector( '#taxonomy-tidy-board-form' );
+			document.querySelector( '#term-steward-board-content' )?.replaceWith( document.importNode( nextContent, true ) );
+			form = document.querySelector( '#term-steward-board-form' );
 		}
 		const nextTab = page.querySelector( '.nav-tab[href*="view=plan"]' );
 		const tab = document.querySelector( '.nav-tab[href*="view=plan"]' );
@@ -80,7 +80,7 @@
 			tab.setAttribute( 'aria-label', nextTab.getAttribute( 'aria-label' ) );
 		}
 
-		const nextModal = page.querySelector( '.taxonomy-tidy-board-modal' );
+		const nextModal = page.querySelector( '.term-steward-board-modal' );
 		if ( ! nextModal ) {
 			closeModal( true, false );
 			modal?.remove();
@@ -94,7 +94,7 @@
 		if ( modal ) {
 			modal.replaceWith( next );
 		} else {
-			document.querySelector( '.taxonomy-tidy-screen' )?.append( next );
+			document.querySelector( '.term-steward-screen' )?.append( next );
 		}
 		modal = next;
 		if ( wasOpen ) {
@@ -107,7 +107,7 @@
 	}
 
 	document.addEventListener( 'submit', async ( event ) => {
-		if ( event.target.id !== 'taxonomy-tidy-board-form' ) {
+		if ( event.target.id !== 'term-steward-board-form' ) {
 			return;
 		}
 		form = event.target;
@@ -143,12 +143,12 @@
 					throw new Error( 'request failed' );
 				}
 				const page = new globalThis.DOMParser().parseFromString( await response.text(), 'text/html' );
-				const error = page.querySelector( '#taxonomy-tidy-board-content .notice-error' );
+				const error = page.querySelector( '#term-steward-board-content .notice-error' );
 				if ( error ) {
-					document.querySelector( '#taxonomy-tidy-board-content .notice-error' )?.remove();
-					document.querySelector( '#taxonomy-tidy-board-content h2' )?.after( document.importNode( error, true ) );
+					document.querySelector( '#term-steward-board-content .notice-error' )?.remove();
+					document.querySelector( '#term-steward-board-content h2' )?.after( document.importNode( error, true ) );
 					if ( modal && ! modal.hidden ) {
-						modal.querySelector( '.taxonomy-tidy-modal__body' )?.prepend( document.importNode( error, true ) );
+						modal.querySelector( '.term-steward-modal__body' )?.prepend( document.importNode( error, true ) );
 					}
 					break;
 				}
@@ -172,10 +172,10 @@
 	} );
 
 	document.addEventListener( 'click', ( event ) => {
-		if ( event.target.closest( '.taxonomy-tidy-discard' ) ) {
+		if ( event.target.closest( '.term-steward-discard' ) ) {
 			return;
 		}
-		if ( modal && ( event.target === modal || event.target.closest( '.taxonomy-tidy-modal__cancel, .taxonomy-tidy-modal__close' ) ) ) {
+		if ( modal && ( event.target === modal || event.target.closest( '.term-steward-modal__cancel, .term-steward-modal__close' ) ) ) {
 			closeModal();
 		}
 	} );
@@ -203,15 +203,15 @@
 
 	document.addEventListener( 'toggle', async ( event ) => {
 		const details = event.target;
-		if ( ! details.matches?.( '.taxonomy-tidy-preview-posts' ) || ! details.open || details.dataset.loaded ) {
+		if ( ! details.matches?.( '.term-steward-preview-posts' ) || ! details.open || details.dataset.loaded ) {
 			return;
 		}
 		const data = new globalThis.FormData();
-		data.set( 'action', 'taxonomy_tidy_preview_posts' );
+		data.set( 'action', 'term_steward_preview_posts' );
 		data.set( 'taxonomy', details.dataset.taxonomy );
 		data.set( 'operation_id', details.dataset.operation );
 		data.set( 'item_index', details.dataset.item );
-		data.set( 'taxonomy_tidy_nonce', form.querySelector( '[name="taxonomy_tidy_nonce"]' ).value );
+		data.set( 'term_steward_nonce', form.querySelector( '[name="term_steward_nonce"]' ).value );
 		try {
 			const response = await globalThis.fetch( globalThis.ajaxurl, { method: 'POST', body: data, credentials: 'same-origin' } );
 			const result = await response.json();

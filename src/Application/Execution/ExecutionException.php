@@ -2,12 +2,12 @@
 /**
  * Safe execution failure.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Execution;
+namespace TermSteward\Application\Execution;
 
 use RuntimeException;
 

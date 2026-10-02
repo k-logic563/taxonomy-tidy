@@ -2,12 +2,12 @@
 /**
  * Operation statuses.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Domain\Operation;
+namespace TermSteward\Domain\Operation;
 
 /**
  * Explicit persisted states required by the MVP lifecycle.

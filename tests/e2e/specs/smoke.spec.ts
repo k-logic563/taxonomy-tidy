@@ -21,7 +21,7 @@ test('E2E-002 / MT-007, MT-011：検索とリセット', async ({ page }) => {
   await taxonomy.toggleSearch();
   await taxonomy.search('E2E-CAT-RENAME');
   await expect(taxonomy.row('E2E-CAT-RENAME')).toBeVisible();
-  await expect(page.locator('.taxonomy-tidy-inventory-table tbody tr')).toHaveCount(1);
+  await expect(page.locator('.term-steward-inventory-table tbody tr')).toHaveCount(1);
 
   await taxonomy.toggleSearch();
   await taxonomy.resetSearch();

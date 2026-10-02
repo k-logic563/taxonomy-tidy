@@ -1,5 +1,7 @@
 # Phase 7 管理画面検証記録
 
+> 旧開発名称：Taxonomy Tidy／現製品名称：Term Steward。以下はリブランド前の検証証跡です。
+
 ## 開始時点
 
 Phase 1〜6 は `docs/IMPLEMENTATION_PLAN.md` で Completed、Phase 7 は Not started だった。一方、開始時の実装には4タブ、操作計画の合算表示、一括プレビュー・実行、履歴、Undo、20/50/100件表示、数値ページネーションが既に存在していた。Git の HEAD の件名も `phase7 completed` であり、文書状態とコミット名は一致していなかった。

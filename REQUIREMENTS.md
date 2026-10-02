@@ -1,8 +1,8 @@
-# Taxonomy Tidy — MVP要件定義
+# Term Steward — MVP要件定義
 
 ## 1. 目的
 
-Taxonomy Tidyは、WordPress管理画面から大量のカテゴリーとタグを安全に整理するプラグインです。表記揺れ、重複、未使用タームを一覧化し、名称変更、統合、削除、投稿への再割り当てを、事前確認と復旧可能な処理を通して実行します。
+Term Stewardは、WordPress管理画面から大量のカテゴリーとタグを安全に整理するプラグインです。表記揺れ、重複、未使用タームを一覧化し、名称変更、統合、削除、投稿への再割り当てを、事前確認と復旧可能な処理を通して実行します。
 
 MVPでは自動化の多さより、次を優先します。
 
@@ -14,14 +14,24 @@ MVPでは自動化の多さより、次を優先します。
 
 ## 2. 製品情報
 
-- Plugin Name: `Taxonomy Tidy`
-- Plugin Slug: `taxonomy-tidy`
-- PHP Namespace: `TaxonomyTidy`
-- Text Domain: `taxonomy-tidy`
-- 管理画面: `ツール > Taxonomy Tidy`
+- Plugin Name: `Term Steward`
+- Plugin Slug: `term-steward`
+- PHP Namespace: `TermSteward`
+- Text Domain: `term-steward`
+- 管理画面: `ツール > Term Steward`
 - 最低WordPress: `6.6`
 - 最低PHP: `8.2`
 - DB基準: MySQL `8.0+`またはMariaDB `10.11+`
+- Main Plugin File: `term-steward.php`
+- Constant Prefix: `TERM_STEWARD_`
+- PHP Function Prefix: `term_steward_`
+- Database Prefix: `term_steward_`
+- CSS Class Prefix: `term-steward-`
+- CSS／JavaScript Handle Prefix: `term-steward`
+- Ajax Action Prefix: `term_steward_`
+- Nonce Prefix: `term_steward_`
+- Composer Package: `klogic563/term-steward`
+- GitHub Repository: `https://github.com/k-logic563/term-steward`
 
 ## 3. 基本フロー
 
@@ -239,18 +249,20 @@ Undoは別の操作としてプレビュー後に実行します。
 - PHP 8.2、8.3、8.4を主要テスト対象とします。
 - WordPress Coding Standardsへ準拠します。
 - 責務を分離し、大量処理のタイムアウトを防ぎます。
-- 全文字列を`taxonomy-tidy`で国際化します。
+- 全文字列を`term-steward`で国際化します。
 - 日時はWordPress設定のタイムゾーンで表示します。
 - 公開側テーマへ影響を与えません。
 
 ## 17. アンインストール時のデータ保持
 
+Term Stewardは`term_steward_*`テーブルと`term_steward_schema_version` optionだけを自身の永続化領域として扱います。旧開発名称と同じ識別子を使う別プラグインとの衝突を避けるため、`taxonomy_tidy_*`テーブルやoptionは検出、読取、移行、更新、削除しません。
+
 0.1.0では、WordPress管理画面からプラグインを削除しても、次の監査・復旧データをデータベースから自動削除しません。
 
-- 操作履歴テーブル（`{prefix}taxonomy_tidy_operations`）
-- Operation Itemテーブル（`{prefix}taxonomy_tidy_operation_items`）
-- Change Journalテーブル（`{prefix}taxonomy_tidy_changes`）
-- DB schema version option（`taxonomy_tidy_schema_version`）
+- 操作履歴テーブル（`{prefix}term_steward_operations`）
+- Operation Itemテーブル（`{prefix}term_steward_operation_items`）
+- Change Journalテーブル（`{prefix}term_steward_changes`）
+- DB schema version option（`term_steward_schema_version`）
 
 監査記録を保護し、中断・復旧情報を不用意に消さず、再インストール時に履歴を確認できるようにし、誤操作で復旧情報を失うことを避けるためです。無効化、アンインストール、再インストールを経ても、これらのデータを保持して再利用します。
 

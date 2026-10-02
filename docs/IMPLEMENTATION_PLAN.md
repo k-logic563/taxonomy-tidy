@@ -1,8 +1,8 @@
-# Taxonomy Tidy — MVP実装計画
+# Term Steward — MVP実装計画
 
 ## 1. この文書の役割
 
-この文書はTaxonomy Tidy MVPの実装順序、各フェーズの境界、完了条件を定義します。
+この文書はTerm Steward MVPの実装順序、各フェーズの境界、完了条件を定義します。
 
 製品仕様、安全要件、受け入れ条件は`REQUIREMENTS.md`を正とします。恒常的な作業ルールは`AGENTS.md`へ従ってください。
 
@@ -15,9 +15,9 @@
 - DB: MySQL `8.0+`またはMariaDB `10.11+`
 - ローカル環境: Docker Compose
 - 主要PHPテスト: `8.2`、`8.3`、`8.4`
-- Plugin Slug: `taxonomy-tidy`
-- Namespace: `TaxonomyTidy`
-- Text Domain: `taxonomy-tidy`
+- Plugin Slug: `term-steward`
+- Namespace: `TermSteward`
+- Text Domain: `term-steward`
 
 アクセスには`manage_categories`、`edit_others_posts`、`edit_published_posts`を要求します。変更系リクエストには有効なnonceも要求します。
 
@@ -73,7 +73,7 @@
 
 - プラグインヘッダー、名前空間、Composer autoload
 - activation・deactivation hook
-- `ツール > Taxonomy Tidy`の最小画面
+- `ツール > Term Steward`の最小画面
 - capabilityチェック
 - WordPress、MySQL、WP-CLIを含むDocker Compose
 - PHPUnit、WordPress統合テスト、WPCS
@@ -342,6 +342,8 @@ MVP受け入れ条件を検証し、インストール可能なリリース候�
 
 ### 2026-09-19 検証結果
 
+> ここから2026-09-29までの記録は、旧開発名称「Taxonomy Tidy」で実施した過去証跡です。現製品名称は「Term Steward」です。旧ZIP名やchecksumは当時の事実として保持し、リブランド後の検証結果とはみなしません。
+
 配布ZIPの生成、クリーンインストール、スキーマ再適用、PHP 8.2〜8.4、WordPress 6.6.2と7.1.1、MySQL 8.0とMariaDB 10.11の確認は成功した。自動テストは93件・1,268 assertionsが成功した。
 
 ただし、1,000タグ時に統合先候補を初期DOMへ全件描画する受け入れ条件違反があり、実ブラウザでの主要導線確認も未実施である。根拠は`docs/RELEASE_CHECKLIST.md`と`docs/TEST_REPORT.md`へ記録した。Phase 7は`In progress`のまま、Phase 8は`Blocked`とし、外部公開は行わない。
@@ -401,6 +403,12 @@ MT-069の320 CSS pxにおける操作履歴一覧のページ横あふれ、MT-0
 アンインストール時に3つの監査・復旧テーブルとDB schema version optionを保持する方針を`REQUIREMENTS.md`へ正本化し、利用者向け`README.md`とWordPress.org向け`readme.txt`へ明記した。2026-09-26の保持・再利用の実ブラウザ結果と合わせ、MT-006を成功へ変更した。最新集計はCritical成功44・失敗0・保留0、High成功26・失敗1・保留1、全72件成功70・失敗1・保留1である。
 
 `readme.txt`をWordPress.org公式形式で作成し、`Tested up to: 7.1`はWordPress 7.1.1のZIP導入・有効化・管理画面描画・ログ確認の実測記録を根拠とした。`make check`、Playwright E2E-001〜008、配布ZIPの完全性・checksum・ソース一致は成功した。指定GitHubリポジトリとIssuesは公開設定後の未認証確認でともにHTTP 200となり、公開用メタデータのブロッカーは解消したため、現行RCをリリース対象として固定可能とする。Phase 7／8の実装完了状態は変更しない。
+
+### 2026-10-01 Term Stewardリブランド
+
+製品名、slug、メインファイル、PHP namespace、Text Domain、定数、関数、DB・option、hook、Ajax、nonce、asset handle、DOM／CSS、Composer／npm、Docker、テスト、翻訳、配布物をTerm Steward用の識別子へ変更した。旧`taxonomy_tidy_*`永続化領域の自動移行・読取・更新・削除は実装せず、独立した`term_steward_*`領域から開始する。
+
+リブランド後の`make check`、Playwright E2E 9件、RC ZIP生成、checksum、ZIP完全性・旧識別子不在、新規WordPress環境へのZIP導入・有効化・3テーブル作成・4タブ描画が成功した。詳細は`docs/REBRAND_TEST_REPORT.md`を参照する。Phase 1〜8の機能範囲と完了状態は変更しない。
 
 ## 13. フェーズ開始用テンプレート
 

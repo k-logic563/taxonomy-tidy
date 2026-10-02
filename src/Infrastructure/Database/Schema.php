@@ -2,12 +2,12 @@
 /**
  * Plugin database schema.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Infrastructure\Database;
+namespace TermSteward\Infrastructure\Database;
 
 use wpdb;
 
@@ -27,7 +27,7 @@ final class Schema {
 	 *
 	 * @var string
 	 */
-	private const VERSION_OPTION = 'taxonomy_tidy_schema_version';
+	private const VERSION_OPTION = 'term_steward_schema_version';
 
 	/**
 	 * Creates or updates the schema idempotently with WordPress dbDelta().

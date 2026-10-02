@@ -42,7 +42,7 @@ test('E2E-005 / MT-037：名称変更の実行', async ({ page }) => {
   await modal.expectOpen('E2E-CAT-RENAME');
   await modal.execute();
 
-  const notice = page.locator('.taxonomy-tidy-plan-notice');
+  const notice = page.locator('.term-steward-plan-notice');
   await expect(notice).toHaveCSS('display', 'flex');
   await expect(notice).toHaveCSS('align-items', 'center');
   await expect(notice).toHaveCSS('border-left-width', '4px');

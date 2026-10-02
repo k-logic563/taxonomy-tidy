@@ -2,15 +2,15 @@
 /**
  * Executes one fixed inverse item.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Undo;
+namespace TermSteward\Application\Undo;
 
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Persistence\ChangeJournalRepository;
 use WP_Error;
 use WP_Post;
 use WP_Term;

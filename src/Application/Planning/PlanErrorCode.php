@@ -2,12 +2,12 @@
 /**
  * Stable planning error identifiers.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Planning;
+namespace TermSteward\Application\Planning;
 
 /**
  * Keeps internal validation decisions independent from translated UI text.

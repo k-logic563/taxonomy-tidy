@@ -1,14 +1,14 @@
 ( function () {
 	'use strict';
 
-	const modal = document.querySelector( '.taxonomy-tidy-history-modal' );
-	const strings = globalThis.taxonomyTidyHistory || {};
+	const modal = document.querySelector( '.term-steward-history-modal' );
+	const strings = globalThis.termStewardHistory || {};
 	let busy = false;
 	let terminal = false;
 	const maxAttempts = 3;
-	const focusStorageKey = 'taxonomyTidyHistoryFocus';
+	const focusStorageKey = 'termStewardHistoryFocus';
 
-	document.querySelectorAll( '.taxonomy-tidy-undo-preview' ).forEach( ( button ) => {
+	document.querySelectorAll( '.term-steward-undo-preview' ).forEach( ( button ) => {
 		button.form?.addEventListener( 'submit', ( event ) => {
 			if ( button.dataset.submitting === '1' ) {
 				event.preventDefault();
@@ -24,26 +24,26 @@
 			}, 0 );
 		} );
 	} );
-	const historyError = document.querySelector( '.taxonomy-tidy-history-error' );
+	const historyError = document.querySelector( '.term-steward-history-error' );
 	if ( historyError ) {
 		globalThis.requestAnimationFrame( () => historyError.focus() );
 	}
 
 	function resultFooter() {
-		const footer = modal?.querySelector( '.taxonomy-tidy-modal__footer' );
+		const footer = modal?.querySelector( '.term-steward-modal__footer' );
 		if ( ! footer ) {
 			return;
 		}
 		const close = document.createElement( 'button' );
 		close.type = 'button';
-		close.className = 'button tt-button tt-button--secondary taxonomy-tidy-modal__cancel';
+		close.className = 'button tt-button tt-button--secondary term-steward-modal__cancel';
 		close.textContent = strings.closeResult || '閉じる';
 		footer.replaceChildren( close );
 	}
 
 	function setModalLocked( locked ) {
 		busy = locked;
-		modal?.querySelectorAll( '.taxonomy-tidy-modal__close, .taxonomy-tidy-modal__cancel, [name="undo_command"]' ).forEach( ( button ) => {
+		modal?.querySelectorAll( '.term-steward-modal__close, .term-steward-modal__cancel, [name="undo_command"]' ).forEach( ( button ) => {
 			button.disabled = locked;
 			button.classList.toggle( 'is-loading', locked && button.matches( '[name="undo_command"]' ) );
 			if ( locked && button.matches( '[name="undo_command"]' ) ) {
@@ -65,12 +65,12 @@
 			globalThis.location.href = globalThis.location.href;
 			return;
 		}
-		document.querySelector( '.taxonomy-tidy-undo-preview' )?.focus();
+		document.querySelector( '.term-steward-undo-preview' )?.focus();
 	}
 
 	function showResult( progress ) {
 		terminal = true;
-		const heading = modal?.querySelector( '#taxonomy-tidy-undo-heading' );
+		const heading = modal?.querySelector( '#term-steward-undo-heading' );
 		if ( heading ) {
 			heading.textContent = strings.resultTitle || '取り消し結果';
 		}
@@ -79,19 +79,19 @@
 	}
 
 	function showProgress( progress ) {
-		const body = modal?.querySelector( '.taxonomy-tidy-modal__body' );
+		const body = modal?.querySelector( '.term-steward-modal__body' );
 		if ( ! body ) {
 			return;
 		}
-		let status = body.querySelector( '.taxonomy-tidy-undo-status' );
-		let output = body.querySelector( '.taxonomy-tidy-undo-progress' );
+		let status = body.querySelector( '.term-steward-undo-status' );
+		let output = body.querySelector( '.term-steward-undo-progress' );
 		if ( ! status ) {
 			body.replaceChildren();
 			status = document.createElement( 'p' );
-			status.className = 'taxonomy-tidy-undo-status';
+			status.className = 'term-steward-undo-status';
 			status.append( document.createElement( 'strong' ) );
 			output = document.createElement( 'p' );
-			output.className = 'taxonomy-tidy-undo-progress';
+			output.className = 'term-steward-undo-progress';
 			body.append( status, output );
 		}
 		status.querySelector( 'strong' ).textContent = progress.status_label;
@@ -104,15 +104,15 @@
 	}
 
 	function showStopped( message ) {
-		const body = modal?.querySelector( '.taxonomy-tidy-modal__body' );
-		const heading = modal?.querySelector( '#taxonomy-tidy-undo-heading' );
+		const body = modal?.querySelector( '.term-steward-modal__body' );
+		const heading = modal?.querySelector( '#term-steward-undo-heading' );
 		terminal = true;
 		if ( heading ) {
 			heading.textContent = strings.stoppedTitle || '取り消しを中断しました';
 		}
 		if ( body ) {
 			const notice = document.createElement( 'p' );
-			notice.className = 'notice notice-error inline taxonomy-tidy-undo-error';
+			notice.className = 'notice notice-error inline term-steward-undo-error';
 			notice.setAttribute( 'role', 'alert' );
 			notice.textContent = message;
 			body.append( notice );
@@ -123,7 +123,7 @@
 
 	async function requestBatch( form ) {
 		const data = new globalThis.FormData( form );
-		data.set( 'action', 'taxonomy_tidy_undo_batch' );
+		data.set( 'action', 'term_steward_undo_batch' );
 		let lastError;
 		for ( let attempt = 1; attempt <= maxAttempts; attempt++ ) {
 			try {
@@ -186,9 +186,9 @@
 	if ( modal ) {
 		modal.hidden = false;
 		document.body.style.overflow = 'hidden';
-		modal.querySelector( '.taxonomy-tidy-modal__dialog' )?.focus();
+		modal.querySelector( '.term-steward-modal__dialog' )?.focus();
 		modal.addEventListener( 'click', ( event ) => {
-			if ( event.target === modal || event.target.closest( '.taxonomy-tidy-modal__close, .taxonomy-tidy-modal__cancel' ) ) {
+			if ( event.target === modal || event.target.closest( '.term-steward-modal__close, .term-steward-modal__cancel' ) ) {
 				closeModal();
 			}
 		} );
@@ -231,9 +231,9 @@
 		globalThis.requestAnimationFrame( () => document.querySelector( focusSelector )?.focus() );
 	}
 
-	document.querySelectorAll( '.taxonomy-tidy-history-logs' ).forEach( ( section ) => {
-		const button = section.querySelector( '.taxonomy-tidy-log-toggle' );
-		const list = section.querySelector( '.taxonomy-tidy-change-summary' );
+	document.querySelectorAll( '.term-steward-history-logs' ).forEach( ( section ) => {
+		const button = section.querySelector( '.term-steward-log-toggle' );
+		const list = section.querySelector( '.term-steward-change-summary' );
 		if ( ! button || ! list ) {
 			return;
 		}
@@ -255,10 +255,10 @@
 					let totalPages = 1;
 					do {
 						const data = new globalThis.FormData();
-						data.set( 'action', 'taxonomy_tidy_history_logs' );
+						data.set( 'action', 'term_steward_history_logs' );
 						data.set( 'operation_id', section.dataset.operation );
 						data.set( 'log_page', String( page ) );
-						data.set( 'taxonomy_tidy_undo_nonce', section.dataset.nonce );
+						data.set( 'term_steward_undo_nonce', section.dataset.nonce );
 						const response = await globalThis.fetch( globalThis.ajaxurl, { method: 'POST', body: data, credentials: 'same-origin' } );
 						const result = await response.json();
 						if ( ! response.ok || ! result.success ) {
@@ -270,7 +270,7 @@
 					} while ( page <= totalPages );
 					full = logs.map( ( log ) => {
 						const item = document.createElement( 'li' );
-						item.className = `taxonomy-tidy-log taxonomy-tidy-log--${ log.severity }`;
+						item.className = `term-steward-log term-steward-log--${ log.severity }`;
 						const state = document.createElement( 'strong' );
 						state.textContent = log.severity === 'error' ? ( strings.failure || '失敗：' ) : ( log.severity === 'warning' ? ( strings.warning || '警告：' ) : ( strings.success || '成功：' ) );
 						item.append( state, document.createTextNode( ` ${ log.label }（${ log.date }）` ) );

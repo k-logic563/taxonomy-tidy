@@ -30,8 +30,8 @@ services:
       - "${WP_PORT:-8080}:80"
     volumes:
       - wordpress_files:/var/www/html
-      - ./:/var/www/html/wp-content/plugins/taxonomy-tidy
-      - composer_vendor:/var/www/html/wp-content/plugins/taxonomy-tidy/vendor
+      - ./:/var/www/html/wp-content/plugins/term-steward
+      - composer_vendor:/var/www/html/wp-content/plugins/term-steward/vendor
 
   wp-cli:
     image: wordpress:cli-2.11.0-php8.2
@@ -50,8 +50,8 @@ services:
     entrypoint: ["wp"]
     volumes:
       - wordpress_files:/var/www/html
-      - ./:/var/www/html/wp-content/plugins/taxonomy-tidy
-      - composer_vendor:/var/www/html/wp-content/plugins/taxonomy-tidy/vendor
+      - ./:/var/www/html/wp-content/plugins/term-steward
+      - composer_vendor:/var/www/html/wp-content/plugins/term-steward/vendor
 
   composer:
     image: composer:2.8
@@ -70,7 +70,7 @@ services:
   test-database:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE: taxonomy_tidy_tests
+      MYSQL_DATABASE: term_steward_tests
       MYSQL_ROOT_PASSWORD: root
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD}"]
@@ -90,7 +90,7 @@ services:
       WP_CORE_DIR: /tmp/wordpress
       WP_TESTS_DIR: /tmp/wordpress-tests-lib
       WP_TESTS_DB_HOST: test-database
-      WP_TESTS_DB_NAME: taxonomy_tidy_tests
+      WP_TESTS_DB_NAME: term_steward_tests
       WP_TESTS_DB_USER: root
       WP_TESTS_DB_PASSWORD: root
       WP_VERSION: 6.6.2

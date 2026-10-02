@@ -2,12 +2,12 @@
 /**
  * Coded Undo failure.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Undo;
+namespace TermSteward\Application\Undo;
 
 use RuntimeException;
 

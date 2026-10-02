@@ -2,14 +2,14 @@
 /**
  * Change journal persistence.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Infrastructure\Persistence;
+namespace TermSteward\Infrastructure\Persistence;
 
-use TaxonomyTidy\Infrastructure\Database\Tables;
+use TermSteward\Infrastructure\Database\Tables;
 use wpdb;
 
 /**

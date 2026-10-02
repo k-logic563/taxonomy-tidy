@@ -1,5 +1,7 @@
 # Taxonomy Tidy 0.1.0 残存High 10件 完了試験レポート
 
+> 旧開発名称：Taxonomy Tidy／現製品名称：Term Steward。以下はリブランド前の試験証跡です。
+
 ## 2026-09-29 MT-006追補
 
 `REQUIREMENTS.md`へ、アンインストール時に操作履歴、Operation Item、Change Journalの3テーブルとDB schema version optionを保持する対象、理由、再インストール後の履歴再利用、利用者告知を正本化した。`README.md`とWordPress.org向け`readme.txt`にも、WordPress管理画面からプラグインを削除してもデータがデータベースへ残ることを明記した。2026-09-26の実ブラウザ試験では、無効化、再有効化、同版上書き、管理画面削除、再導入後の保持・履歴再利用が成功済みであるため、MT-006を保留から成功へ変更する。

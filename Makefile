@@ -10,9 +10,9 @@ dependencies:
 	docker compose run --rm composer install --no-interaction --prefer-dist
 
 translations:
-	docker compose run --rm --no-deps wp-cli i18n make-pot /var/www/html/wp-content/plugins/taxonomy-tidy /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy.pot --domain=taxonomy-tidy --exclude=vendor,tests,docker,docs,build,dist
-	docker compose run --rm --no-deps wp-cli i18n update-po /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy.pot /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy-ja.po
-	docker compose run --rm --no-deps wp-cli i18n make-mo /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy-ja.po /var/www/html/wp-content/plugins/taxonomy-tidy/languages/taxonomy-tidy-ja.mo
+	docker compose run --rm --no-deps wp-cli i18n make-pot /var/www/html/wp-content/plugins/term-steward /var/www/html/wp-content/plugins/term-steward/languages/term-steward.pot --domain=term-steward --exclude=vendor,tests,docker,docs,build,dist
+	docker compose run --rm --no-deps wp-cli i18n update-po /var/www/html/wp-content/plugins/term-steward/languages/term-steward.pot /var/www/html/wp-content/plugins/term-steward/languages/term-steward-ja.po
+	docker compose run --rm --no-deps wp-cli i18n make-mo /var/www/html/wp-content/plugins/term-steward/languages/term-steward-ja.po /var/www/html/wp-content/plugins/term-steward/languages/term-steward-ja.mo
 
 up:
 	docker compose up --detach database wordpress
@@ -27,19 +27,19 @@ reset:
 	docker compose down --volumes --remove-orphans
 
 activate:
-	docker compose run --rm wp-cli plugin activate taxonomy-tidy
+	docker compose run --rm wp-cli plugin activate term-steward
 
 deactivate:
-	docker compose run --rm wp-cli plugin deactivate taxonomy-tidy
+	docker compose run --rm wp-cli plugin deactivate term-steward
 
 seed-demo: up
-	docker compose run --rm wp-cli eval-file wp-content/plugins/taxonomy-tidy/tools/seed.php demo
+	docker compose run --rm wp-cli eval-file wp-content/plugins/term-steward/tools/seed.php demo
 
 seed-large: up
-	docker compose run --rm wp-cli eval-file wp-content/plugins/taxonomy-tidy/tools/seed.php large
+	docker compose run --rm wp-cli eval-file wp-content/plugins/term-steward/tools/seed.php large
 
 seed-clean: up
-	docker compose run --rm wp-cli eval-file wp-content/plugins/taxonomy-tidy/tools/seed.php clean
+	docker compose run --rm wp-cli eval-file wp-content/plugins/term-steward/tools/seed.php clean
 
 test:
 	docker compose run --rm test

@@ -2,30 +2,30 @@
 /**
  * Shared operation-plan tab integration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Admin\PlanBoard;
-use TaxonomyTidy\Admin\PlanController;
-use TaxonomyTidy\Admin\Page;
-use TaxonomyTidy\Application\Execution\ExecutionErrorCode;
-use TaxonomyTidy\Application\Execution\ExecutionWorkflow;
-use TaxonomyTidy\Application\Execution\ItemExecutor;
-use TaxonomyTidy\Application\Planning\PlanService;
-use TaxonomyTidy\Application\Planning\PlanWorkflow;
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Database\Schema;
-use TaxonomyTidy\Infrastructure\Database\Tables;
-use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
-use TaxonomyTidy\Infrastructure\Persistence\DatabaseTransaction;
-use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
-use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
-use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
+use TermSteward\Admin\PlanBoard;
+use TermSteward\Admin\PlanController;
+use TermSteward\Admin\Page;
+use TermSteward\Application\Execution\ExecutionErrorCode;
+use TermSteward\Application\Execution\ExecutionWorkflow;
+use TermSteward\Application\Execution\ItemExecutor;
+use TermSteward\Application\Planning\PlanService;
+use TermSteward\Application\Planning\PlanWorkflow;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Database\Schema;
+use TermSteward\Infrastructure\Database\Tables;
+use TermSteward\Infrastructure\Persistence\ChangeJournalRepository;
+use TermSteward\Infrastructure\Persistence\DatabaseTransaction;
+use TermSteward\Infrastructure\Persistence\OperationItemRepository;
+use TermSteward\Infrastructure\Persistence\OperationLock;
+use TermSteward\Infrastructure\Persistence\OperationRepository;
 use WP_Term;
 use WP_UnitTestCase;
 
@@ -167,7 +167,7 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->board->render( $result );
 		$output = (string) ob_get_clean();
 		$this->assertStringContainsString( '処理が完了しました。', $output );
-		$this->assertStringContainsString( 'class="notice notice-success inline taxonomy-tidy-plan-notice" role="status"', $output );
+		$this->assertStringContainsString( 'class="notice notice-success inline term-steward-plan-notice" role="status"', $output );
 		$this->assertStringNotContainsString( 'role="dialog"', $output );
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 		$_POST                     = array();
@@ -227,8 +227,8 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<li>Unused tag B</li>', $output );
 		$this->assertStringContainsString( '<li>Unused tag C</li>', $output );
 		$this->assertSame( 1, substr_count( $output, 'value="run_all"' ) );
-		$this->assertSame( 1, substr_count( $output, 'taxonomy-tidy-modal__cancel' ) );
-		$this->assertStringNotContainsString( 'taxonomy-tidy-preview-delete__targets"><li>Unused tag A <button', $output );
+		$this->assertSame( 1, substr_count( $output, 'term-steward-modal__cancel' ) );
+		$this->assertStringNotContainsString( 'term-steward-preview-delete__targets"><li>Unused tag A <button', $output );
 
 		$this->post( 'run_all' );
 		$result = $this->board->handle();
@@ -295,7 +295,7 @@ final class PlanBoardTest extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'execution_stale_preview' ), $result['errors'] );
 		$this->assertStringContainsString( '削除を開始できませんでした。「Changed delete target」は現在、別のオブジェクトで使用されています。', $output );
-		$this->assertStringContainsString( 'class="notice notice-error inline taxonomy-tidy-plan-notice" role="alert"', $output );
+		$this->assertStringContainsString( 'class="notice notice-error inline term-steward-plan-notice" role="alert"', $output );
 		$this->assertInstanceOf( WP_Term::class, get_term( $first, 'post_tag' ) );
 		$this->assertInstanceOf( WP_Term::class, get_term( $second, 'post_tag' ) );
 		$this->assertSame( Status::PREVIEWED->value, $this->operations->find( (int) $result['operations']['post_tag']['id'] )['status'] );
@@ -489,7 +489,7 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->board->render( $final );
 		$output = (string) ob_get_clean();
 		$this->assertStringContainsString( '一部の処理に失敗しました。操作履歴を確認してください。', $output );
-		$this->assertStringContainsString( 'class="notice notice-warning inline taxonomy-tidy-plan-notice" role="status"', $output );
+		$this->assertStringContainsString( 'class="notice notice-warning inline term-steward-plan-notice" role="status"', $output );
 		$this->assertStringContainsString( '現在の状態：一部失敗', $output );
 		$this->assertStringContainsString( '未処理：0件', $output );
 		$this->assertStringContainsString( 'スキップ：0件', $output );
@@ -516,7 +516,7 @@ final class PlanBoardTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '>編集<', $output );
 		$this->assertStringNotContainsString( 'value="edit_item"', $output );
 		$this->assertStringNotContainsString( 'name="new_name"', $output );
-		$this->assertStringNotContainsString( 'taxonomy-tidy-board-destinations', $output );
+		$this->assertStringNotContainsString( 'term-steward-board-destinations', $output );
 		$this->post( 'edit_item', array( 'taxonomy' => 'category' ) );
 		$this->assertSame( array( 'plan_invalid' ), $this->board->handle()['errors'] );
 		$this->assertSame( 2, $this->board->draft_count( $user_id ) );

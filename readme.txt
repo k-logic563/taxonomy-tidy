@@ -1,4 +1,4 @@
-=== Taxonomy Tidy ===
+=== Term Steward ===
 Contributors: klogic563
 Tags: categories, tags, taxonomy, administration, cleanup
 Requires at least: 6.6
@@ -12,7 +12,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 
-Taxonomy Tidyは、WordPress標準のカテゴリーとタグを管理画面から整理するプラグインです。
+Term Stewardは、WordPress標準のカテゴリーとタグを管理画面から整理するプラグインです。
 
 0.1.0では、次の操作に対応します。
 
@@ -30,13 +30,13 @@ relationshipの変更対象は、標準投稿タイプ`post`の公開済み投�
 
 本番サイトで操作する前に、データベースとアップロードファイルをバックアップしてください。最初にステージング環境で確認することを推奨します。
 
-サポートと不具合報告は[GitHub Issues](https://github.com/k-logic563/taxonomy-tidy/issues)で受け付けています。ソースコードは[GitHubリポジトリ](https://github.com/k-logic563/taxonomy-tidy)で公開しています。
+サポートと不具合報告は[GitHub Issues](https://github.com/k-logic563/term-steward/issues)で受け付けています。ソースコードは[GitHubリポジトリ](https://github.com/k-logic563/term-steward)で公開しています。
 
 == Installation ==
 
 1. WordPress管理画面の「プラグイン > 新規プラグインを追加 > プラグインのアップロード」で配布ZIPを選びます。
-2. インストール後にTaxonomy Tidyを有効化します。
-3. 「ツール > Taxonomy Tidy」を開きます。
+2. インストール後にTerm Stewardを有効化します。
+3. 「ツール > Term Steward」を開きます。
 4. 「カテゴリー」または「タグ」タブを開き、対象を選択します。
 5. 処理パネルで名称変更、統合、削除のいずれかを設定し、「計画に追加」を押します。
 6. 「操作計画」タブを開き、「変更内容を確認」を押します。
@@ -62,7 +62,11 @@ relationshipの変更対象は、標準投稿タイプ`post`の公開済み投�
 
 = プラグインを削除すると履歴データも消えますか？ =
 
-消えません。WordPress管理画面からTaxonomy Tidyを削除しても、操作履歴テーブル、Operation Itemテーブル、Change Journalテーブル、DB schema version optionはデータベースに残ります。監査記録、中断・復旧情報、再インストール後の履歴確認、誤操作時の復旧情報を保護するためです。0.1.0には完全削除設定はありません。
+消えません。WordPress管理画面からTerm Stewardを削除しても、操作履歴テーブル、Operation Itemテーブル、Change Journalテーブル、DB schema version optionはデータベースに残ります。監査記録、中断・復旧情報、再インストール後の履歴確認、誤操作時の復旧情報を保護するためです。0.1.0には完全削除設定はありません。
+
+= 旧開発名称のデータは自動移行されますか？ =
+
+移行されません。Term Stewardは独立した`term_steward_*`テーブルとoptionを使用し、別プラグインの所有物である可能性がある旧識別子のデータを読み書きまたは削除しません。
 
 = 操作前にバックアップは必要ですか？ =
 
@@ -70,7 +74,7 @@ relationshipの変更対象は、標準投稿タイプ`post`の公開済み投�
 
 = 不具合はどこへ報告できますか？ =
 
-[GitHub Issues](https://github.com/k-logic563/taxonomy-tidy/issues)へ、再現手順と利用環境を添えて報告してください。パスワード、Cookie、nonce、APIキー、個人情報、データベースの完全なダンプは添付しないでください。
+[GitHub Issues](https://github.com/k-logic563/term-steward/issues)へ、再現手順と利用環境を添えて報告してください。パスワード、Cookie、nonce、APIキー、個人情報、データベースの完全なダンプは添付しないでください。
 
 == Screenshots ==
 

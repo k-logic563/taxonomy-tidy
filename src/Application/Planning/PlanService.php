@@ -2,17 +2,17 @@
 /**
  * Read-only operation planning and preview generation.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Planning;
+namespace TermSteward\Application\Planning;
 
-use TaxonomyTidy\Domain\Operation\Action;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Persistence\Json;
-use TaxonomyTidy\Infrastructure\Persistence\PersistenceException;
+use TermSteward\Domain\Operation\Action;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Persistence\Json;
+use TermSteward\Infrastructure\Persistence\PersistenceException;
 use WP_Post;
 use WP_Term;
 

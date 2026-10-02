@@ -2,16 +2,16 @@
 /**
  * Undo Ajax response integration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Admin\HistoryPage;
-use TaxonomyTidy\Infrastructure\Database\Schema;
-use TaxonomyTidy\Infrastructure\Database\Tables;
+use TermSteward\Admin\HistoryPage;
+use TermSteward\Infrastructure\Database\Schema;
+use TermSteward\Infrastructure\Database\Tables;
 use WPAjaxDieContinueException;
 use WP_Ajax_UnitTestCase;
 
@@ -44,7 +44,7 @@ final class UndoAjaxTest extends WP_Ajax_UnitTestCase {
 			'taxonomy'               => 'post_tag',
 		);
 		try {
-			$this->_handleAjax( 'taxonomy_tidy_undo_batch' );
+			$this->_handleAjax( 'term_steward_undo_batch' );
 			$this->fail( 'The Ajax response must terminate after sending JSON.' );
 		} catch ( WPAjaxDieContinueException $exception ) {
 			// Expected terminal response from wp_send_json_error().

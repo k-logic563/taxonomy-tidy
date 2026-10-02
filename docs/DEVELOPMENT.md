@@ -1,4 +1,4 @@
-# Taxonomy Tidy ローカル開発・Phase 1検証手順
+# Term Steward ローカル開発・Phase 1検証手順
 
 Phase 1の基準環境はWordPress 6.6.2、PHP 8.2、MySQL 8.0です。PHP、Composer、MySQL、WP-CLIをホストへ個別にインストールする必要はありません。
 
@@ -64,14 +64,14 @@ make setup
 1. Composer依存関係のインストール
 2. MySQLとWordPressコンテナの起動
 3. 未導入の場合のみWordPressのインストール
-4. Taxonomy Tidyの有効化
+4. Term Stewardの有効化
 
 セットアップ後の状態は次で確認できます。
 
 ```sh
 docker compose ps
 docker compose run --rm wp-cli core version
-docker compose run --rm wp-cli plugin status taxonomy-tidy
+docker compose run --rm wp-cli plugin status term-steward
 ```
 
 ## WordPressの起動、停止、再起動
@@ -90,7 +90,7 @@ make restart  # 起動中のWordPressとMySQLを再起動
 
 ```text
 WordPress管理画面: http://localhost:8080/wp-admin/
-Taxonomy Tidy:     http://localhost:8080/wp-admin/tools.php?page=taxonomy-tidy
+Term Steward:     http://localhost:8080/wp-admin/tools.php?page=term-steward
 ```
 
 `.env.example`の既定ログイン情報:
@@ -113,7 +113,7 @@ docker compose run --rm wp-cli user create phase1-admin phase1-admin@example.tes
 ```sh
 make activate
 make deactivate
-docker compose run --rm wp-cli plugin status taxonomy-tidy
+docker compose run --rm wp-cli plugin status term-steward
 ```
 
 `vendor/autoload.php`がない場合、プラグインは本体の起動を中断し、管理画面に原因と`composer install`コマンドを示します。復旧コマンドは次のとおりです。
@@ -190,9 +190,9 @@ docker compose run --rm wp-cli user list-caps phase1-restricted
 
 確認内容:
 
-1. `phase1-authorized`では「ツール」にTaxonomy Tidyが表示され、画面を開ける。
+1. `phase1-authorized`では「ツール」にTerm Stewardが表示され、画面を開ける。
 2. `phase1-restricted`ではメニューが表示されない。
-3. `phase1-restricted`でTaxonomy TidyのURLを直接開いても画面へアクセスできない。
+3. `phase1-restricted`でTerm StewardのURLを直接開いても画面へアクセスできない。
 
 必要な3権限は`manage_categories`、`edit_others_posts`、`edit_published_posts`です。
 

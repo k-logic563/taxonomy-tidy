@@ -1,5 +1,7 @@
 # Undo completion 実ブラウザ試験レポート
 
+> 旧開発名称：Taxonomy Tidy／現製品名称：Term Steward。以下はリブランド前の試験証跡です。
+
 ## 1. 最新結論（2026-09-26）
 
 - 対象RC: `dist/taxonomy-tidy-0.1.0.zip`

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Taxonomy Tidy 0.1.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/taxonomy-tidy\n"
-"Last-Translator: Taxonomy Tidy Contributors\n"
+"Project-Id-Version: Term Steward 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/term-steward\n"
+"Last-Translator: Term Steward Contributors\n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -12,34 +12,34 @@ msgstr ""
 "Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: WP-CLI 2.11.0\n"
-"X-Domain: taxonomy-tidy\n"
+"X-Domain: term-steward\n"
 
 #. Plugin Name of the plugin
-#: taxonomy-tidy.php
+#: term-steward.php
 #: src/Admin/Page.php:48
 #: src/Admin/Page.php:49
 #: src/Admin/Page.php:294
 #: src/Admin/Page.php:343
-msgid "Taxonomy Tidy"
-msgstr "Taxonomy Tidy"
+msgid "Term Steward"
+msgstr "Term Steward"
 
 #. Description of the plugin
-#: taxonomy-tidy.php
+#: term-steward.php
 msgid "Safely organize WordPress categories and tags in bulk."
 msgstr "WordPressのカテゴリーとタグを安全に一括整理します。"
 
 #. Author of the plugin
-#: taxonomy-tidy.php
-msgid "Taxonomy Tidy Contributors"
-msgstr "Taxonomy Tidy コントリビューター"
+#: term-steward.php
+msgid "Term Steward Contributors"
+msgstr "Term Steward コントリビューター"
 
 #: bootstrap/dependencies.php:40
-msgid "Taxonomy Tidy could not start because vendor/autoload.php is missing."
-msgstr "vendor/autoload.phpが見つからないため、Taxonomy Tidyを起動できませんでした。"
+msgid "Term Steward could not start because vendor/autoload.php is missing."
+msgstr "vendor/autoload.phpが見つからないため、Term Stewardを起動できませんでした。"
 
 #: src/Admin/Page.php:268
-msgid "You are not allowed to access Taxonomy Tidy."
-msgstr "Taxonomy Tidyへアクセスする権限がありません。"
+msgid "You are not allowed to access Term Steward."
+msgstr "Term Stewardへアクセスする権限がありません。"
 
 #: src/Admin/Page.php:269
 msgid "Access denied"

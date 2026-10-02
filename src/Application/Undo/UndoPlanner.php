@@ -2,19 +2,19 @@
 /**
  * Current-state Undo assessment and preview creation.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Undo;
+namespace TermSteward\Application\Undo;
 
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
-use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
-use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
-use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Persistence\ChangeJournalRepository;
+use TermSteward\Infrastructure\Persistence\OperationItemRepository;
+use TermSteward\Infrastructure\Persistence\OperationLock;
+use TermSteward\Infrastructure\Persistence\OperationRepository;
 use WP_Post;
 use WP_Term;
 

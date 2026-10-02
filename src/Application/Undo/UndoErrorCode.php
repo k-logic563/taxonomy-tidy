@@ -2,12 +2,12 @@
 /**
  * Stable Undo error codes.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Application\Undo;
+namespace TermSteward\Application\Undo;
 
 /** Keeps technical failures out of the administration UI. */
 final class UndoErrorCode {

@@ -2,15 +2,15 @@
 /**
  * Plugin bootstrap.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy;
+namespace TermSteward;
 
-use TaxonomyTidy\Admin\Page;
-use TaxonomyTidy\Infrastructure\Database\Schema;
+use TermSteward\Admin\Page;
+use TermSteward\Infrastructure\Database\Schema;
 
 /**
  * Registers the plugin's WordPress hooks.
@@ -65,9 +65,9 @@ final class Plugin {
 
 		add_action( 'admin_menu', array( $this->admin_page, 'register_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this->admin_page, 'enqueue_assets' ) );
-		add_action( 'wp_ajax_taxonomy_tidy_preview_posts', array( $this->admin_page, 'preview_posts' ) );
-		add_action( 'wp_ajax_taxonomy_tidy_undo_batch', array( $this->admin_page, 'undo_batch' ) );
-		add_action( 'wp_ajax_taxonomy_tidy_history_logs', array( $this->admin_page, 'history_logs' ) );
+		add_action( 'wp_ajax_term_steward_preview_posts', array( $this->admin_page, 'preview_posts' ) );
+		add_action( 'wp_ajax_term_steward_undo_batch', array( $this->admin_page, 'undo_batch' ) );
+		add_action( 'wp_ajax_term_steward_history_logs', array( $this->admin_page, 'history_logs' ) );
 		add_action( 'plugins_loaded', array( Schema::class, 'maybe_upgrade' ) );
 		$this->registered = true;
 	}

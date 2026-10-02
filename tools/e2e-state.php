@@ -4,10 +4,10 @@
  *
  * This development-only file is excluded from distribution packages.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
-use TaxonomyTidy\Infrastructure\Database\Tables;
+use TermSteward\Infrastructure\Database\Tables;
 
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	throw new RuntimeException( 'The E2E state helper must run through WP-CLI.' );
@@ -17,7 +17,7 @@ $expected_url = getenv( 'E2E_EXPECTED_URL' );
 $actual_url   = untrailingslashit( home_url() );
 $expected_url = is_string( $expected_url ) ? untrailingslashit( $expected_url ) : '';
 $host         = (string) wp_parse_url( $actual_url, PHP_URL_HOST );
-if ( 'local' !== wp_get_environment_type() || ! in_array( $host, array( '127.0.0.1', 'localhost' ), true ) || '' === $expected_url || $actual_url !== $expected_url || 'Taxonomy Tidy E2E' !== get_bloginfo( 'name' ) ) {
+if ( 'local' !== wp_get_environment_type() || ! in_array( $host, array( '127.0.0.1', 'localhost' ), true ) || '' === $expected_url || $actual_url !== $expected_url || 'Term Steward E2E' !== get_bloginfo( 'name' ) ) {
 	WP_CLI::error( 'Refusing to inspect an unverified WordPress site.' );
 }
 if ( 'snapshot' !== (string) ( $args[0] ?? '' ) ) {
@@ -25,8 +25,8 @@ if ( 'snapshot' !== (string) ( $args[0] ?? '' ) ) {
 }
 
 global $wpdb;
-$registry = get_option( 'taxonomy_tidy_e2e_fixture_v1', array() );
-if ( ! is_array( $registry ) || 'taxonomy-tidy-e2e-v1' !== ( $registry['marker'] ?? null ) ) {
+$registry = get_option( 'term_steward_e2e_fixture_v1', array() );
+if ( ! is_array( $registry ) || 'term-steward-e2e-v1' !== ( $registry['marker'] ?? null ) ) {
 	WP_CLI::error( 'The E2E fixture registry is missing or invalid.' );
 }
 

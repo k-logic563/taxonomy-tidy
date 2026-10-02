@@ -2,7 +2,7 @@
 /**
  * PHPUnit bootstrap for the WordPress integration test suite.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
 tests_add_filter(
 	'muplugins_loaded',
 	static function (): void {
-		require dirname( __DIR__ ) . '/taxonomy-tidy.php';
+		require dirname( __DIR__ ) . '/term-steward.php';
 	}
 );
 

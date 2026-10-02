@@ -4,10 +4,10 @@
  *
  * This development-only file is excluded from distribution packages.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
-use TaxonomyTidy\Infrastructure\Database\Tables;
+use TermSteward\Infrastructure\Database\Tables;
 
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	throw new RuntimeException( 'The E2E fixture must run through WP-CLI.' );
@@ -23,7 +23,7 @@ if (
 	|| ! in_array( $host, array( '127.0.0.1', 'localhost' ), true )
 	|| '' === $expected_url
 	|| $actual_url !== $expected_url
-	|| 'Taxonomy Tidy E2E' !== get_bloginfo( 'name' )
+	|| 'Term Steward E2E' !== get_bloginfo( 'name' )
 ) {
 	WP_CLI::error( 'Refusing to change fixtures outside the verified E2E WordPress site.' );
 }
@@ -34,7 +34,7 @@ if ( 'reset' !== (string) ( $args[0] ?? '' ) ) {
 
 global $wpdb;
 
-$registry_key = 'taxonomy_tidy_e2e_fixture_v1';
+$registry_key = 'term_steward_e2e_fixture_v1';
 $registry     = get_option( $registry_key, array() );
 $registry     = is_array( $registry ) ? $registry : array();
 
@@ -89,7 +89,7 @@ foreach ( $definitions as $fixture_taxonomy => $items ) {
 			$fixture_taxonomy,
 			array(
 				'slug'        => $definition[1],
-				'description' => 'taxonomy-tidy-e2e-fixture',
+				'description' => 'term-steward-e2e-fixture',
 			)
 		);
 		if ( is_wp_error( $result ) ) {
@@ -110,7 +110,7 @@ foreach ( $post_definitions as $key => $definition ) {
 		array(
 			'post_title'   => $definition[0],
 			'post_name'    => strtolower( $definition[0] ),
-			'post_content' => 'Taxonomy Tidy Playwright fixture.',
+			'post_content' => 'Term Steward Playwright fixture.',
 			'post_status'  => $definition[1],
 			'post_type'    => 'post',
 		),
@@ -150,7 +150,7 @@ foreach ( $assignments as $post_key => $taxonomies ) {
 update_option(
 	$registry_key,
 	array(
-		'marker' => 'taxonomy-tidy-e2e-v1',
+		'marker' => 'term-steward-e2e-v1',
 		'terms'  => $fixture_terms,
 		'posts'  => $fixture_posts,
 	),

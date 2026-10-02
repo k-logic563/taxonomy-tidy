@@ -2,29 +2,29 @@
 /**
  * Phase 6 history administration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Admin\Page;
-use TaxonomyTidy\Admin\HistoryPage;
-use TaxonomyTidy\Application\Undo\UndoException;
-use TaxonomyTidy\Application\Undo\UndoItemExecutor;
-use TaxonomyTidy\Application\Undo\UndoPlanner;
-use TaxonomyTidy\Application\Undo\UndoWorkflow;
-use TaxonomyTidy\Domain\Operation\Action;
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Database\Schema;
-use TaxonomyTidy\Infrastructure\Database\Tables;
-use TaxonomyTidy\Infrastructure\Persistence\OperationRepository;
-use TaxonomyTidy\Infrastructure\Persistence\OperationItemRepository;
-use TaxonomyTidy\Infrastructure\Persistence\ChangeJournalRepository;
-use TaxonomyTidy\Infrastructure\Persistence\DatabaseTransaction;
-use TaxonomyTidy\Infrastructure\Persistence\OperationLock;
+use TermSteward\Admin\Page;
+use TermSteward\Admin\HistoryPage;
+use TermSteward\Application\Undo\UndoException;
+use TermSteward\Application\Undo\UndoItemExecutor;
+use TermSteward\Application\Undo\UndoPlanner;
+use TermSteward\Application\Undo\UndoWorkflow;
+use TermSteward\Domain\Operation\Action;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Database\Schema;
+use TermSteward\Infrastructure\Database\Tables;
+use TermSteward\Infrastructure\Persistence\OperationRepository;
+use TermSteward\Infrastructure\Persistence\OperationItemRepository;
+use TermSteward\Infrastructure\Persistence\ChangeJournalRepository;
+use TermSteward\Infrastructure\Persistence\DatabaseTransaction;
+use TermSteward\Infrastructure\Persistence\OperationLock;
 use WP_UnitTestCase;
 
 /** Verifies history filtering, localization, ownership, and read security. */
@@ -244,7 +244,7 @@ final class HistoryPageTest extends WP_UnitTestCase {
 		( new Page() )->render();
 		$output = (string) ob_get_clean();
 
-		$this->assertSame( 5, substr_count( $output, '<li class="taxonomy-tidy-log ' ) );
+		$this->assertSame( 5, substr_count( $output, '<li class="term-steward-log ' ) );
 		$this->assertStringContainsString( '全体：6件、成功：4件、警告：1件、エラー：1件', $output );
 		$this->assertStringContainsString( 'aria-expanded="false"', $output );
 		$this->assertStringContainsString( '>詳しく見る</button>', $output );

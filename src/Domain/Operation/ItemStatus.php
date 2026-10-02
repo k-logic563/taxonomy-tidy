@@ -2,12 +2,12 @@
 /**
  * Operation item statuses.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Domain\Operation;
+namespace TermSteward\Domain\Operation;
 
 /**
  * Item states kept intentionally small for retry-safe batches.

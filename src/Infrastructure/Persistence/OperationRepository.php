@@ -2,18 +2,18 @@
 /**
  * Operation persistence.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Infrastructure\Persistence;
+namespace TermSteward\Infrastructure\Persistence;
 
-use TaxonomyTidy\Domain\Operation\InvalidStatusTransition;
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\StatusTransitions;
-use TaxonomyTidy\Domain\Operation\Taxonomy;
-use TaxonomyTidy\Infrastructure\Database\Tables;
+use TermSteward\Domain\Operation\InvalidStatusTransition;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\StatusTransitions;
+use TermSteward\Domain\Operation\Taxonomy;
+use TermSteward\Infrastructure\Database\Tables;
 use wpdb;
 
 /**

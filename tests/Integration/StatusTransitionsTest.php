@@ -2,16 +2,16 @@
 /**
  * Operation state transition tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Domain\Operation\InvalidStatusTransition;
-use TaxonomyTidy\Domain\Operation\Status;
-use TaxonomyTidy\Domain\Operation\StatusTransitions;
+use TermSteward\Domain\Operation\InvalidStatusTransition;
+use TermSteward\Domain\Operation\Status;
+use TermSteward\Domain\Operation\StatusTransitions;
 use WP_UnitTestCase;
 
 /**

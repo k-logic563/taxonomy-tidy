@@ -2,16 +2,16 @@
 /**
  * Operation item persistence.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Infrastructure\Persistence;
+namespace TermSteward\Infrastructure\Persistence;
 
-use TaxonomyTidy\Domain\Operation\Action;
-use TaxonomyTidy\Domain\Operation\ItemStatus;
-use TaxonomyTidy\Infrastructure\Database\Tables;
+use TermSteward\Domain\Operation\Action;
+use TermSteward\Domain\Operation\ItemStatus;
+use TermSteward\Infrastructure\Database\Tables;
 use wpdb;
 
 /**

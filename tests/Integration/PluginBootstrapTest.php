@@ -2,19 +2,21 @@
 /**
  * Plugin bootstrap integration tests.
  *
- * @package TaxonomyTidy
+ * @package TermSteward
  */
 
 declare(strict_types=1);
 
-namespace TaxonomyTidy\Tests\Integration;
+namespace TermSteward\Tests\Integration;
 
-use TaxonomyTidy\Infrastructure\Database\Schema;
-use TaxonomyTidy\Lifecycle;
-use TaxonomyTidy\Plugin;
+use TermSteward\Admin\HistoryPage;
+use TermSteward\Admin\PlanController;
+use TermSteward\Infrastructure\Database\Schema;
+use TermSteward\Lifecycle;
+use TermSteward\Plugin;
 use WP_UnitTestCase;
 
-use function TaxonomyTidy\load_translations;
+use function TermSteward\term_steward_load_translations;
 
 /**
  * Verifies installation metadata and bootstrap hooks.
@@ -25,7 +27,7 @@ final class PluginBootstrapTest extends WP_UnitTestCase {
 	 */
 	public function test_plugin_bootstraps_with_valid_headers(): void {
 		$headers = get_file_data(
-			TAXONOMY_TIDY_PLUGIN_FILE,
+			TERM_STEWARD_PLUGIN_FILE,
 			array(
 				'name'        => 'Plugin Name',
 				'version'     => 'Version',
@@ -36,12 +38,17 @@ final class PluginBootstrapTest extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 'Taxonomy Tidy', $headers['name'] );
+		$this->assertSame( 'Term Steward', $headers['name'] );
 		$this->assertSame( '0.1.0', $headers['version'] );
 		$this->assertSame( '6.6', $headers['requiresWP'] );
 		$this->assertSame( '8.2', $headers['requiresPHP'] );
-		$this->assertSame( 'taxonomy-tidy', $headers['textDomain'] );
+		$this->assertSame( 'term-steward', $headers['textDomain'] );
 		$this->assertSame( '/languages', $headers['domainPath'] );
+		$this->assertSame( '0.1.0', TERM_STEWARD_VERSION );
+		$this->assertStringEndsWith( '/term-steward.php', TERM_STEWARD_PLUGIN_FILE );
+		$this->assertStringStartsWith( 'TermSteward\\', Plugin::class );
+		$this->assertFalse( defined( 'TAXONOMY_TIDY_VERSION' ) );
+		$this->assertFalse( class_exists( 'TaxonomyTidy\\Plugin' ) );
 		$this->assertSame(
 			10,
 			has_action( 'admin_menu', array( Plugin::instance()->admin_page(), 'register_menu' ) )
@@ -50,27 +57,39 @@ final class PluginBootstrapTest extends WP_UnitTestCase {
 			10,
 			has_action( 'admin_enqueue_scripts', array( Plugin::instance()->admin_page(), 'enqueue_assets' ) )
 		);
-		$this->assertFalse( has_action( 'wp_ajax_taxonomy_tidy_search_destinations' ) );
-		$this->assertSame( 10, has_action( 'init', 'TaxonomyTidy\\load_translations' ) );
+		$this->assertSame( 10, has_action( 'wp_ajax_term_steward_preview_posts', array( Plugin::instance()->admin_page(), 'preview_posts' ) ) );
+		$this->assertSame( 10, has_action( 'wp_ajax_term_steward_undo_batch', array( Plugin::instance()->admin_page(), 'undo_batch' ) ) );
+		$this->assertSame( 10, has_action( 'wp_ajax_term_steward_history_logs', array( Plugin::instance()->admin_page(), 'history_logs' ) ) );
+		$this->assertFalse( has_action( 'wp_ajax_taxonomy_tidy_preview_posts' ) );
+		$this->assertFalse( has_action( 'wp_ajax_taxonomy_tidy_undo_batch' ) );
+		$this->assertFalse( has_action( 'wp_ajax_taxonomy_tidy_history_logs' ) );
+		$this->assertSame( 'term_steward_plan', PlanController::NONCE_ACTION );
+		$this->assertSame( 'term_steward_nonce', PlanController::NONCE_FIELD );
+		$this->assertSame( 'term_steward_undo', HistoryPage::NONCE_ACTION );
+		$this->assertSame( 'term_steward_undo_nonce', HistoryPage::NONCE_FIELD );
+		$this->assertSame( 10, has_action( 'init', 'TermSteward\\term_steward_load_translations' ) );
+		$this->assertFalse( has_action( 'init', 'TaxonomyTidy\\load_translations' ) );
 	}
 
 	/**
-	 * Admin styles and scripts are limited to the Taxonomy Tidy Tools screen.
+	 * Admin styles and scripts are limited to the Term Steward Tools screen.
 	 */
 	public function test_admin_styles_are_enqueued_only_for_plugin_screen(): void {
 		$page = Plugin::instance()->admin_page();
 
-		wp_dequeue_style( 'taxonomy-tidy-admin' );
-		wp_dequeue_script( 'taxonomy-tidy-admin' );
+		wp_dequeue_style( 'term-steward-admin' );
+		wp_dequeue_script( 'term-steward-admin' );
 		$page->enqueue_assets( 'tools_page_other-plugin' );
+		$this->assertFalse( wp_style_is( 'term-steward-admin', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'term-steward-admin', 'enqueued' ) );
 		$this->assertFalse( wp_style_is( 'taxonomy-tidy-admin', 'enqueued' ) );
 		$this->assertFalse( wp_script_is( 'taxonomy-tidy-admin', 'enqueued' ) );
 
-		$page->enqueue_assets( 'tools_page_taxonomy-tidy' );
-		$this->assertTrue( wp_style_is( 'taxonomy-tidy-admin', 'enqueued' ) );
-		$this->assertTrue( wp_script_is( 'taxonomy-tidy-admin', 'enqueued' ) );
-		wp_dequeue_style( 'taxonomy-tidy-admin' );
-		wp_dequeue_script( 'taxonomy-tidy-admin' );
+		$page->enqueue_assets( 'tools_page_term-steward' );
+		$this->assertTrue( wp_style_is( 'term-steward-admin', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'term-steward-admin', 'enqueued' ) );
+		wp_dequeue_style( 'term-steward-admin' );
+		wp_dequeue_script( 'term-steward-admin' );
 	}
 
 	/**

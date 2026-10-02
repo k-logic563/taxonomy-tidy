@@ -2,7 +2,7 @@
 
 ## 目的と役割分担
 
-この基盤は、Taxonomy Tidyの主要導線をChromiumで再現可能に確認するためのものです。E2E-001〜008は、管理者認証、検索、入力検証、計画、プレビュー、実行、履歴、Undoと、WP-CLIによる保存状態を確認します。
+この基盤は、Term Stewardの主要導線をChromiumで再現可能に確認するためのものです。E2E-001〜008は、管理者認証、検索、入力検証、計画、プレビュー、実行、履歴、Undoと、WP-CLIによる保存状態を確認します。
 
 Playwrightは手動テスト72件の代替ではありません。Safari実機、VoiceOver／NVDAによる実読み上げ、視覚的な品質、全競合・通信障害・互換性マトリクスは、引き続き`docs/MANUAL_TEST_PLAN.md`に従って確認します。
 
@@ -35,14 +35,14 @@ npm run e2e:setup
 | `E2E_ADMIN_USER` | `e2e-admin` | 管理者ユーザー名 |
 | `E2E_ADMIN_PASSWORD` | `e2e-local-password` | ローカル専用パスワード |
 | `E2E_ADMIN_EMAIL` | `e2e-admin@example.test` | 管理者メール |
-| `E2E_COMPOSE_PROJECT` | `taxonomy-tidy-e2e` | 専用Compose project名 |
+| `E2E_COMPOSE_PROJECT` | `term-steward-e2e` | 専用Compose project名 |
 | `E2E_WP_SERVICE` | `wp-cli` | 検証済みWP-CLIサービス名 |
 | `E2E_DB_SERVICE` | `database` | 検証済みDBサービス名 |
 | `E2E_PORT` | `8081` | ホスト側ポート |
 | `E2E_TEST_TIMEOUT` | `60000` | 1テストのtimeout（ms） |
 | `E2E_EXPECT_TIMEOUT` | `10000` | assertion timeout（ms） |
 
-安全のため、fixtureとcleanupは`taxonomy-tidy-e2e`または`taxonomy-tidy-e2e-`で始まるproject名、localhost URL、固定サービス名だけを受け付けます。fixture側でもサイトURL、ローカル環境種別、サイト名を検証します。
+安全のため、fixtureとcleanupは`term-steward-e2e`または`term-steward-e2e-`で始まるproject名、localhost URL、固定サービス名だけを受け付けます。fixture側でもサイトURL、ローカル環境種別、サイト名を検証します。
 
 ## fixture
 

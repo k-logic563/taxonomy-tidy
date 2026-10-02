@@ -9,13 +9,13 @@ export class HistoryPage {
   }
 
   async expectLatest(action: string, status = '完了'): Promise<void> {
-    const first = this.page.locator('.taxonomy-tidy-history-table tbody tr').first();
+    const first = this.page.locator('.term-steward-history-table tbody tr').first();
     await expect(first).toContainText(action);
     await expect(first).toContainText(status);
   }
 
   async openLatest(): Promise<void> {
-    await this.page.locator('.taxonomy-tidy-history-table tbody tr').first().getByRole('link', { name: '詳細' }).click();
+    await this.page.locator('.term-steward-history-table tbody tr').first().getByRole('link', { name: '詳細' }).click();
     await expect(this.page.getByRole('heading', { name: '操作の詳細' })).toBeVisible();
   }
 

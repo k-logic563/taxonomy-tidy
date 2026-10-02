@@ -1,10 +1,10 @@
-# Taxonomy Tidy
+# Term Steward
 
-Taxonomy Tidy は、WordPress 管理画面から標準カテゴリーと標準タグを安全に整理するためのプラグインです。変更前のプレビュー、有界バッチ、操作履歴、対応可能な Undo を通して、意図しない投稿変更を防ぎます。
+Term Steward は、WordPress 管理画面から標準カテゴリーと標準タグを安全に整理するためのプラグインです。変更前のプレビュー、有界バッチ、操作履歴、対応可能な Undo を通して、意図しない投稿変更を防ぎます。
 
 - WordPress.org Contributors: `klogic563`
-- GitHub: [k-logic563/taxonomy-tidy](https://github.com/k-logic563/taxonomy-tidy)
-- サポート・不具合報告: [GitHub Issues](https://github.com/k-logic563/taxonomy-tidy/issues)
+- GitHub: [k-logic563/term-steward](https://github.com/k-logic563/term-steward)
+- サポート・不具合報告: [GitHub Issues](https://github.com/k-logic563/term-steward/issues)
 
 ## MVP でできること
 
@@ -33,14 +33,14 @@ WordPress 6.6.2と7.1.1で検証済みです。WordPress.orgの`Tested up to`に
 ## インストールと有効化
 
 1. WordPress 管理画面の「プラグイン > 新規追加 > プラグインのアップロード」で配布 ZIP を選びます。
-2. インストール完了後に Taxonomy Tidy を有効化します。利用者側で Composer を実行する必要はありません。
-3. 「ツール > Taxonomy Tidy」を開きます。画面の利用にはカテゴリー管理と公開済み投稿を編集する権限が必要です。
+2. インストール完了後に Term Steward を有効化します。利用者側で Composer を実行する必要はありません。
+3. 「ツール > Term Steward」を開きます。画面の利用にはカテゴリー管理と公開済み投稿を編集する権限が必要です。
 
 本番サイトへ導入する前にデータベースとアップロードファイルをバックアップし、最初にステージング環境で確認してください。
 
 ## 基本操作
 
-1. 「ツール > Taxonomy Tidy」を開きます。
+1. 「ツール > Term Steward」を開きます。
 2. 「カテゴリー」または「タグ」タブを開きます。
 3. 対象を選択します。
 4. 処理パネルで名称変更、統合、削除のいずれかを設定します。
@@ -66,7 +66,7 @@ cp .env.example .env
 make setup
 ```
 
-既定の管理画面は `http://localhost:8080/wp-admin/`、Taxonomy Tidy は「ツール > Taxonomy Tidy」にあります。詳しい起動・シード・権限確認手順は [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) を参照してください。
+既定の管理画面は `http://localhost:8080/wp-admin/`、Term Steward は「ツール > Term Steward」にあります。詳しい起動・シード・権限確認手順は [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) を参照してください。
 
 ## テスト
 
@@ -84,7 +84,7 @@ Docker、Compose v2、`rsync`、`zip`、`shasum` が利用できる環境で次�
 make dist
 ```
 
-`dist/taxonomy-tidy-0.1.0.zip` と対応する `.sha256` が生成されます。ビルドは隔離したステージへ本番ファイルだけをコピーし、`composer install --no-dev --prefer-dist --optimize-autoloader` で autoload を作成します。
+`dist/term-steward-0.1.0.zip` と対応する `.sha256` が生成されます。ビルドは隔離したステージへ本番ファイルだけをコピーし、`composer install --no-dev --prefer-dist --optimize-autoloader` で autoload を作成します。
 
 ## プラグインの有効化
 
@@ -92,7 +92,7 @@ make dist
 
 ```sh
 make activate
-docker compose run --rm wp-cli plugin status taxonomy-tidy
+docker compose run --rm wp-cli plugin status term-steward
 ```
 
 ## 安全上の注意
@@ -112,11 +112,12 @@ docker compose run --rm wp-cli plugin status taxonomy-tidy
 - Undo は後から加えられた管理者の変更、削除済み投稿、名前・slug・親カテゴリーの競合を安全側で保持します。
 - プラグインを無効化または WordPress 管理画面から削除しても、操作履歴テーブル、Operation Item テーブル、Change Journal テーブル、DB schema version option はデータベースに残ります。監査記録、中断・復旧情報、再インストール後の履歴確認、誤操作時の復旧情報を保護するためです。
 - 0.1.0 には、これらのデータを完全削除する設定はありません。将来追加する可能性はありますが、現在は実装されていません。
+- Term Steward は独立した`term_steward_*`永続化領域を使用します。旧開発名称に対応するテーブルやoptionは、別プラグインの所有物である可能性があるため、自動移行・読取・更新・削除しません。
 
 ## 不具合報告
 
-再現手順、期待した結果、実際の結果、Taxonomy Tidy・WordPress・PHP・データベース・ブラウザのバージョン、関連する画面のエラー文言を添えてください。パスワード、Cookie、nonce、API キー、個人情報、データベースの完全なダンプは添付しないでください。
+再現手順、期待した結果、実際の結果、Term Steward・WordPress・PHP・データベース・ブラウザのバージョン、関連する画面のエラー文言を添えてください。パスワード、Cookie、nonce、API キー、個人情報、データベースの完全なダンプは添付しないでください。
 
-報告先: [https://github.com/k-logic563/taxonomy-tidy/issues](https://github.com/k-logic563/taxonomy-tidy/issues)
+報告先: [https://github.com/k-logic563/term-steward/issues](https://github.com/k-logic563/term-steward/issues)
 
 開発ツリーそのものは配布成果物ではありません。利用時は `make dist` で生成し、検証済みチェックサムと一致する ZIP を使用してください。
